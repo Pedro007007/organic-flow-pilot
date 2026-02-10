@@ -1,91 +1,47 @@
 
 
-# AI SEO Growth Engine — Phase 1 Buildout Plan
+# Color Scheme Overhaul: Light Blue + Pink Premium Theme
 
-## Architecture Summary
+## Overview
+Replace the current dark purple/magenta theme with a premium dark theme using **light blue** as the primary color and **pink** as the accent, creating a modern gradient aesthetic.
 
-```text
-+----------------------------------+          +-------------------------+
-|     LOVABLE (Control Plane)      |          |   NEXT.JS (Phase 2)     |
-|                                  |          |                         |
-|  Dashboard UI (done)             |   API    |  SSR/ISR blog pages     |
-|  Agent Pipeline (done)           | -------> |  Schema/sitemap         |
-|  Content Pipeline (done)         | webhook  |  Public SEO content     |
-|  Keyword Table (done)            |          |                         |
-|                                  | <------- |                         |
-|  Lovable Cloud:                  |  GSC/GA  |                         |
-|    - Supabase DB                 |  data    |                         |
-|    - Edge Functions              |          |                         |
-|    - Auth                        |          |                         |
-+----------------------------------+          +-------------------------+
-```
+## New Color Palette
 
-## What We Build Now (Phase 1)
+| Role | Current (Purple) | New (Blue-Pink) |
+|------|-----------------|-----------------|
+| Primary | `280 80% 65%` (purple) | `210 100% 68%` (light blue) |
+| Accent | `320 70% 60%` (magenta) | `340 82% 65%` (soft pink) |
+| Background | `270 30% 6%` (dark purple) | `220 30% 6%` (dark navy) |
+| Card | `270 30% 9%` (dark purple) | `220 30% 9%` (dark navy) |
+| Border | `270 25% 16%` | `220 25% 16%` |
+| Muted | `270 25% 12%` | `220 25% 12%` |
+| Success | `152 70% 50%` (green) | stays the same |
+| Warning | `38 92% 60%` (amber) | stays the same |
+| Info | `260 70% 65%` | `210 80% 65%` (matches primary) |
 
-Phase 1 focuses entirely on making the Lovable control plane production-ready with a real backend. Next.js integration comes in Phase 2.
+## Files to Change
 
-### Step 1: Enable Lovable Cloud + Database Schema
+### 1. `src/index.css` -- CSS Variables
+- Update all `:root` HSL values to the new blue-pink palette
+- Update glow variables (`--glow-primary`) to use new blue hue
+- Update sidebar variables to match
+- Update `.text-gradient` to go from blue to pink
 
-Set up Supabase tables for:
-- **keywords** — store discovered keyword opportunities, intent, scores
-- **content_items** — articles with status, metadata, SEO fields, drafts
-- **agent_runs** — log of each agent execution (status, timestamps, results)
-- **performance_snapshots** — periodic GSC/GA data per page
+### 2. `src/components/AnalyticsDashboard.tsx` -- Hardcoded Chart Colors
+- Update `COLORS` array to use blue/pink tones
+- Update `CartesianGrid`, `XAxis`, `YAxis` stroke/fill values
+- Update `Tooltip` background/border colors
+- Update `Line` stroke colors to blue and pink
 
-Add RLS policies so data is secure.
+### 3. `src/components/SidebarNav.tsx` -- Active State
+- Uses `bg-primary/10 text-primary` which will auto-update via CSS variables (no change needed)
 
-### Step 2: Auth + Roles
+### 4. `src/pages/Auth.tsx` -- Hardcoded Colors
+- Check for any hardcoded purple HSL values in the auth page styling
 
-Enable Supabase auth with email login. Add a `profiles` table with role field (admin / operator / viewer). Gate dashboard access behind login.
+No other components need changes since they reference CSS variables (`text-primary`, `bg-card`, etc.) which will automatically pick up the new palette.
 
-### Step 3: Edge Functions for Agent Orchestration
+## Technical Details
 
-Create edge functions that simulate (and later execute) each agent:
-- `keyword-discovery` — accepts GSC data, returns scored opportunities
-- `content-strategy` — takes keyword, returns outline + title options
-- `content-generate` — takes outline, returns draft markdown
-- `seo-optimize` — takes draft, returns meta/schema/slug
-- `publish-webhook` — sends payload to external CMS/Next.js (Phase 2 hook)
-- `monitor-refresh` — checks performance data, flags refresh candidates
-
-Each function logs its run to `agent_runs` table.
-
-### Step 4: Wire Dashboard to Real Data
-
-Replace mock data with Supabase queries:
-- Metrics cards pull from `performance_snapshots`
-- Keyword table pulls from `keywords`
-- Content pipeline pulls from `content_items`
-- Agent pipeline pulls from `agent_runs`
-
-### Step 5: Content Workflow with Approval Gates
-
-Add ability to:
-- View agent-generated content drafts
-- Edit metadata (title, slug, schema)
-- Approve or reject before "publishing"
-- Move content between pipeline stages
-
-### Step 6: Webhook System (Phase 2 Preparation)
-
-Build a generic `publish-webhook` edge function that:
-- Takes approved content + SEO metadata
-- POSTs to a configurable external URL
-- Logs the response
-- This becomes the bridge to Next.js or any CMS
-
-## Phase 2 (Future — Not Built Now)
-
-- Stand up Next.js project on Vercel
-- Create API route to receive content webhooks
-- ISR revalidation on publish
-- GSC API integration for real performance data
-- Feed data back into Lovable dashboard
-
-## Why This Order
-
-1. Backend-first means your dashboard becomes functional, not just visual
-2. Edge functions create the agent API layer that Next.js will consume later
-3. The webhook pattern means you can plug in ANY publishing target — Next.js, WordPress, Webflow, anything
-4. You can demo and sell Phase 1 as a standalone "AI SEO Command Center" before Phase 2 exists
+The key principle: most components use Tailwind utility classes referencing CSS variables (e.g., `text-primary`, `bg-card`), so changing the variables in `index.css` cascades everywhere. Only `AnalyticsDashboard.tsx` has hardcoded HSL strings for Recharts that need manual updates.
 

@@ -1,131 +1,108 @@
 
 
-# Next Phase: Theme, AI Editor, Payments & Team Collaboration
+# Google Search Console OAuth Integration
 
-This phase adds five feature areas: visual theming (dark/light + pink-orange gradient), a rich content editor with AI rewrite, payment history via Stripe, Google Search Console OAuth, and team collaboration with roles.
-
----
-
-## 1. Dark/Light Mode Toggle + Pink-Orange Gradient Theme
-
-Currently the app is dark-only. We'll add a theme switcher and update the background to use a subtle fading pink-to-orange gradient.
-
-**Changes:**
-- Add a light mode `:root` theme in `src/index.css` alongside the existing dark theme
-- Update `--background` in dark mode to use a subtle pink-orange gradient via a CSS class on `body`
-- Add a theme toggle button to the sidebar (`SidebarNav.tsx`) using `next-themes` (already installed)
-- Wrap the app with `ThemeProvider` in `src/App.tsx`
+This feature replaces the manual JSON upload with a proper OAuth flow so the app can automatically pull keyword and performance data from Google Search Console.
 
 ---
 
-## 2. Content Editor with AI Rewrite
+## What You'll Get
 
-Replace the plain `<Textarea>` in `ContentDetail.tsx` with a richer editing experience that includes AI-powered rewrite, expand, and shorten actions.
-
-**Changes:**
-- Create a new edge function `supabase/functions/content-rewrite/index.ts` that calls Lovable AI (Gemini Flash) with the selected text and an action (rewrite/expand/shorten)
-- Update `ContentDetail.tsx` to add a floating toolbar above the textarea with "Rewrite", "Expand", and "Shorten" buttons
-- When clicked, the selected text (or full draft) is sent to the edge function and the response replaces the content
-- Update `supabase/config.toml` to register the new function
+- A "Connect Google Search Console" button in Settings that kicks off Google's OAuth consent flow
+- Automatic storage of OAuth tokens so GSC data can be pulled on-demand or on a schedule
+- A "Sync Now" button to manually trigger a data pull after connecting
+- The existing `gsc-ingest` edge function will be reused for processing the fetched data
 
 ---
 
-## 3. Payment History (Stripe Integration)
+## Prerequisites (You'll Add Later)
 
-Add a payment/billing section to the Settings page so users can view their subscription and payment history.
+This integration requires two secrets from a Google Cloud project:
+- **GSC_CLIENT_ID** -- OAuth 2.0 client ID
+- **GSC_CLIENT_SECRET** -- OAuth 2.0 client secret
 
-**Changes:**
-- Enable the Stripe integration (will prompt for secret key)
-- After Stripe is enabled, implement a billing section with subscription management and payment history display
-- Add a "Billing" nav item to the sidebar
-
----
-
-## 4. Google Search Console OAuth
-
-Currently GSC data is ingested via manual JSON upload. We'll add a proper OAuth flow.
-
-**Changes:**
-- Add a "Connect GSC" button in Settings that initiates Google OAuth
-- Create an edge function `supabase/functions/gsc-oauth/index.ts` to handle the OAuth callback and store refresh tokens
-- Update `gsc-ingest` to use stored credentials for automatic data pulls
-- This requires a Google Cloud project with Search Console API enabled -- we'll need the OAuth client ID and secret as backend secrets
+I'll build everything now and prompt you to add these secrets when you're ready. The UI will show a helpful "not configured" state until then.
 
 ---
 
-## 5. Team Collaboration & Roles
+## Implementation Steps
 
-The `user_roles` table and `has_role` function already exist with `admin`, `operator`, and `viewer` roles. We'll build the UI layer.
+### 1. Database: Store OAuth Tokens
 
-**Changes:**
-- Create `src/components/TeamManagement.tsx` -- a settings sub-page showing team members, their roles, and an invite form
-- Create a database table `team_invites` for pending invitations
-- Add role-based UI guards: viewers see read-only views, operators can edit content, admins can manage team and settings
-- Add a "Team" nav item to the sidebar (visible to admins only)
+Create a new `gsc_connections` table to store per-user refresh tokens and connection status.
 
----
+```text
+Table: gsc_connections
+- id (uuid, PK)
+- user_id (uuid, NOT NULL)
+- refresh_token (text, encrypted at rest)
+- access_token (text, nullable -- cached)
+- token_expires_at (timestamptz, nullable)
+- site_url (text -- the GSC property URL)
+- connected_at (timestamptz)
+- created_at (timestamptz)
 
-## Recommended Sequencing
+RLS: Users can only read/update their own row.
+```
 
-Given the scope, I recommend breaking this into **two batches**:
+### 2. Edge Function: `gsc-oauth`
 
-**Batch 1** (visual + AI -- no external dependencies):
-1. Dark/Light mode toggle + pink-orange gradient background
-2. Content editor with AI rewrite tools
+A new edge function that handles two flows:
 
-**Batch 2** (integrations -- requires secrets/setup):
-3. Stripe payment history
-4. Google Search Console OAuth
-5. Team collaboration UI
+- **POST with `{ action: "get_auth_url" }`** -- Returns the Google OAuth consent URL. The redirect URI points back to the app with a code parameter.
+- **POST with `{ action: "exchange_code", code: "..." }`** -- Exchanges the authorization code for tokens, stores the refresh token in `gsc_connections`, and returns success.
+- **POST with `{ action: "sync" }`** -- Uses the stored refresh token to fetch fresh data from the GSC API, then processes it the same way `gsc-ingest` does (inserting into `performance_snapshots` and `keywords`).
+
+The function reads `GSC_CLIENT_ID` and `GSC_CLIENT_SECRET` from backend secrets.
+
+### 3. Update Settings Page UI
+
+Replace the current static GSC endpoint documentation card with an interactive connection card:
+
+- **Disconnected state**: Shows a "Connect Google Search Console" button
+- **Connecting state**: After clicking, the user is redirected to Google's consent screen. On return, the code is exchanged automatically.
+- **Connected state**: Shows the connected GSC property URL, a "Sync Now" button, and a "Disconnect" option
+- Keep the manual JSON upload info as a fallback/alternative
+
+### 4. Register the Edge Function
+
+Add `gsc-oauth` to `supabase/config.toml` with `verify_jwt = false` (auth handled in code).
 
 ---
 
 ## Technical Details
 
-### Theme System (index.css additions)
-
-A new `.light` class will define light-mode CSS variables. The gradient background applies via a utility class on `<body>`:
-- Dark mode: deep navy base with a subtle radial pink-orange gradient overlay
-- Light mode: clean white/gray with the same pink-orange gradient at reduced opacity
-
-### AI Rewrite Edge Function
+### OAuth Flow
 
 ```text
-POST /functions/v1/content-rewrite
-Body: { text: string, action: "rewrite" | "expand" | "shorten" }
-Response: { result: string }
-```
-
-Uses `LOVABLE_API_KEY` (auto-provisioned) to call `google/gemini-3-flash-preview` with action-specific system prompts.
-
-### Database Changes
-
-```sql
--- Team invites table
-CREATE TABLE public.team_invites (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  invited_by uuid NOT NULL,
-  email text NOT NULL,
-  role app_role NOT NULL DEFAULT 'viewer',
-  status text NOT NULL DEFAULT 'pending',
-  created_at timestamptz DEFAULT now(),
-  accepted_at timestamptz
-);
-ALTER TABLE public.team_invites ENABLE ROW LEVEL SECURITY;
+User clicks "Connect GSC"
+  -> Frontend calls gsc-oauth { action: "get_auth_url" }
+  -> Edge function builds Google OAuth URL with:
+     - scope: https://www.googleapis.com/auth/webmasters.readonly
+     - redirect_uri: {app_origin}/settings?gsc_callback=true
+     - access_type: offline (to get refresh_token)
+  -> User is redirected to Google consent
+  -> Google redirects back with ?code=...
+  -> Frontend detects code param, calls gsc-oauth { action: "exchange_code", code }
+  -> Edge function exchanges code for tokens, stores in gsc_connections
+  -> UI updates to show "Connected"
 ```
 
 ### Files to Create/Modify
 
 | File | Action |
 |------|--------|
-| `src/index.css` | Update -- add light theme vars + gradient background |
-| `src/App.tsx` | Update -- wrap with ThemeProvider |
-| `src/components/SidebarNav.tsx` | Update -- add theme toggle + Team nav |
-| `src/components/ContentDetail.tsx` | Update -- add AI rewrite toolbar |
-| `supabase/functions/content-rewrite/index.ts` | Create |
-| `supabase/functions/gsc-oauth/index.ts` | Create |
-| `src/components/TeamManagement.tsx` | Create |
-| `src/components/SettingsPage.tsx` | Update -- add billing section |
-| `src/pages/Index.tsx` | Update -- add team route |
-| Database migration (team_invites) | Create |
+| Database migration | Create `gsc_connections` table + RLS |
+| `supabase/functions/gsc-oauth/index.ts` | Create -- handles auth URL, code exchange, and sync |
+| `supabase/config.toml` | Update -- register `gsc-oauth` |
+| `src/components/SettingsPage.tsx` | Update -- replace static GSC card with interactive OAuth card |
+| `src/pages/Index.tsx` | Update -- handle `?gsc_callback=true` query param redirect to settings |
+
+### Secrets Needed (later)
+
+Two backend secrets will be requested when you're ready:
+- `GSC_CLIENT_ID`
+- `GSC_CLIENT_SECRET`
+
+These come from the Google Cloud Console under APIs & Services > Credentials > OAuth 2.0 Client ID (Web application type), with the Search Console API enabled.
 

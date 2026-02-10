@@ -152,16 +152,25 @@ const SettingsPage = () => {
         </div>
       </div>
 
-      {/* API Keys Info */}
+      {/* GSC Integration */}
       <div className="rounded-lg border border-border bg-card p-6 space-y-4">
         <div className="flex items-center gap-2">
           <Key className="h-4 w-4 text-primary" />
-          <h3 className="text-sm font-semibold text-foreground">API Keys</h3>
+          <h3 className="text-sm font-semibold text-foreground">Google Search Console</h3>
         </div>
         <p className="text-xs text-muted-foreground">
-          API keys for Google Search Console and other integrations are managed securely in your backend.
-          Contact your admin to update these credentials.
+          Connect your Google Search Console to automatically pull keyword and performance data.
+          You can manually ingest GSC data by calling the <code className="font-mono text-primary/80">gsc-ingest</code> endpoint with your exported JSON.
         </p>
+        <div className="rounded-md bg-muted/50 px-4 py-3">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Endpoint</p>
+          <code className="text-xs font-mono text-foreground break-all">
+            POST /functions/v1/gsc-ingest
+          </code>
+          <p className="text-[10px] text-muted-foreground mt-2">
+            Send a JSON body with <code className="font-mono">rows</code> array containing GSC performance data (keys, clicks, impressions, position, ctr).
+          </p>
+        </div>
       </div>
 
       <Button onClick={handleSave} disabled={saving}>

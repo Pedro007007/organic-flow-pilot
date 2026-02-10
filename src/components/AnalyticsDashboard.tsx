@@ -20,11 +20,11 @@ import {
 } from "recharts";
 
 const COLORS = [
-  "hsl(280, 80%, 65%)",
-  "hsl(320, 70%, 60%)",
+  "hsl(210, 100%, 68%)",
+  "hsl(340, 82%, 65%)",
   "hsl(152, 70%, 50%)",
   "hsl(38, 92%, 60%)",
-  "hsl(260, 70%, 65%)",
+  "hsl(210, 80%, 55%)",
   "hsl(0, 72%, 55%)",
 ];
 
@@ -145,19 +145,19 @@ const AnalyticsDashboard = () => {
           <ChartCard title="Traffic Trend">
             <ResponsiveContainer width="100%" height={260}>
               <LineChart data={trafficTrend}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(270, 25%, 16%)" />
-                <XAxis dataKey="date" tick={{ fontSize: 10, fill: "hsl(275, 15%, 55%)" }} />
-                <YAxis tick={{ fontSize: 10, fill: "hsl(275, 15%, 55%)" }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 25%, 16%)" />
+                <XAxis dataKey="date" tick={{ fontSize: 10, fill: "hsl(215, 15%, 55%)" }} />
+                <YAxis tick={{ fontSize: 10, fill: "hsl(215, 15%, 55%)" }} />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: "hsl(270, 30%, 9%)",
-                    border: "1px solid hsl(270, 25%, 16%)",
+                    backgroundColor: "hsl(220, 30%, 9%)",
+                    border: "1px solid hsl(220, 25%, 16%)",
                     borderRadius: 8,
                     fontSize: 12,
                   }}
                 />
-                <Line type="monotone" dataKey="impressions" stroke="hsl(280, 80%, 65%)" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="clicks" stroke="hsl(320, 70%, 60%)" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="impressions" stroke="hsl(210, 100%, 68%)" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="clicks" stroke="hsl(340, 82%, 65%)" strokeWidth={2} dot={false} />
               </LineChart>
             </ResponsiveContainer>
           </ChartCard>
@@ -174,12 +174,12 @@ const AnalyticsDashboard = () => {
                   ))}
                 </Pie>
                 <Legend
-                  wrapperStyle={{ fontSize: 11, color: "hsl(275, 15%, 55%)" }}
+                  wrapperStyle={{ fontSize: 11, color: "hsl(215, 15%, 55%)" }}
                 />
                 <Tooltip
                   contentStyle={{
-                    backgroundColor: "hsl(270, 30%, 9%)",
-                    border: "1px solid hsl(270, 25%, 16%)",
+                    backgroundColor: "hsl(220, 30%, 9%)",
+                    border: "1px solid hsl(220, 25%, 16%)",
                     borderRadius: 8,
                     fontSize: 12,
                   }}
@@ -195,18 +195,18 @@ const AnalyticsDashboard = () => {
         <ChartCard title="Top Keywords by Position">
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={keywordRankings} layout="vertical" margin={{ left: 20 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(270, 25%, 16%)" />
-              <XAxis type="number" tick={{ fontSize: 10, fill: "hsl(275, 15%, 55%)" }} />
-              <YAxis dataKey="keyword" type="category" tick={{ fontSize: 10, fill: "hsl(275, 15%, 55%)" }} width={140} />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 25%, 16%)" />
+              <XAxis type="number" tick={{ fontSize: 10, fill: "hsl(215, 15%, 55%)" }} />
+              <YAxis dataKey="keyword" type="category" tick={{ fontSize: 10, fill: "hsl(215, 15%, 55%)" }} width={140} />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: "hsl(270, 30%, 9%)",
-                  border: "1px solid hsl(270, 25%, 16%)",
+                  backgroundColor: "hsl(220, 30%, 9%)",
+                  border: "1px solid hsl(220, 25%, 16%)",
                   borderRadius: 8,
                   fontSize: 12,
                 }}
               />
-              <Bar dataKey="impressions" fill="hsl(280, 80%, 65%)" radius={[0, 4, 4, 0]} />
+              <Bar dataKey="impressions" fill="hsl(210, 100%, 68%)" radius={[0, 4, 4, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>

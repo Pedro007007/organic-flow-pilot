@@ -13,7 +13,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Save, Globe, Clock, Key, Mail } from "lucide-react";
+import { Loader2, Save, Globe, Clock, Mail } from "lucide-react";
+import GscConnectionCard from "@/components/GscConnectionCard";
 
 const agentNames = [
   { key: "keyword_discovery", label: "Keyword Discovery" },
@@ -189,25 +190,7 @@ const SettingsPage = () => {
       </div>
 
       {/* GSC Integration */}
-      <div className="rounded-lg border border-border bg-card p-6 space-y-4">
-        <div className="flex items-center gap-2">
-          <Key className="h-4 w-4 text-primary" />
-          <h3 className="text-sm font-semibold text-foreground">Google Search Console</h3>
-        </div>
-        <p className="text-xs text-muted-foreground">
-          Connect your Google Search Console to automatically pull keyword and performance data.
-          You can manually ingest GSC data by calling the <code className="font-mono text-primary/80">gsc-ingest</code> endpoint with your exported JSON.
-        </p>
-        <div className="rounded-md bg-muted/50 px-4 py-3">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground mb-1">Endpoint</p>
-          <code className="text-xs font-mono text-foreground break-all">
-            POST /functions/v1/gsc-ingest
-          </code>
-          <p className="text-[10px] text-muted-foreground mt-2">
-            Send a JSON body with <code className="font-mono">rows</code> array containing GSC performance data (keys, clicks, impressions, position, ctr).
-          </p>
-        </div>
-      </div>
+      <GscConnectionCard />
 
       <Button onClick={handleSave} disabled={saving}>
         {saving ? (

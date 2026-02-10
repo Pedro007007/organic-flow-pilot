@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
-import { ArrowUpRight, ArrowDownRight, Minus, Search, Filter, ArrowUpDown } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { ArrowUpRight, ArrowDownRight, Minus, Search, Filter, ArrowUpDown, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -128,6 +128,14 @@ const KeywordTable = ({ keywords }: KeywordTableProps) => {
           </SelectContent>
         </Select>
         <span className="text-[10px] text-muted-foreground">{filtered.length} results</span>
+        <Button size="sm" variant="ghost" className="h-8 text-xs gap-1.5 ml-auto" onClick={() => {
+          const csv = ["Keyword,Intent,Impressions,Position,CTR,Opportunity,Content Type", ...filtered.map(k => `"${k.keyword}","${k.searchIntent}",${k.impressions},${k.position},${k.ctr},"${k.opportunity}","${k.contentType}"`)].join("\n");
+          const blob = new Blob([csv], { type: "text/csv" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a"); a.href = url; a.download = "keywords.csv"; a.click(); URL.revokeObjectURL(url);
+        }}>
+          <Download className="h-3 w-3" /> Export
+        </Button>
       </div>
 
       <div className="overflow-x-auto">

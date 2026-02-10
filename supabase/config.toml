@@ -17,3 +17,6 @@ verify_jwt = false
 
 [functions.monitor-refresh]
 verify_jwt = false
+
+[functions.send-digest]
+verify_jwt = false

@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { FileText, Plus, Rocket, Loader2, Search, Filter, CheckSquare, Square } from "lucide-react";
+import { FileText, Plus, Rocket, Loader2, Search, Filter, CheckSquare, Square, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -257,6 +257,14 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
         )}
 
         <span className="text-[10px] text-muted-foreground">{filtered.length} items</span>
+        <Button size="sm" variant="ghost" className="h-8 text-xs gap-1.5 ml-auto" onClick={() => {
+          const csv = ["Title,Keyword,Status,Position,Clicks,Last Updated", ...filtered.map(c => `"${c.title}","${c.keyword}","${c.status}",${c.position || ""},${c.clicks || ""},"${c.lastUpdated}"`)].join("\n");
+          const blob = new Blob([csv], { type: "text/csv" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a"); a.href = url; a.download = "content-pipeline.csv"; a.click(); URL.revokeObjectURL(url);
+        }}>
+          <Download className="h-3 w-3" /> Export
+        </Button>
       </div>
 
       <div className="divide-y divide-border/50">

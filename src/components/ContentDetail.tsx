@@ -17,6 +17,9 @@ import {
   FileText,
   ExternalLink,
   Save,
+  Sparkles,
+  Send,
+  Wand2,
 } from "lucide-react";
 
 interface ContentDetailProps {
@@ -41,6 +44,9 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
   const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [optimizing, setOptimizing] = useState(false);
 
   // Local editable state
   const [item, setItem] = useState<any>(null);
@@ -112,12 +118,70 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
     }
   };
 
-  const handleApprove = () => handleStageChange("published");
+  const handleApprove = () => handlePublish();
   const handleReject = () => handleStageChange("discovery");
+
+  const handleGenerate = async () => {
+    setGenerating(true);
+    try {
+      const res = await supabase.functions.invoke("content-generate", {
+        body: { contentItemId: item.id, keyword: item.keyword, title: item.title },
+      });
+      if (res.error) throw res.error;
+      const content = res.data?.content || "";
+      setDraftContent(content);
+      setItem((prev: any) => ({ ...prev, status: "writing" }));
+      toast({ title: "Content generated", description: `${content.length} characters written` });
+      queryClient.invalidateQueries({ queryKey: ["content_items"] });
+    } catch (err: any) {
+      toast({ title: "Generation failed", description: err.message, variant: "destructive" });
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const handleOptimize = async () => {
+    setOptimizing(true);
+    try {
+      const res = await supabase.functions.invoke("seo-optimize", {
+        body: { contentItemId: item.id },
+      });
+      if (res.error) throw res.error;
+      const d = res.data;
+      if (d.seo_title) setSeoTitle(d.seo_title);
+      if (d.meta_description) setMetaDescription(d.meta_description);
+      if (d.slug) setSlug(d.slug);
+      setItem((prev: any) => ({ ...prev, status: "optimizing" }));
+      toast({ title: "SEO optimized", description: "Meta tags and slug updated" });
+      queryClient.invalidateQueries({ queryKey: ["content_items"] });
+    } catch (err: any) {
+      toast({ title: "Optimization failed", description: err.message, variant: "destructive" });
+    } finally {
+      setOptimizing(false);
+    }
+  };
+
+  const handlePublish = async () => {
+    setPublishing(true);
+    try {
+      const res = await supabase.functions.invoke("publish-webhook", {
+        body: { contentItemId: item.id },
+      });
+      if (res.error) throw res.error;
+      setItem((prev: any) => ({ ...prev, status: "published", url: res.data?.url }));
+      toast({ title: "Published!", description: res.data?.url });
+      queryClient.invalidateQueries({ queryKey: ["content_items"] });
+    } catch (err: any) {
+      toast({ title: "Publish failed", description: err.message, variant: "destructive" });
+    } finally {
+      setPublishing(false);
+    }
+  };
 
   const currentStageIndex = item ? stages.indexOf(item.status) : -1;
   const canAdvance = currentStageIndex >= 0 && currentStageIndex < stages.length - 1;
   const nextStage = canAdvance ? stages[currentStageIndex + 1] : null;
+  const isBusy = saving || generating || optimizing || publishing;
 
   if (loading || !item) {
     return (
@@ -136,24 +200,38 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
           Back to pipeline
         </button>
         <div className="flex items-center gap-2">
-          <Button size="sm" variant="outline" onClick={handleSave} disabled={saving}>
+          {/* AI Actions */}
+          {(item.status === "discovery" || item.status === "strategy") && (
+            <Button size="sm" variant="outline" onClick={handleGenerate} disabled={isBusy} className="border-primary/30 text-primary hover:bg-primary/10">
+              {generating ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Sparkles className="mr-1.5 h-3.5 w-3.5" />}
+              Generate Content
+            </Button>
+          )}
+          {item.status === "writing" && (
+            <Button size="sm" variant="outline" onClick={handleOptimize} disabled={isBusy} className="border-accent/30 text-accent hover:bg-accent/10">
+              {optimizing ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Wand2 className="mr-1.5 h-3.5 w-3.5" />}
+              Optimize SEO
+            </Button>
+          )}
+          {item.status === "optimizing" && (
+            <Button size="sm" onClick={handlePublish} disabled={isBusy} className="bg-success hover:bg-success/90 text-success-foreground">
+              {publishing ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Send className="mr-1.5 h-3.5 w-3.5" />}
+              Publish
+            </Button>
+          )}
+
+          <Button size="sm" variant="outline" onClick={handleSave} disabled={isBusy}>
             {saving ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Save className="mr-1.5 h-3.5 w-3.5" />}
             Save
           </Button>
           {item.status !== "published" && (
-            <Button size="sm" variant="destructive" onClick={handleReject} disabled={saving}>
+            <Button size="sm" variant="destructive" onClick={handleReject} disabled={isBusy}>
               <XCircle className="mr-1.5 h-3.5 w-3.5" />
               Reject
             </Button>
           )}
-          {item.status === "optimizing" && (
-            <Button size="sm" onClick={handleApprove} disabled={saving}>
-              <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" />
-              Approve & Publish
-            </Button>
-          )}
           {canAdvance && item.status !== "optimizing" && nextStage && (
-            <Button size="sm" onClick={() => handleStageChange(nextStage)} disabled={saving}>
+            <Button size="sm" onClick={() => handleStageChange(nextStage)} disabled={isBusy}>
               <ChevronRight className="mr-1.5 h-3.5 w-3.5" />
               Move to {stageConfig[nextStage]?.label}
             </Button>

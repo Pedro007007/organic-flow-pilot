@@ -7,7 +7,9 @@ import ContentPipeline from "@/components/ContentPipeline";
 import ContentDetail from "@/components/ContentDetail";
 import SettingsPage from "@/components/SettingsPage";
 import AnalyticsDashboard from "@/components/AnalyticsDashboard";
+import NotificationBell from "@/components/NotificationBell";
 import { usePerformanceMetrics, useKeywords, useContentItems, useAgentRuns } from "@/hooks/useDashboardData";
+import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import { mockMetrics, mockAgents, mockKeywords, mockContent } from "@/data/mockData";
 import { Activity, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
@@ -28,6 +30,9 @@ const Index = () => {
   const displayAgents = agents?.length ? agents : mockAgents;
 
   const isLoading = metricsLoading || keywordsLoading || contentLoading || agentsLoading;
+
+  // Enable realtime subscriptions for auto-refresh
+  useRealtimeSubscription();
 
   const handleSelectContent = (id: string) => {
     setSelectedContentId(id);
@@ -63,12 +68,15 @@ const Index = () => {
                 Real-time data from your AI SEO growth engine
               </p>
             </div>
-            <button
-              onClick={signOut}
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Sign out
-            </button>
+            <div className="flex items-center gap-2">
+              <NotificationBell />
+              <button
+                onClick={signOut}
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Sign out
+              </button>
+            </div>
           </div>
         )}
 

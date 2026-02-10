@@ -1,4 +1,4 @@
-import { FileText, ExternalLink } from "lucide-react";
+import { FileText } from "lucide-react";
 import type { ContentItem } from "@/types/seo";
 
 const statusConfig: Record<string, { label: string; color: string; bg: string }> = {
@@ -12,9 +12,10 @@ const statusConfig: Record<string, { label: string; color: string; bg: string }>
 
 interface ContentPipelineProps {
   content: ContentItem[];
+  onSelectItem?: (id: string) => void;
 }
 
-const ContentPipeline = ({ content }: ContentPipelineProps) => {
+const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
   return (
     <div className="rounded-lg border border-border bg-card">
       <div className="border-b border-border px-5 py-4">
@@ -25,7 +26,11 @@ const ContentPipeline = ({ content }: ContentPipelineProps) => {
         {content.map((item) => {
           const config = statusConfig[item.status];
           return (
-            <div key={item.id} className="flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-muted/30">
+            <div
+              key={item.id}
+              onClick={() => onSelectItem?.(item.id)}
+              className={`flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-muted/30 ${onSelectItem ? "cursor-pointer" : ""}`}
+            >
               <FileText className="h-4 w-4 text-muted-foreground shrink-0" />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-foreground truncate">{item.title}</p>
@@ -53,6 +58,11 @@ const ContentPipeline = ({ content }: ContentPipelineProps) => {
             </div>
           );
         })}
+        {content.length === 0 && (
+          <div className="px-5 py-8 text-center">
+            <p className="text-sm text-muted-foreground">No content items yet. Run the Content Strategy agent to get started.</p>
+          </div>
+        )}
       </div>
     </div>
   );

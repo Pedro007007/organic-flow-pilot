@@ -1,1 +1,19 @@
 project_id = "lakadtgzlvbatnqvazkn"
+
+[functions.keyword-discovery]
+verify_jwt = false
+
+[functions.content-strategy]
+verify_jwt = false
+
+[functions.content-generate]
+verify_jwt = false
+
+[functions.seo-optimize]
+verify_jwt = false
+
+[functions.publish-webhook]
+verify_jwt = false
+
+[functions.monitor-refresh]
+verify_jwt = false

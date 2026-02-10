@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.send-digest]
 verify_jwt = false
+
+[functions.content-rewrite]
+verify_jwt = false

@@ -9,10 +9,12 @@ import {
   Zap,
   CalendarDays,
   Menu,
-  X,
+  Sun,
+  Moon,
 } from "lucide-react";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useTheme } from "next-themes";
 
 interface SidebarNavProps {
   activeSection: string;
@@ -30,6 +32,7 @@ const navItems = [
 ];
 
 function SidebarContent({ activeSection, onNavigate }: SidebarNavProps) {
+  const { theme, setTheme } = useTheme();
   return (
     <>
       <div className="flex items-center gap-2.5 border-b border-border px-5 py-4">
@@ -61,7 +64,14 @@ function SidebarContent({ activeSection, onNavigate }: SidebarNavProps) {
           );
         })}
       </nav>
-      <div className="border-t border-border px-4 py-3">
+      <div className="border-t border-border px-4 py-3 space-y-3">
+        <button
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
+        >
+          {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          {theme === "dark" ? "Light Mode" : "Dark Mode"}
+        </button>
         <div className="rounded-md bg-muted/50 px-3 py-2">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Status</p>
           <div className="mt-1 flex items-center gap-1.5">

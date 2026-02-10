@@ -20,6 +20,9 @@ import {
   Sparkles,
   Send,
   Wand2,
+  RefreshCw,
+  Maximize2,
+  Minimize2,
 } from "lucide-react";
 import ContentPerformanceChart from "@/components/ContentPerformanceChart";
 
@@ -56,6 +59,7 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
   const [slug, setSlug] = useState("");
   const [draftContent, setDraftContent] = useState("");
   const [fetched, setFetched] = useState(false);
+  const [rewriting, setRewriting] = useState<string | false>(false);
 
   // Fetch on mount
   if (!fetched) {
@@ -179,6 +183,25 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
     }
   };
 
+  const handleRewrite = async (action: "rewrite" | "expand" | "shorten") => {
+    if (!draftContent.trim()) return;
+    setRewriting(action);
+    try {
+      const res = await supabase.functions.invoke("content-rewrite", {
+        body: { text: draftContent, action },
+      });
+      if (res.error) throw res.error;
+      if (res.data?.result) {
+        setDraftContent(res.data.result);
+        toast({ title: `Content ${action}${action === "rewrite" ? "ten" : action === "expand" ? "ed" : "ed"}` });
+      }
+    } catch (err: any) {
+      toast({ title: "AI rewrite failed", description: err.message, variant: "destructive" });
+    } finally {
+      setRewriting(false);
+    }
+  };
+
   const currentStageIndex = item ? stages.indexOf(item.status) : -1;
   const canAdvance = currentStageIndex >= 0 && currentStageIndex < stages.length - 1;
   const nextStage = canAdvance ? stages[currentStageIndex + 1] : null;
@@ -269,9 +292,43 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         {/* Draft preview */}
         <div className="lg:col-span-2 rounded-lg border border-border bg-card">
-          <div className="border-b border-border px-5 py-4 flex items-center gap-2">
-            <FileText className="h-4 w-4 text-primary" />
-            <h2 className="text-sm font-semibold text-foreground">Content Draft</h2>
+          <div className="border-b border-border px-5 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <FileText className="h-4 w-4 text-primary" />
+              <h2 className="text-sm font-semibold text-foreground">Content Draft</h2>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => handleRewrite("rewrite")}
+                disabled={!!rewriting || !draftContent.trim()}
+                className="h-7 px-2.5 text-xs"
+              >
+                {rewriting === "rewrite" ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <RefreshCw className="mr-1 h-3 w-3" />}
+                Rewrite
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => handleRewrite("expand")}
+                disabled={!!rewriting || !draftContent.trim()}
+                className="h-7 px-2.5 text-xs"
+              >
+                {rewriting === "expand" ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Maximize2 className="mr-1 h-3 w-3" />}
+                Expand
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => handleRewrite("shorten")}
+                disabled={!!rewriting || !draftContent.trim()}
+                className="h-7 px-2.5 text-xs"
+              >
+                {rewriting === "shorten" ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Minimize2 className="mr-1 h-3 w-3" />}
+                Shorten
+              </Button>
+            </div>
           </div>
           <div className="p-5">
             <Textarea

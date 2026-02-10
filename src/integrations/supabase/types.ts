@@ -14,16 +14,258 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      agent_runs: {
+        Row: {
+          agent_description: string | null
+          agent_name: string
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          items_processed: number | null
+          result: Json | null
+          started_at: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          agent_description?: string | null
+          agent_name: string
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          items_processed?: number | null
+          result?: Json | null
+          started_at?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          agent_description?: string | null
+          agent_name?: string
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          items_processed?: number | null
+          result?: Json | null
+          started_at?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      content_items: {
+        Row: {
+          author: string
+          clicks: number | null
+          created_at: string
+          draft_content: string | null
+          id: string
+          impressions: number | null
+          keyword: string
+          meta_description: string | null
+          position: number | null
+          schema_types: string[] | null
+          seo_title: string | null
+          slug: string | null
+          status: string
+          title: string
+          updated_at: string
+          url: string | null
+          user_id: string
+        }
+        Insert: {
+          author?: string
+          clicks?: number | null
+          created_at?: string
+          draft_content?: string | null
+          id?: string
+          impressions?: number | null
+          keyword: string
+          meta_description?: string | null
+          position?: number | null
+          schema_types?: string[] | null
+          seo_title?: string | null
+          slug?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          url?: string | null
+          user_id: string
+        }
+        Update: {
+          author?: string
+          clicks?: number | null
+          created_at?: string
+          draft_content?: string | null
+          id?: string
+          impressions?: number | null
+          keyword?: string
+          meta_description?: string | null
+          position?: number | null
+          schema_types?: string[] | null
+          seo_title?: string | null
+          slug?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          url?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      keywords: {
+        Row: {
+          clicks: number
+          content_type: string
+          created_at: string
+          ctr: number
+          id: string
+          impressions: number
+          keyword: string
+          notes: string | null
+          opportunity: string
+          position: number
+          search_intent: string
+          supporting_keywords: string[] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          clicks?: number
+          content_type?: string
+          created_at?: string
+          ctr?: number
+          id?: string
+          impressions?: number
+          keyword: string
+          notes?: string | null
+          opportunity?: string
+          position?: number
+          search_intent?: string
+          supporting_keywords?: string[] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          clicks?: number
+          content_type?: string
+          created_at?: string
+          ctr?: number
+          id?: string
+          impressions?: number
+          keyword?: string
+          notes?: string | null
+          opportunity?: string
+          position?: number
+          search_intent?: string
+          supporting_keywords?: string[] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      performance_snapshots: {
+        Row: {
+          change: number
+          change_label: string
+          created_at: string
+          id: string
+          label: string
+          page_url: string | null
+          snapshot_date: string
+          user_id: string
+          value: string
+        }
+        Insert: {
+          change?: number
+          change_label?: string
+          created_at?: string
+          id?: string
+          label: string
+          page_url?: string | null
+          snapshot_date?: string
+          user_id: string
+          value: string
+        }
+        Update: {
+          change?: number
+          change_label?: string
+          created_at?: string
+          id?: string
+          label?: string
+          page_url?: string | null
+          snapshot_date?: string
+          user_id?: string
+          value?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "operator" | "viewer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +392,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "operator", "viewer"],
+    },
   },
 } as const

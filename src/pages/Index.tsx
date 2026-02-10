@@ -5,6 +5,7 @@ import AgentPipeline from "@/components/AgentPipeline";
 import KeywordTable from "@/components/KeywordTable";
 import ContentPipeline from "@/components/ContentPipeline";
 import ContentDetail from "@/components/ContentDetail";
+import ContentCalendar from "@/components/ContentCalendar";
 import SettingsPage from "@/components/SettingsPage";
 import AnalyticsDashboard from "@/components/AnalyticsDashboard";
 import NotificationBell from "@/components/NotificationBell";
@@ -61,6 +62,7 @@ const Index = () => {
                   {activeSection === "agents" && "Agent Pipeline"}
                   {activeSection === "analytics" && "Analytics"}
                   {activeSection === "settings" && "Settings"}
+                  {activeSection === "calendar" && "Content Calendar"}
                 </h1>
                 {isLoading && <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />}
               </div>
@@ -115,6 +117,10 @@ const Index = () => {
 
         {activeSection === "agents" && (
           <AgentPipeline agents={displayAgents} />
+        )}
+
+        {activeSection === "calendar" && (
+          <ContentCalendar content={displayContent} onSelectItem={handleSelectContent} />
         )}
 
         {activeSection === "analytics" && <AnalyticsDashboard />}

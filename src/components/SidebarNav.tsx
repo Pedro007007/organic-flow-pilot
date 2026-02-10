@@ -6,6 +6,7 @@ import {
   BarChart3,
   Settings,
   Zap,
+  CalendarDays,
 } from "lucide-react";
 
 interface SidebarNavProps {
@@ -17,6 +18,7 @@ const navItems = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { id: "keywords", label: "Keywords", icon: Search },
   { id: "content", label: "Content", icon: FileText },
+  { id: "calendar", label: "Calendar", icon: CalendarDays },
   { id: "agents", label: "Agents", icon: Bot },
   { id: "analytics", label: "Analytics", icon: BarChart3 },
   { id: "settings", label: "Settings", icon: Settings },

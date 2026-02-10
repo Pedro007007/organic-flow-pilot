@@ -21,6 +21,7 @@ import {
   Send,
   Wand2,
 } from "lucide-react";
+import ContentPerformanceChart from "@/components/ContentPerformanceChart";
 
 interface ContentDetailProps {
   contentId: string;
@@ -357,6 +358,11 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
           </div>
         </div>
       </div>
+
+      {/* Performance Chart */}
+      {(item.status === "published" || item.status === "monitoring") && (
+        <ContentPerformanceChart contentId={contentId} keyword={item.keyword} />
+      )}
     </div>
   );
 };

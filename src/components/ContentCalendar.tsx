@@ -1,6 +1,9 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { ChevronLeft, ChevronRight, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 import type { ContentItem } from "@/types/seo";
 
 const statusColors: Record<string, string> = {
@@ -21,12 +24,16 @@ const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 const ContentCalendar = ({ content, onSelectItem }: ContentCalendarProps) => {
   const [currentDate, setCurrentDate] = useState(new Date());
+  const [dragItemId, setDragItemId] = useState<string | null>(null);
+  const [dragOverDate, setDragOverDate] = useState<string | null>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const year = currentDate.getFullYear();
   const month = currentDate.getMonth();
 
   const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const firstDayOfWeek = (new Date(year, month, 1).getDay() + 6) % 7; // Mon = 0
+  const firstDayOfWeek = (new Date(year, month, 1).getDay() + 6) % 7;
 
   const contentByDate = useMemo(() => {
     const map: Record<string, ContentItem[]> = {};
@@ -44,22 +51,64 @@ const ContentCalendar = ({ content, onSelectItem }: ContentCalendarProps) => {
 
   const monthName = currentDate.toLocaleString("default", { month: "long", year: "numeric" });
 
+  const handleDragStart = useCallback((e: React.DragEvent, itemId: string) => {
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", itemId);
+    setDragItemId(itemId);
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent, dateStr: string) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    setDragOverDate(dateStr);
+  }, []);
+
+  const handleDragLeave = useCallback(() => {
+    setDragOverDate(null);
+  }, []);
+
+  const handleDrop = useCallback(async (e: React.DragEvent, targetDate: string) => {
+    e.preventDefault();
+    setDragOverDate(null);
+    const itemId = e.dataTransfer.getData("text/plain");
+    if (!itemId) return;
+    setDragItemId(null);
+
+    const { error } = await supabase
+      .from("content_items")
+      .update({ updated_at: `${targetDate}T12:00:00Z` })
+      .eq("id", itemId);
+
+    if (error) {
+      toast({ title: "Reschedule failed", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Content rescheduled", description: `Moved to ${targetDate}` });
+      queryClient.invalidateQueries({ queryKey: ["content_items"] });
+    }
+  }, [toast, queryClient]);
+
   const cells = [];
-  // Empty cells before first day
   for (let i = 0; i < firstDayOfWeek; i++) {
     cells.push(<div key={`empty-${i}`} className="min-h-[80px] border border-border/30 bg-muted/10 rounded-md" />);
   }
-  // Day cells
   for (let day = 1; day <= daysInMonth; day++) {
     const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
     const items = contentByDate[dateStr] || [];
     const isToday = dateStr === new Date().toISOString().split("T")[0];
+    const isDragTarget = dragOverDate === dateStr;
 
     cells.push(
       <div
         key={day}
+        onDragOver={(e) => handleDragOver(e, dateStr)}
+        onDragLeave={handleDragLeave}
+        onDrop={(e) => handleDrop(e, dateStr)}
         className={`min-h-[80px] border rounded-md p-1.5 transition-colors ${
-          isToday ? "border-primary/40 bg-primary/5" : "border-border/30 bg-card"
+          isDragTarget
+            ? "border-primary bg-primary/10 ring-1 ring-primary/30"
+            : isToday
+            ? "border-primary/40 bg-primary/5"
+            : "border-border/30 bg-card"
         }`}
       >
         <span className={`text-[10px] font-semibold ${isToday ? "text-primary" : "text-muted-foreground"}`}>
@@ -69,8 +118,12 @@ const ContentCalendar = ({ content, onSelectItem }: ContentCalendarProps) => {
           {items.slice(0, 3).map((item) => (
             <button
               key={item.id}
+              draggable
+              onDragStart={(e) => handleDragStart(e, item.id)}
               onClick={() => onSelectItem?.(item.id)}
-              className={`w-full text-left rounded px-1 py-0.5 border text-[9px] font-medium truncate ${statusColors[item.status] || "bg-muted text-muted-foreground border-border"}`}
+              className={`w-full text-left rounded px-1 py-0.5 border text-[9px] font-medium truncate cursor-grab active:cursor-grabbing ${
+                dragItemId === item.id ? "opacity-50" : ""
+              } ${statusColors[item.status] || "bg-muted text-muted-foreground border-border"}`}
             >
               {item.title}
             </button>
@@ -89,6 +142,7 @@ const ContentCalendar = ({ content, onSelectItem }: ContentCalendarProps) => {
         <div className="flex items-center gap-2">
           <FileText className="h-4 w-4 text-primary" />
           <h2 className="text-sm font-semibold text-foreground">Content Calendar</h2>
+          <span className="text-[10px] text-muted-foreground ml-2">Drag items to reschedule</span>
         </div>
         <div className="flex items-center gap-2">
           <Button size="sm" variant="ghost" onClick={prevMonth} className="h-7 w-7 p-0">

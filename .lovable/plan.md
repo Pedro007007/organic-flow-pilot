@@ -1,144 +1,131 @@
 
-# Next Phase: Polish, Notifications, and User Experience
 
-Now that the core pipeline, calendar, analytics, bulk actions, and agent triggers are all built, the next phase focuses on rounding out the platform with quality-of-life improvements and the remaining notification feature.
+# Next Phase: Theme, AI Editor, Payments & Team Collaboration
 
----
-
-## 1. In-App Notification Triggers from Agents
-
-Currently the `notifications` table and `useNotifications` hook exist, but nothing writes notifications. We'll add automatic notification creation when:
-
-- An agent run completes or fails (insert from edge functions)
-- Content moves to "published" status
-- A content item is rejected (moved back to discovery)
-
-**Changes:**
-- Create a database trigger on `agent_runs` that inserts a notification row on status change to `completed` or `error`
-- Create a database trigger on `content_items` that fires a notification when `status` changes to `published`
-- Update `NotificationBell` to show richer notification types with icons per category
+This phase adds five feature areas: visual theming (dark/light + pink-orange gradient), a rich content editor with AI rewrite, payment history via Stripe, Google Search Console OAuth, and team collaboration with roles.
 
 ---
 
-## 2. Email Notifications (Optional Digest)
+## 1. Dark/Light Mode Toggle + Pink-Orange Gradient Theme
 
-Add an edge function `send-digest` that:
-- Queries recent agent runs, new published content, and ranking changes from the last 24h
-- Formats a summary email
-- Sends via Lovable AI (no external email service needed -- uses a simple webhook or logs the digest for now)
-- Can be scheduled daily from the Settings page
+Currently the app is dark-only. We'll add a theme switcher and update the background to use a subtle fading pink-to-orange gradient.
 
 **Changes:**
-- New edge function: `supabase/functions/send-digest/index.ts`
-- Add a "Daily Digest" toggle in Settings page
+- Add a light mode `:root` theme in `src/index.css` alongside the existing dark theme
+- Update `--background` in dark mode to use a subtle pink-orange gradient via a CSS class on `body`
+- Add a theme toggle button to the sidebar (`SidebarNav.tsx`) using `next-themes` (already installed)
+- Wrap the app with `ThemeProvider` in `src/App.tsx`
 
 ---
 
-## 3. Dashboard Welcome & Empty States
+## 2. Content Editor with AI Rewrite
 
-Improve the first-run experience:
-- Show a welcome card on the dashboard when there are zero content items, guiding the user to create their first piece
-- Add empty state illustrations/messages to Calendar, Analytics, and Keywords pages
+Replace the plain `<Textarea>` in `ContentDetail.tsx` with a richer editing experience that includes AI-powered rewrite, expand, and shorten actions.
 
 **Changes:**
-- Update `Index.tsx` dashboard section with a conditional welcome card
-- Add empty states to `ContentCalendar`, `AnalyticsDashboard`, `KeywordTable`
+- Create a new edge function `supabase/functions/content-rewrite/index.ts` that calls Lovable AI (Gemini Flash) with the selected text and an action (rewrite/expand/shorten)
+- Update `ContentDetail.tsx` to add a floating toolbar above the textarea with "Rewrite", "Expand", and "Shorten" buttons
+- When clicked, the selected text (or full draft) is sent to the edge function and the response replaces the content
+- Update `supabase/config.toml` to register the new function
 
 ---
 
-## 4. Mobile Responsive Sidebar
+## 3. Payment History (Stripe Integration)
 
-The sidebar is currently fixed at 224px (`ml-56`). On smaller screens it overlaps or is unusable.
-
-- Add a collapsible hamburger menu for mobile
-- Use a Sheet/Drawer for the sidebar on screens < 768px
-- Keep the sidebar persistent on desktop
+Add a payment/billing section to the Settings page so users can view their subscription and payment history.
 
 **Changes:**
-- Update `SidebarNav.tsx` with mobile toggle
-- Update `Index.tsx` layout to handle responsive sidebar
+- Enable the Stripe integration (will prompt for secret key)
+- After Stripe is enabled, implement a billing section with subscription management and payment history display
+- Add a "Billing" nav item to the sidebar
 
 ---
 
-## 5. Content Export (CSV)
+## 4. Google Search Console OAuth
 
-Allow users to export their content pipeline and keyword data as CSV files for reporting.
+Currently GSC data is ingested via manual JSON upload. We'll add a proper OAuth flow.
 
 **Changes:**
-- Add "Export CSV" button to `ContentPipeline` and `KeywordTable`
-- Simple client-side CSV generation and download
+- Add a "Connect GSC" button in Settings that initiates Google OAuth
+- Create an edge function `supabase/functions/gsc-oauth/index.ts` to handle the OAuth callback and store refresh tokens
+- Update `gsc-ingest` to use stored credentials for automatic data pulls
+- This requires a Google Cloud project with Search Console API enabled -- we'll need the OAuth client ID and secret as backend secrets
+
+---
+
+## 5. Team Collaboration & Roles
+
+The `user_roles` table and `has_role` function already exist with `admin`, `operator`, and `viewer` roles. We'll build the UI layer.
+
+**Changes:**
+- Create `src/components/TeamManagement.tsx` -- a settings sub-page showing team members, their roles, and an invite form
+- Create a database table `team_invites` for pending invitations
+- Add role-based UI guards: viewers see read-only views, operators can edit content, admins can manage team and settings
+- Add a "Team" nav item to the sidebar (visible to admins only)
+
+---
+
+## Recommended Sequencing
+
+Given the scope, I recommend breaking this into **two batches**:
+
+**Batch 1** (visual + AI -- no external dependencies):
+1. Dark/Light mode toggle + pink-orange gradient background
+2. Content editor with AI rewrite tools
+
+**Batch 2** (integrations -- requires secrets/setup):
+3. Stripe payment history
+4. Google Search Console OAuth
+5. Team collaboration UI
 
 ---
 
 ## Technical Details
 
-### Database Migrations
+### Theme System (index.css additions)
+
+A new `.light` class will define light-mode CSS variables. The gradient background applies via a utility class on `<body>`:
+- Dark mode: deep navy base with a subtle radial pink-orange gradient overlay
+- Light mode: clean white/gray with the same pink-orange gradient at reduced opacity
+
+### AI Rewrite Edge Function
+
+```text
+POST /functions/v1/content-rewrite
+Body: { text: string, action: "rewrite" | "expand" | "shorten" }
+Response: { result: string }
+```
+
+Uses `LOVABLE_API_KEY` (auto-provisioned) to call `google/gemini-3-flash-preview` with action-specific system prompts.
+
+### Database Changes
 
 ```sql
--- Trigger function: notify on agent run completion
-CREATE OR REPLACE FUNCTION notify_agent_completion()
-RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public' AS $$
-BEGIN
-  IF NEW.status IN ('completed', 'error') AND (OLD.status IS NULL OR OLD.status != NEW.status) THEN
-    INSERT INTO notifications (user_id, type, title, message, metadata)
-    VALUES (
-      NEW.user_id,
-      CASE WHEN NEW.status = 'completed' THEN 'agent_complete' ELSE 'agent_error' END,
-      NEW.agent_name || ' ' || NEW.status,
-      COALESCE(NEW.error_message, 'Processed ' || COALESCE(NEW.items_processed, 0) || ' items'),
-      jsonb_build_object('agent_run_id', NEW.id, 'agent_name', NEW.agent_name)
-    );
-  END IF;
-  RETURN NEW;
-END;
-$$;
-
-CREATE TRIGGER trg_agent_run_notify
-  AFTER UPDATE ON agent_runs
-  FOR EACH ROW EXECUTE FUNCTION notify_agent_completion();
-
--- Trigger function: notify on content published
-CREATE OR REPLACE FUNCTION notify_content_published()
-RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public' AS $$
-BEGIN
-  IF NEW.status = 'published' AND (OLD.status IS NULL OR OLD.status != 'published') THEN
-    INSERT INTO notifications (user_id, type, title, message, metadata)
-    VALUES (
-      NEW.user_id,
-      'content_published',
-      'Content Published: ' || NEW.title,
-      COALESCE(NEW.url, NEW.slug),
-      jsonb_build_object('content_id', NEW.id)
-    );
-  END IF;
-  RETURN NEW;
-END;
-$$;
-
-CREATE TRIGGER trg_content_published_notify
-  AFTER UPDATE ON content_items
-  FOR EACH ROW EXECUTE FUNCTION notify_content_published();
+-- Team invites table
+CREATE TABLE public.team_invites (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  invited_by uuid NOT NULL,
+  email text NOT NULL,
+  role app_role NOT NULL DEFAULT 'viewer',
+  status text NOT NULL DEFAULT 'pending',
+  created_at timestamptz DEFAULT now(),
+  accepted_at timestamptz
+);
+ALTER TABLE public.team_invites ENABLE ROW LEVEL SECURITY;
 ```
 
 ### Files to Create/Modify
 
 | File | Action |
 |------|--------|
-| Database migration (triggers above) | Create |
-| `supabase/functions/send-digest/index.ts` | Create |
-| `src/components/NotificationBell.tsx` | Update - richer notification display |
-| `src/components/SettingsPage.tsx` | Update - add digest toggle |
-| `src/components/SidebarNav.tsx` | Update - mobile responsive |
-| `src/pages/Index.tsx` | Update - welcome card, responsive layout |
-| `src/components/ContentPipeline.tsx` | Update - export CSV button |
-| `src/components/KeywordTable.tsx` | Update - export CSV button |
-| `src/components/ContentCalendar.tsx` | Update - better empty state |
+| `src/index.css` | Update -- add light theme vars + gradient background |
+| `src/App.tsx` | Update -- wrap with ThemeProvider |
+| `src/components/SidebarNav.tsx` | Update -- add theme toggle + Team nav |
+| `src/components/ContentDetail.tsx` | Update -- add AI rewrite toolbar |
+| `supabase/functions/content-rewrite/index.ts` | Create |
+| `supabase/functions/gsc-oauth/index.ts` | Create |
+| `src/components/TeamManagement.tsx` | Create |
+| `src/components/SettingsPage.tsx` | Update -- add billing section |
+| `src/pages/Index.tsx` | Update -- add team route |
+| Database migration (team_invites) | Create |
 
-### Sequencing
-
-1. Database triggers (notifications auto-populate)
-2. NotificationBell enhancements
-3. Settings digest toggle + edge function
-4. CSV export buttons
-5. Mobile responsive sidebar
-6. Welcome card and empty states

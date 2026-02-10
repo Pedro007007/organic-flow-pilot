@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.content-rewrite]
 verify_jwt = false
+
+[functions.gsc-oauth]
+verify_jwt = false

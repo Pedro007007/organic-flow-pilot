@@ -5,6 +5,8 @@ import AgentPipeline from "@/components/AgentPipeline";
 import KeywordTable from "@/components/KeywordTable";
 import ContentPipeline from "@/components/ContentPipeline";
 import ContentDetail from "@/components/ContentDetail";
+import SettingsPage from "@/components/SettingsPage";
+import AnalyticsDashboard from "@/components/AnalyticsDashboard";
 import { usePerformanceMetrics, useKeywords, useContentItems, useAgentRuns } from "@/hooks/useDashboardData";
 import { mockMetrics, mockAgents, mockKeywords, mockContent } from "@/data/mockData";
 import { Activity, Loader2 } from "lucide-react";
@@ -107,17 +109,9 @@ const Index = () => {
           <AgentPipeline agents={displayAgents} />
         )}
 
-        {activeSection === "analytics" && (
-          <div className="rounded-lg border border-border bg-card p-8 text-center">
-            <p className="text-sm text-muted-foreground">Analytics deep-dive coming soon — connect GSC to unlock.</p>
-          </div>
-        )}
+        {activeSection === "analytics" && <AnalyticsDashboard />}
 
-        {activeSection === "settings" && (
-          <div className="rounded-lg border border-border bg-card p-8 text-center">
-            <p className="text-sm text-muted-foreground">Configure API keys, agent schedules, and publishing targets.</p>
-          </div>
-        )}
+        {activeSection === "settings" && <SettingsPage />}
       </main>
     </div>
   );

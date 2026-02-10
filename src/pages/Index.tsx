@@ -7,6 +7,7 @@ import ContentPipeline from "@/components/ContentPipeline";
 import ContentDetail from "@/components/ContentDetail";
 import ContentCalendar from "@/components/ContentCalendar";
 import SettingsPage from "@/components/SettingsPage";
+import TeamManagement from "@/components/TeamManagement";
 import AnalyticsDashboard from "@/components/AnalyticsDashboard";
 import NotificationBell from "@/components/NotificationBell";
 import { usePerformanceMetrics, useKeywords, useContentItems, useAgentRuns } from "@/hooks/useDashboardData";
@@ -53,6 +54,7 @@ const Index = () => {
     content: "Content Pipeline",
     agents: "Agent Pipeline",
     analytics: "Analytics",
+    team: "Team Management",
     settings: "Settings",
     calendar: "Content Calendar",
   };
@@ -168,6 +170,8 @@ const Index = () => {
         )}
 
         {activeSection === "analytics" && <AnalyticsDashboard />}
+
+        {activeSection === "team" && <TeamManagement />}
 
         {activeSection === "settings" && <SettingsPage />}
       </main>

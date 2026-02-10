@@ -11,6 +11,7 @@ import {
   Menu,
   Sun,
   Moon,
+  Users,
 } from "lucide-react";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -28,6 +29,7 @@ const navItems = [
   { id: "calendar", label: "Calendar", icon: CalendarDays },
   { id: "agents", label: "Agents", icon: Bot },
   { id: "analytics", label: "Analytics", icon: BarChart3 },
+  { id: "team", label: "Team", icon: Users },
   { id: "settings", label: "Settings", icon: Settings },
 ];
 

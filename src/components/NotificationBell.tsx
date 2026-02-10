@@ -1,4 +1,4 @@
-import { Bell, Check, CheckCheck } from "lucide-react";
+import { Bell, Check, CheckCheck, Bot, FileText, Info, AlertTriangle } from "lucide-react";
 import { useNotifications } from "@/hooks/useNotifications";
 import {
   Popover,
@@ -8,12 +8,18 @@ import {
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-const typeColors: Record<string, string> = {
-  success: "bg-success/20 text-success",
-  warning: "bg-warning/20 text-warning",
-  error: "bg-destructive/20 text-destructive",
-  info: "bg-primary/20 text-primary",
+const typeConfig: Record<string, { color: string; Icon: typeof Bell }> = {
+  success: { color: "bg-success/20 text-success", Icon: Check },
+  warning: { color: "bg-warning/20 text-warning", Icon: AlertTriangle },
+  error: { color: "bg-destructive/20 text-destructive", Icon: AlertTriangle },
+  info: { color: "bg-primary/20 text-primary", Icon: Info },
 };
+
+function getIcon(n: { type: string; metadata?: any }) {
+  if (n.metadata?.agent_name) return Bot;
+  if (n.metadata?.content_id) return FileText;
+  return typeConfig[n.type]?.Icon || Info;
+}
 
 const NotificationBell = () => {
   const { data: notifications, unreadCount, markRead, markAllRead } = useNotifications();
@@ -52,28 +58,32 @@ const NotificationBell = () => {
             </div>
           ) : (
             <div className="divide-y divide-border">
-              {notifications.map((n) => (
-                <button
-                  key={n.id}
-                  onClick={() => !n.read && markRead.mutate(n.id)}
-                  className={`w-full text-left px-4 py-3 hover:bg-muted/50 transition-colors ${!n.read ? "bg-primary/5" : ""}`}
-                >
-                  <div className="flex items-start gap-2.5">
-                    <span className={`mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] ${typeColors[n.type] || typeColors.info}`}>
-                      {n.read ? <Check className="h-3 w-3" /> : "●"}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs font-medium text-foreground truncate">{n.title}</p>
-                      {n.message && (
-                        <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2">{n.message}</p>
-                      )}
-                      <p className="text-[10px] text-muted-foreground mt-1">
-                        {new Date(n.created_at).toLocaleString()}
-                      </p>
+              {notifications.map((n) => {
+                const cfg = typeConfig[n.type] || typeConfig.info;
+                const Icon = getIcon(n);
+                return (
+                  <button
+                    key={n.id}
+                    onClick={() => !n.read && markRead.mutate(n.id)}
+                    className={`w-full text-left px-4 py-3 hover:bg-muted/50 transition-colors ${!n.read ? "bg-primary/5" : ""}`}
+                  >
+                    <div className="flex items-start gap-2.5">
+                      <span className={`mt-0.5 inline-flex h-5 w-5 items-center justify-center rounded-full text-[10px] ${cfg.color}`}>
+                        <Icon className="h-3 w-3" />
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs font-medium text-foreground truncate">{n.title}</p>
+                        {n.message && (
+                          <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2">{n.message}</p>
+                        )}
+                        <p className="text-[10px] text-muted-foreground mt-1">
+                          {new Date(n.created_at).toLocaleString()}
+                        </p>
+                      </div>
                     </div>
-                  </div>
-                </button>
-              ))}
+                  </button>
+                );
+              })}
             </div>
           )}
         </ScrollArea>

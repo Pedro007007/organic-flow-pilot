@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -12,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Save, Globe, Clock, Key } from "lucide-react";
+import { Loader2, Save, Globe, Clock, Key, Mail } from "lucide-react";
 
 const agentNames = [
   { key: "keyword_discovery", label: "Keyword Discovery" },
@@ -37,6 +38,8 @@ const SettingsPage = () => {
   const [saving, setSaving] = useState(false);
   const [webhookUrl, setWebhookUrl] = useState("");
   const [schedules, setSchedules] = useState<Record<string, string>>({});
+  const [digestEnabled, setDigestEnabled] = useState(false);
+  const [sendingDigest, setSendingDigest] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -49,9 +52,10 @@ const SettingsPage = () => {
 
       if (data) {
         setWebhookUrl(data.webhook_url || "");
-        setSchedules((data.agent_schedule as Record<string, string>) || {});
+        const sched = (data.agent_schedule as Record<string, string>) || {};
+        setSchedules(sched);
+        setDigestEnabled(sched.daily_digest === "enabled");
       } else {
-        // Create default settings
         const defaults = {
           keyword_discovery: "daily",
           content_strategy: "daily",
@@ -59,6 +63,7 @@ const SettingsPage = () => {
           seo_optimize: "manual",
           publish_webhook: "manual",
           monitor_refresh: "weekly",
+          daily_digest: "disabled",
         };
         setSchedules(defaults);
         await supabase.from("user_settings").insert({
@@ -74,9 +79,10 @@ const SettingsPage = () => {
   const handleSave = async () => {
     if (!user) return;
     setSaving(true);
+    const updatedSchedules = { ...schedules, daily_digest: digestEnabled ? "enabled" : "disabled" };
     const { error } = await supabase
       .from("user_settings")
-      .update({ webhook_url: webhookUrl, agent_schedule: schedules })
+      .update({ webhook_url: webhookUrl, agent_schedule: updatedSchedules })
       .eq("user_id", user.id);
 
     setSaving(false);
@@ -84,6 +90,17 @@ const SettingsPage = () => {
       toast({ title: "Save failed", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Settings saved" });
+    }
+  };
+
+  const handleSendDigest = async () => {
+    setSendingDigest(true);
+    const { data, error } = await supabase.functions.invoke("send-digest");
+    setSendingDigest(false);
+    if (error) {
+      toast({ title: "Digest failed", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Digest sent", description: data?.summary || "Check notifications" });
     }
   };
 
@@ -115,6 +132,25 @@ const SettingsPage = () => {
             className="bg-background border-border text-sm font-mono"
           />
         </div>
+      </div>
+
+      {/* Daily Digest */}
+      <div className="rounded-lg border border-border bg-card p-6 space-y-4">
+        <div className="flex items-center gap-2">
+          <Mail className="h-4 w-4 text-primary" />
+          <h3 className="text-sm font-semibold text-foreground">Daily Digest</h3>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Get a summary of agent runs, published content, and new keywords from the last 24 hours delivered as a notification.
+        </p>
+        <div className="flex items-center justify-between">
+          <Label className="text-sm text-foreground">Enable Daily Digest</Label>
+          <Switch checked={digestEnabled} onCheckedChange={setDigestEnabled} />
+        </div>
+        <Button size="sm" variant="outline" onClick={handleSendDigest} disabled={sendingDigest}>
+          {sendingDigest ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Mail className="mr-1.5 h-3.5 w-3.5" />}
+          Send Digest Now
+        </Button>
       </div>
 
       {/* Agent Schedules */}

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   Search,
   LayoutDashboard,
@@ -7,7 +8,11 @@ import {
   Settings,
   Zap,
   CalendarDays,
+  Menu,
+  X,
 } from "lucide-react";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface SidebarNavProps {
   activeSection: string;
@@ -24,9 +29,9 @@ const navItems = [
   { id: "settings", label: "Settings", icon: Settings },
 ];
 
-const SidebarNav = ({ activeSection, onNavigate }: SidebarNavProps) => {
+function SidebarContent({ activeSection, onNavigate }: SidebarNavProps) {
   return (
-    <aside className="fixed left-0 top-0 z-40 flex h-screen w-56 flex-col border-r border-border bg-sidebar">
+    <>
       <div className="flex items-center gap-2.5 border-b border-border px-5 py-4">
         <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/15">
           <Zap className="h-4 w-4 text-primary" />
@@ -65,6 +70,42 @@ const SidebarNav = ({ activeSection, onNavigate }: SidebarNavProps) => {
           </div>
         </div>
       </div>
+    </>
+  );
+}
+
+const SidebarNav = ({ activeSection, onNavigate }: SidebarNavProps) => {
+  const isMobile = useIsMobile();
+  const [open, setOpen] = useState(false);
+
+  const handleNavigate = (section: string) => {
+    onNavigate(section);
+    setOpen(false);
+  };
+
+  if (isMobile) {
+    return (
+      <>
+        <button
+          onClick={() => setOpen(true)}
+          className="fixed left-3 top-3 z-50 flex h-9 w-9 items-center justify-center rounded-md border border-border bg-card md:hidden"
+        >
+          <Menu className="h-4 w-4 text-foreground" />
+        </button>
+        <Sheet open={open} onOpenChange={setOpen}>
+          <SheetContent side="left" className="w-56 p-0 bg-sidebar border-border">
+            <div className="flex h-full flex-col">
+              <SidebarContent activeSection={activeSection} onNavigate={handleNavigate} />
+            </div>
+          </SheetContent>
+        </Sheet>
+      </>
+    );
+  }
+
+  return (
+    <aside className="fixed left-0 top-0 z-40 flex h-screen w-56 flex-col border-r border-border bg-sidebar">
+      <SidebarContent activeSection={activeSection} onNavigate={onNavigate} />
     </aside>
   );
 };

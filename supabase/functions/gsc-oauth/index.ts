@@ -85,6 +85,8 @@ serve(async (req) => {
       });
 
       const tokenData = await tokenRes.json();
+      console.log("exchange_code: tokenRes status", tokenRes.status);
+      console.log("exchange_code: tokenData", JSON.stringify(tokenData));
       if (tokenData.error) return jsonResponse({ error: tokenData.error_description || tokenData.error }, 400);
 
       // Get the list of sites to store the first one (user can change later)
@@ -112,7 +114,10 @@ serve(async (req) => {
         site_url: siteUrl,
       });
 
-      if (insertError) throw insertError;
+      if (insertError) {
+        console.error("exchange_code: insert error", JSON.stringify(insertError));
+        throw insertError;
+      }
 
       return jsonResponse({ success: true, site_url: siteUrl });
     }

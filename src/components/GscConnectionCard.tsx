@@ -60,12 +60,24 @@ const GscConnectionCard = () => {
       body: { action: "exchange_code", code, redirect_uri: redirectUri },
     });
     setConnecting(false);
-    if (error || !data?.success) {
-      toast({ title: "Connection failed", description: error?.message || data?.error || "Unknown error", variant: "destructive" });
-    } else {
-      toast({ title: "Google Search Console connected!", description: data.site_url || "Ready to sync" });
-      fetchStatus();
+
+    if (error) {
+      let errorMessage = error.message;
+      try {
+        const errorBody = await (error as any).context?.json();
+        if (errorBody?.error) errorMessage = errorBody.error;
+      } catch {}
+      toast({ title: "Connection failed", description: errorMessage, variant: "destructive" });
+      return;
     }
+
+    if (!data?.success) {
+      toast({ title: "Connection failed", description: data?.error || "Unknown error", variant: "destructive" });
+      return;
+    }
+
+    toast({ title: "Google Search Console connected!", description: data.site_url || "Ready to sync" });
+    fetchStatus();
   };
 
   const handleConnect = async () => {

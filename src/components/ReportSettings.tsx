@@ -399,31 +399,6 @@ const ReportSettings = () => {
         </div>
       </div>
 
-      {/* Leads Table */}
-      {leads.length > 0 && (
-        <div className="rounded-lg border border-border bg-card">
-          <div className="px-6 py-4 border-b border-border">
-            <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
-              <Users className="h-4 w-4 text-primary" />
-              Captured Leads ({leads.length})
-            </h3>
-          </div>
-          <div className="divide-y divide-border">
-            {leads.map((lead) => (
-              <div key={lead.id} className="flex items-center justify-between px-6 py-3">
-                <div>
-                  <p className="text-xs font-semibold text-foreground">{lead.email}</p>
-                  <p className="text-[10px] text-muted-foreground">
-                    {new Date(lead.created_at).toLocaleDateString()} at {new Date(lead.created_at).toLocaleTimeString()}
-                  </p>
-                </div>
-                <Badge variant="secondary" className="text-[10px]">Lead</Badge>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Full-screen Live Preview Dialog */}
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
         <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] overflow-y-auto p-0">

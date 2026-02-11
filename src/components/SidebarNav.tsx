@@ -36,6 +36,7 @@ const navItems = [
   { id: "analytics", label: "Analytics", icon: BarChart3 },
   { id: "scanner", label: "Scanner", icon: Globe },
   { id: "reports", label: "Reports", icon: FileBarChart },
+  { id: "leads", label: "Leads", icon: Users },
   { id: "checklist", label: "Checklist", icon: ListChecks },
   { id: "team", label: "Team", icon: Users },
   { id: "settings", label: "Settings", icon: Settings },

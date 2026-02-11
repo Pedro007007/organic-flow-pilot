@@ -33,7 +33,7 @@ const ContentAuthority = ({ data, primaryColor }: ContentAuthorityProps) => {
         ].map((s) => (
           <div key={s.label} className="rounded-lg border border-border bg-card p-3 text-center space-y-1">
             <p className="text-lg font-bold text-foreground">{s.value}</p>
-            <p className="text-[10px] text-muted-foreground">{s.label}</p>
+            <p className="text-[10px] text-foreground/70">{s.label}</p>
           </div>
         ))}
       </div>
@@ -70,7 +70,7 @@ const ContentAuthority = ({ data, primaryColor }: ContentAuthorityProps) => {
       <div className="space-y-2">
         <p className="text-xs font-bold text-foreground">Internal Linking Score</p>
         <Progress value={review.internal_linking_score || 0} className="h-3" />
-        <p className="text-[10px] text-muted-foreground">{review.internal_linking_score || 0}/100 — {(review.internal_linking_score || 0) >= 60 ? "Good internal link structure" : "Internal linking needs improvement"}</p>
+        <p className="text-[10px] text-foreground/70">{review.internal_linking_score || 0}/100 — {(review.internal_linking_score || 0) >= 60 ? "Good internal link structure" : "Internal linking needs improvement"}</p>
       </div>
     </div>
   );

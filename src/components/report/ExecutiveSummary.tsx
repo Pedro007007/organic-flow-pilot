@@ -38,31 +38,31 @@ const ExecutiveSummary = ({ data, domain, primaryColor, accentColor }: Executive
               <span className="text-lg font-bold text-foreground">{score}</span>
             </div>
           </div>
-          <p className="text-[10px] font-semibold text-muted-foreground">SEO Score</p>
+          <p className="text-[10px] font-semibold text-foreground/70">SEO Score</p>
         </div>
 
         <div className="rounded-lg border border-border bg-card p-4 text-center space-y-2">
           <DollarSign className="h-8 w-8 mx-auto" style={{ color: accentColor }} />
           <p className="text-lg font-bold text-foreground">£{(revenue.monthly_revenue_estimate || 0).toLocaleString()}</p>
-          <p className="text-[10px] font-semibold text-muted-foreground">Monthly Opportunity</p>
+          <p className="text-[10px] font-semibold text-foreground/70">Monthly Opportunity</p>
         </div>
 
         <div className="rounded-lg border border-border bg-card p-4 text-center space-y-2">
           <Target className="h-8 w-8 mx-auto" style={{ color: primaryColor }} />
           <p className="text-lg font-bold text-foreground">{capturePercent}%</p>
-          <p className="text-[10px] font-semibold text-muted-foreground">Revenue Captured</p>
+          <p className="text-[10px] font-semibold text-foreground/70">Revenue Captured</p>
         </div>
 
         <div className="rounded-lg border border-border bg-card p-4 text-center space-y-2">
           <AlertTriangle className="h-8 w-8 mx-auto" style={{ color: priorityColor }} />
           <p className="text-lg font-bold text-foreground" style={{ color: priorityColor }}>{priorityLevel}</p>
-          <p className="text-[10px] font-semibold text-muted-foreground">Priority Level</p>
+          <p className="text-[10px] font-semibold text-foreground/70">Priority Level</p>
         </div>
       </div>
 
       {/* Summary */}
       <div className="rounded-lg border border-border bg-muted/20 p-4 space-y-3">
-        <p className="text-sm text-muted-foreground leading-relaxed">{data.summary || "Run a scan to see your SEO intelligence report."}</p>
+        <p className="text-sm text-foreground/80 leading-relaxed">{data.summary || "Run a scan to see your SEO intelligence report."}</p>
         <p className="text-xs font-semibold text-foreground" style={{ color: primaryColor }}>
           Your website is currently capturing only {capturePercent}% of its potential organic revenue.
         </p>

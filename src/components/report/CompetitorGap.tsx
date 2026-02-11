@@ -32,7 +32,7 @@ const CompetitorGap = ({ data, domain, primaryColor }: CompetitorGapProps) => {
             <p className="text-xs font-bold text-foreground">
               Competitors rank for {(gap.keywords_gap_count || 0).toLocaleString()} keywords you don't.
             </p>
-            <p className="text-xs text-muted-foreground mt-0.5">
+            <p className="text-xs text-foreground/80 mt-0.5">
               Estimated lost monthly traffic: <span className="font-semibold text-foreground">{(gap.estimated_lost_traffic || 0).toLocaleString()} visits</span>
             </p>
           </div>
@@ -46,12 +46,12 @@ const CompetitorGap = ({ data, domain, primaryColor }: CompetitorGapProps) => {
             <p className="text-xs font-semibold text-foreground">{c.label}</p>
             <div className="space-y-1">
               <div className="flex items-center gap-2">
-                <span className="text-[10px] text-muted-foreground w-16 shrink-0">You</span>
+                <span className="text-[10px] text-foreground/70 w-16 shrink-0">You</span>
                 <Progress value={(c.yours / c.max) * 100} className="h-2 flex-1" />
                 <span className="text-xs font-mono text-foreground w-12 text-right">{c.yours}</span>
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] text-muted-foreground w-16 shrink-0">Competitor</span>
+                <span className="text-[10px] text-foreground/70 w-16 shrink-0">Competitor</span>
                 <div className="h-2 flex-1 rounded-full bg-muted overflow-hidden">
                   <div className="h-full rounded-full" style={{ width: `${(c.theirs / c.max) * 100}%`, backgroundColor: primaryColor + "60" }} />
                 </div>
@@ -70,7 +70,7 @@ const CompetitorGap = ({ data, domain, primaryColor }: CompetitorGapProps) => {
             {gap.top_competitor_pages.map((page: string, i: number) => (
               <div key={i} className="flex items-center gap-2 rounded-lg border border-border bg-muted/20 px-3 py-2">
                 <Badge variant="secondary" className="text-[9px] w-5 h-5 p-0 justify-center shrink-0">{i + 1}</Badge>
-                <p className="text-xs text-muted-foreground truncate">{page}</p>
+                <p className="text-xs text-foreground/70 truncate">{page}</p>
               </div>
             ))}
           </div>

@@ -49,7 +49,7 @@ const TechnicalAudit = ({ data, primaryColor }: TechnicalAuditProps) => {
                     {getIcon(item.priority)}
                     <div>
                       <p className="text-xs font-semibold text-foreground">{item.element}</p>
-                      {item.details && <p className="text-[10px] text-muted-foreground mt-0.5">{item.details}</p>}
+                      {item.details && <p className="text-[10px] text-foreground/70 mt-0.5">{item.details}</p>}
                     </div>
                   </div>
                   <span className="text-xs font-mono text-foreground w-20 text-center">{item.status}</span>

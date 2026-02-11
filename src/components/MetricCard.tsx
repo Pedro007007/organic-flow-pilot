@@ -29,7 +29,7 @@ const MetricCard = ({ metric, index }: MetricCardProps) => {
         <span className="text-xs font-medium text-success">
           {isPositive ? "+" : ""}{metric.change}%
         </span>
-        <span className="text-xs text-muted-foreground">{metric.changeLabel}</span>
+        <span className="text-xs text-foreground/70">{metric.changeLabel}</span>
       </div>
     </div>
   );

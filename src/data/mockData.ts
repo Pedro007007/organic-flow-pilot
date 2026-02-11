@@ -27,9 +27,11 @@ export const mockContent: ContentItem[] = [
 
 export const mockAgents: AgentStatus[] = [
   { id: "1", name: "Keyword Discovery", description: "Identifies high-value keyword opportunities from GSC data", status: "completed", lastRun: "2 min ago", itemsProcessed: 6 },
-  { id: "2", name: "Content Strategy", description: "Turns keywords into structured content plans", status: "running", lastRun: "now", itemsProcessed: 3 },
-  { id: "3", name: "Content Generation", description: "Writes human-quality, intent-based SEO content", status: "idle", lastRun: "1 hour ago", itemsProcessed: 0 },
-  { id: "4", name: "SEO Optimisation", description: "Finalises meta, schema, links for max visibility", status: "completed", lastRun: "30 min ago", itemsProcessed: 2 },
-  { id: "5", name: "Publishing", description: "Ships content to CMS and triggers indexing", status: "idle", lastRun: "3 hours ago", itemsProcessed: 0 },
-  { id: "6", name: "Monitoring & Refresh", description: "Tracks performance and flags refresh opportunities", status: "running", lastRun: "now", itemsProcessed: 12 },
+  { id: "2", name: "SERP Research", description: "Scrapes & analyses top Google results via Firecrawl", status: "idle", lastRun: "5 min ago", itemsProcessed: 0 },
+  { id: "3", name: "Content Strategy", description: "Turns keywords into structured content plans", status: "running", lastRun: "now", itemsProcessed: 3 },
+  { id: "4", name: "Content Generation", description: "Writes human-quality, intent-based SEO content", status: "idle", lastRun: "1 hour ago", itemsProcessed: 0 },
+  { id: "5", name: "Image Generation", description: "Creates hero images using AI (Nano Banana)", status: "idle", lastRun: "2 hours ago", itemsProcessed: 0 },
+  { id: "6", name: "SEO Optimisation", description: "Finalises meta, schema, links for max visibility", status: "completed", lastRun: "30 min ago", itemsProcessed: 2 },
+  { id: "7", name: "Publishing", description: "Ships content to CMS and triggers indexing", status: "idle", lastRun: "3 hours ago", itemsProcessed: 0 },
+  { id: "8", name: "Monitoring & Refresh", description: "Tracks performance and flags refresh opportunities", status: "running", lastRun: "now", itemsProcessed: 12 },
 ];

@@ -27,7 +27,7 @@ serve(async (req) => {
     }
     const userId = user.id;
 
-    const { contentItemId, outline, keyword, title } = await req.json();
+    const { contentItemId, outline, keyword, title, serpResearch, strategy } = await req.json();
     if (!outline && !keyword) {
       return new Response(JSON.stringify({ error: "outline or keyword required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
@@ -77,7 +77,7 @@ Output format: Markdown with proper H1, H2, H3 headings.`;
         model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: `Write a complete SEO article.\n\nTitle: ${title || keyword}\nKeyword: ${keyword}\nOutline: ${JSON.stringify(outline || "Create your own outline based on the keyword")}\n\nWrite in Markdown format.` },
+          { role: "user", content: `Write a complete SEO article.\n\nTitle: ${title || keyword}\nKeyword: ${keyword}\nOutline: ${JSON.stringify(outline || "Create your own outline based on the keyword")}${serpResearch ? `\n\nCOMPETITOR INTELLIGENCE:\n- Content gaps to exploit: ${(serpResearch.content_gaps || []).join(", ")}\n- Competitor weaknesses: ${(serpResearch.competitor_weaknesses || []).join(", ")}\n- FAQ questions to answer: ${(serpResearch.faq_questions || []).join(", ")}\n- Unique angles: ${(serpResearch.unique_angles || []).join(", ")}\n- Target word count: ${serpResearch.recommended_word_count || 2500}+\n- Common headings competitors use: ${(serpResearch.common_headings || []).join(", ")}\n\nCRITICAL: Your article MUST cover everything competitors cover PLUS the content gaps. Be more comprehensive, more actionable, and more expert than all competitors.` : ""}${strategy ? `\n\nCONTENT STRATEGY:\n${JSON.stringify(strategy)}` : ""}\n\nWrite in Markdown format.` },
         ],
       }),
     });

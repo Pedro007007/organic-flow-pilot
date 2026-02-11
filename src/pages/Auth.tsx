@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Activity, Loader2, Eye, EyeOff } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
+import searcheraLogo from "@/assets/searchera-logo.png";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -76,8 +77,8 @@ const Auth = () => {
         {/* Logo */}
         <div className="text-center">
           <div className="inline-flex items-center gap-2 mb-2">
-            <Activity className="h-6 w-6 text-primary" />
-            <span className="text-xl font-bold tracking-tight text-foreground">SEO Engine</span>
+            <img src={searcheraLogo} alt="Searchera" className="h-8 w-8 rounded-md object-contain" />
+            <span className="text-xl font-bold tracking-tight text-foreground">Searchera</span>
           </div>
           <p className="text-sm text-muted-foreground">
             {forgotMode ? "Enter your email to reset password" : isLogin ? "Sign in to your command center" : "Create your account"}

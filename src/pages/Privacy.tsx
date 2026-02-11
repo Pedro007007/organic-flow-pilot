@@ -13,7 +13,7 @@ const Privacy = () => (
 
       <div className="prose prose-sm max-w-none space-y-6 text-muted-foreground [&_h2]:text-foreground [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:mt-8 [&_h2]:mb-3 [&_strong]:text-foreground">
         <h2>1. Introduction</h2>
-        <p>SEO Engine ("we", "our", "us") operates the SEO Engine web application. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our service.</p>
+        <p>Searchera ("we", "our", "us") operates the Searchera web application. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our service.</p>
 
         <h2>2. Information We Collect</h2>
         <p><strong>Account Information:</strong> When you create an account, we collect your email address, display name, and authentication credentials.</p>

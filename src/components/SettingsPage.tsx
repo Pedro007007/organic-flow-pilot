@@ -13,8 +13,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Save, Globe, Clock, Mail } from "lucide-react";
+import { Loader2, Save, Globe, Clock, Mail, ShieldCheck, Zap } from "lucide-react";
 import GscConnectionCard from "@/components/GscConnectionCard";
+import NextJsSetupGuide from "@/components/NextJsSetupGuide";
 
 const agentNames = [
   { key: "keyword_discovery", label: "Keyword Discovery" },
@@ -38,9 +39,12 @@ const SettingsPage = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [webhookUrl, setWebhookUrl] = useState("");
+  const [webhookSecret, setWebhookSecret] = useState("");
+  const [revalidationPrefix, setRevalidationPrefix] = useState("/blog");
   const [schedules, setSchedules] = useState<Record<string, string>>({});
   const [digestEnabled, setDigestEnabled] = useState(false);
   const [sendingDigest, setSendingDigest] = useState(false);
+  const [testingWebhook, setTestingWebhook] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -53,6 +57,8 @@ const SettingsPage = () => {
 
       if (data) {
         setWebhookUrl(data.webhook_url || "");
+        setWebhookSecret((data as any).webhook_secret || "");
+        setRevalidationPrefix((data as any).revalidation_prefix || "/blog");
         const sched = (data.agent_schedule as Record<string, string>) || {};
         setSchedules(sched);
         setDigestEnabled(sched.daily_digest === "enabled");
@@ -83,7 +89,12 @@ const SettingsPage = () => {
     const updatedSchedules = { ...schedules, daily_digest: digestEnabled ? "enabled" : "disabled" };
     const { error } = await supabase
       .from("user_settings")
-      .update({ webhook_url: webhookUrl, agent_schedule: updatedSchedules })
+      .update({
+        webhook_url: webhookUrl,
+        agent_schedule: updatedSchedules,
+        webhook_secret: webhookSecret,
+        revalidation_prefix: revalidationPrefix,
+      } as any)
       .eq("user_id", user.id);
 
     setSaving(false);
@@ -92,6 +103,32 @@ const SettingsPage = () => {
     } else {
       toast({ title: "Settings saved" });
     }
+  };
+
+  const handleTestWebhook = async () => {
+    setTestingWebhook(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("test-webhook");
+      if (error) {
+        const errBody = await (error as any).context?.json?.() || {};
+        toast({
+          title: "Test failed",
+          description: errBody.error || error.message,
+          variant: "destructive",
+        });
+      } else if (data?.success) {
+        toast({ title: "Connection successful", description: `Status: ${data.status} ${data.statusText}` });
+      } else {
+        toast({
+          title: "Webhook responded with error",
+          description: `Status: ${data?.status} — ${data?.body?.substring(0, 100) || "No body"}`,
+          variant: "destructive",
+        });
+      }
+    } catch (e) {
+      toast({ title: "Test failed", description: String(e), variant: "destructive" });
+    }
+    setTestingWebhook(false);
   };
 
   const handleSendDigest = async () => {
@@ -122,7 +159,7 @@ const SettingsPage = () => {
           <h3 className="text-sm font-semibold text-foreground">Publish Webhook</h3>
         </div>
         <p className="text-xs text-muted-foreground">
-          When content is approved, it will be POSTed as JSON to this URL (e.g. your Next.js API route).
+          When content is approved, it will be POSTed as JSON to this URL (e.g. your Next.js API route) with ISR revalidation headers.
         </p>
         <div className="space-y-2">
           <Label className="text-xs text-muted-foreground">Webhook URL</Label>
@@ -133,6 +170,38 @@ const SettingsPage = () => {
             className="bg-background border-border text-sm font-mono"
           />
         </div>
+        <div className="space-y-2">
+          <Label className="text-xs text-muted-foreground flex items-center gap-1.5">
+            <ShieldCheck className="h-3 w-3" /> Webhook Secret
+          </Label>
+          <Input
+            type="password"
+            value={webhookSecret}
+            onChange={(e) => setWebhookSecret(e.target.value)}
+            placeholder="A shared secret to verify requests on your Next.js side"
+            className="bg-background border-border text-sm font-mono"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label className="text-xs text-muted-foreground">Revalidation Path Prefix</Label>
+          <Input
+            value={revalidationPrefix}
+            onChange={(e) => setRevalidationPrefix(e.target.value)}
+            placeholder="/blog"
+            className="bg-background border-border text-sm font-mono"
+          />
+          <p className="text-xs text-muted-foreground">
+            Published content paths will be: <code className="text-primary">{revalidationPrefix}/{'<slug>'}</code>
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button size="sm" variant="outline" onClick={handleTestWebhook} disabled={testingWebhook || !webhookUrl}>
+            {testingWebhook ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Zap className="mr-1.5 h-3.5 w-3.5" />}
+            Test Connection
+          </Button>
+        </div>
+
+        <NextJsSetupGuide />
       </div>
 
       {/* Daily Digest */}

@@ -36,7 +36,7 @@ const Landing = () => (
     <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
         <Link to="/" className="flex items-center gap-2">
-          <img src={searcheraLogo} alt="Searchera" className="h-[56px] object-contain" />
+          <img src={searcheraLogo} alt="Searchera" className="h-[100px] object-contain" />
         </Link>
         <nav className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-600">
           <a href="#features" className="hover:text-gray-900 transition-colors">Features</a>
@@ -225,7 +225,7 @@ const Landing = () => (
       <div className="mx-auto max-w-6xl px-6 py-12">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           <Link to="/" className="flex items-center gap-2">
-            <img src={searcheraLogo} alt="Searchera" className="h-[50px] object-contain" />
+            <img src={searcheraLogo} alt="Searchera" className="h-[90px] object-contain" />
           </Link>
           <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500">
             <Link to="/privacy" className="hover:text-gray-900 transition-colors">Privacy Policy</Link>

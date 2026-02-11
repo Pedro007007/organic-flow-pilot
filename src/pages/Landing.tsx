@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+import { useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Search, FileText, Bot, BarChart3, ArrowRight, Play, Shield, Zap, TrendingUp, CheckCircle2, Star } from "lucide-react";
 import searcheraLogo from "@/assets/searchera-logo.png";
@@ -30,7 +31,17 @@ const testimonials = [
   { name: "Emily Zhao", role: "Content Lead, ScaleUp", quote: "The content pipeline alone saved us 20+ hours per week. The quality is consistently high and SEO-ready.", stars: 5 },
 ];
 
-const Landing = () => (
+const Landing = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("gsc_callback") === "true" && params.get("code")) {
+      navigate(`/dashboard?${params.toString()}`, { replace: true });
+    }
+  }, [navigate]);
+
+  return (
   <div className="min-h-screen flex flex-col bg-white text-gray-900">
     {/* Nav */}
     <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
@@ -239,6 +250,7 @@ const Landing = () => (
       </div>
     </footer>
   </div>
-);
+  );
+};
 
 export default Landing;

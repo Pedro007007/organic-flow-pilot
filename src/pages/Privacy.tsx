@@ -1,0 +1,74 @@
+import { Link } from "react-router-dom";
+import { ArrowLeft } from "lucide-react";
+
+const Privacy = () => (
+  <div className="min-h-screen bg-background text-foreground">
+    <div className="mx-auto max-w-3xl px-6 py-12">
+      <Link to="/" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8">
+        <ArrowLeft className="h-4 w-4" /> Back to Home
+      </Link>
+
+      <h1 className="text-3xl font-bold tracking-tight mb-2">Privacy Policy</h1>
+      <p className="text-sm text-muted-foreground mb-10">Last updated: February 11, 2026</p>
+
+      <div className="prose prose-sm max-w-none space-y-6 text-muted-foreground [&_h2]:text-foreground [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:mt-8 [&_h2]:mb-3 [&_strong]:text-foreground">
+        <h2>1. Introduction</h2>
+        <p>SEO Engine ("we", "our", "us") operates the SEO Engine web application. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our service.</p>
+
+        <h2>2. Information We Collect</h2>
+        <p><strong>Account Information:</strong> When you create an account, we collect your email address, display name, and authentication credentials.</p>
+        <p><strong>Google Search Console Data:</strong> If you connect your Google Search Console account, we access your search performance data including keywords, click-through rates, impressions, and page positions. This data is used solely to provide SEO analytics and recommendations within the application.</p>
+        <p><strong>Usage Data:</strong> We collect information about how you interact with our service, including pages visited, features used, and content generated.</p>
+
+        <h2>3. How We Use Your Information</h2>
+        <p>We use the information we collect to:</p>
+        <ul className="list-disc pl-6 space-y-1">
+          <li>Provide, maintain, and improve our SEO analysis services</li>
+          <li>Generate keyword recommendations and content suggestions</li>
+          <li>Display your search performance analytics</li>
+          <li>Send you service-related notifications</li>
+          <li>Respond to your requests and support inquiries</li>
+        </ul>
+
+        <h2>4. Google API Services</h2>
+        <p>Our use of information received from Google APIs adheres to the <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">Google API Services User Data Policy</a>, including the Limited Use requirements. We only access Google Search Console data that you explicitly authorize, and we do not share this data with third parties.</p>
+
+        <h2>5. Data Storage and Security</h2>
+        <p>Your data is stored securely using industry-standard encryption. We use secure cloud infrastructure with access controls, encryption at rest and in transit, and regular security audits. OAuth tokens for Google Search Console are stored encrypted and are only used to refresh your search data.</p>
+
+        <h2>6. Data Sharing</h2>
+        <p>We do not sell, trade, or rent your personal information to third parties. We may share data only in the following circumstances:</p>
+        <ul className="list-disc pl-6 space-y-1">
+          <li>With your explicit consent</li>
+          <li>To comply with legal obligations</li>
+          <li>To protect our rights and safety</li>
+          <li>With service providers who assist in operating our platform (under strict confidentiality agreements)</li>
+        </ul>
+
+        <h2>7. Cookies</h2>
+        <p>We use essential cookies to maintain your session and authentication state. We do not use third-party tracking cookies for advertising purposes.</p>
+
+        <h2>8. Your Rights</h2>
+        <p>You have the right to:</p>
+        <ul className="list-disc pl-6 space-y-1">
+          <li>Access and download your personal data</li>
+          <li>Request correction of inaccurate data</li>
+          <li>Request deletion of your account and data</li>
+          <li>Revoke Google Search Console access at any time</li>
+          <li>Opt out of non-essential communications</li>
+        </ul>
+
+        <h2>9. Data Retention</h2>
+        <p>We retain your data for as long as your account is active. Upon account deletion, we remove your personal data within 30 days, except where retention is required by law.</p>
+
+        <h2>10. Changes to This Policy</h2>
+        <p>We may update this Privacy Policy from time to time. We will notify you of any material changes by posting the new policy on this page and updating the "Last updated" date.</p>
+
+        <h2>11. Contact Us</h2>
+        <p>If you have questions about this Privacy Policy, please contact us through the application's support channels.</p>
+      </div>
+    </div>
+  </div>
+);
+
+export default Privacy;

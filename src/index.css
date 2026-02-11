@@ -146,3 +146,36 @@
     @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent;
   }
 }
+
+/* PDF export overrides — ensure html2canvas renders correctly */
+.pdf-export-target * {
+  color: #ffffff !important;
+}
+.pdf-export-target .text-muted-foreground,
+.pdf-export-target [class*="text-foreground/70"],
+.pdf-export-target [class*="foreground/70"] {
+  color: rgba(255, 255, 255, 0.65) !important;
+}
+.pdf-export-target [class*="text-muted"] {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+/* Force badge text centering for html2canvas */
+.pdf-export-target [class*="badge"],
+.pdf-export-target .inline-flex {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  line-height: 1 !important;
+  padding-top: 4px !important;
+  padding-bottom: 4px !important;
+}
+/* Fix Progress bar rendering */
+.pdf-export-target [role="progressbar"] {
+  background-color: rgba(255, 255, 255, 0.15) !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+.pdf-export-target [role="progressbar"] > * {
+  background-color: #38bdf8 !important;
+}

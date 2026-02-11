@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Search, FileText, Bot, BarChart3, ArrowRight, Play, Shield, Zap, TrendingUp, CheckCircle2, Star, Target, Globe, LineChart, Cpu, ChevronRight } from "lucide-react";
+import { Search, FileText, Bot, BarChart3, ArrowRight, Play, Shield, Zap, TrendingUp, CheckCircle2, Star, Target, Globe, LineChart, Cpu } from "lucide-react";
 import searcheraLogo from "@/assets/searchera-logo.png";
 
 const features = [
@@ -165,17 +165,33 @@ const Landing = () => {
             <h2 className="text-3xl font-black tracking-tight sm:text-4xl text-white">How <span className="bg-gradient-to-r from-blue-400 to-teal-400 bg-clip-text text-transparent">Searchera</span> Works</h2>
             <p className="mt-4 text-lg text-blue-200/80 max-w-2xl mx-auto font-medium">Get started in minutes. Our streamlined process takes you from setup to growth with minimal effort.</p>
           </div>
-          <div className="grid gap-0 sm:grid-cols-2 lg:grid-cols-4">
-            {steps.map((s, i) => (
-              <div key={s.num} className="relative flex flex-col items-center text-center px-6">
-                {/* Arrow connector */}
-                {i < steps.length - 1 && (
-                  <div className="hidden lg:flex absolute top-10 -right-4 z-10 items-center">
-                    <ChevronRight className="h-8 w-8 text-teal-400/60" strokeWidth={3} />
-                  </div>
-                )}
-                <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-600/20 to-teal-500/20 border border-blue-500/30 mb-5">
-                  <span className="text-2xl font-black bg-gradient-to-r from-blue-400 to-teal-400 bg-clip-text text-transparent">{s.num}</span>
+          {/* Timeline row */}
+          <div className="relative hidden lg:flex items-center justify-between max-w-4xl mx-auto mb-4">
+            {/* Connecting line */}
+            <div className="absolute top-1/2 left-[40px] right-[40px] h-px bg-teal-400/40" />
+            {steps.map((s) => (
+              <div key={s.num} className="relative z-10 flex h-16 w-16 items-center justify-center rounded-full border-2 border-teal-400/60 bg-slate-900">
+                <span className="text-lg font-black text-teal-400">{s.num}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Icon row */}
+          <div className="hidden lg:grid grid-cols-4 max-w-4xl mx-auto mb-8">
+            {[Globe, FileText, Cpu, BarChart3].map((Icon, i) => (
+              <div key={i} className="flex justify-center">
+                <Icon className="h-6 w-6 text-teal-400/70" />
+              </div>
+            ))}
+          </div>
+
+          {/* Labels */}
+          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4 max-w-4xl mx-auto">
+            {steps.map((s) => (
+              <div key={s.num} className="text-center">
+                {/* Mobile circle */}
+                <div className="lg:hidden flex h-14 w-14 items-center justify-center rounded-full border-2 border-teal-400/60 bg-slate-900 mx-auto mb-3">
+                  <span className="text-base font-black text-teal-400">{s.num}</span>
                 </div>
                 <h3 className="text-lg font-black text-white">{s.title}</h3>
                 <p className="mt-2 text-sm text-blue-200/70 leading-relaxed">{s.desc}</p>

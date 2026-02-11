@@ -125,6 +125,7 @@ export type Database = {
           clicks: number | null
           created_at: string
           draft_content: string | null
+          hero_image_url: string | null
           id: string
           impressions: number | null
           keyword: string
@@ -132,6 +133,7 @@ export type Database = {
           position: number | null
           schema_types: string[] | null
           seo_title: string | null
+          serp_research: Json | null
           slug: string | null
           status: string
           title: string
@@ -144,6 +146,7 @@ export type Database = {
           clicks?: number | null
           created_at?: string
           draft_content?: string | null
+          hero_image_url?: string | null
           id?: string
           impressions?: number | null
           keyword: string
@@ -151,6 +154,7 @@ export type Database = {
           position?: number | null
           schema_types?: string[] | null
           seo_title?: string | null
+          serp_research?: Json | null
           slug?: string | null
           status?: string
           title: string
@@ -163,6 +167,7 @@ export type Database = {
           clicks?: number | null
           created_at?: string
           draft_content?: string | null
+          hero_image_url?: string | null
           id?: string
           impressions?: number | null
           keyword?: string
@@ -170,6 +175,7 @@ export type Database = {
           position?: number | null
           schema_types?: string[] | null
           seo_title?: string | null
+          serp_research?: Json | null
           slug?: string | null
           status?: string
           title?: string

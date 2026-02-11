@@ -27,7 +27,7 @@ serve(async (req) => {
     }
     const userId = user.id;
 
-    const { keyword, searchIntent, supportingKeywords } = await req.json();
+    const { keyword, searchIntent, supportingKeywords, serpResearch } = await req.json();
     if (!keyword) {
       return new Response(JSON.stringify({ error: "keyword is required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
@@ -65,7 +65,7 @@ Rules:
         model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: `Create a content strategy for:\nKeyword: ${keyword}\nIntent: ${searchIntent || "informational"}\nSupporting keywords: ${(supportingKeywords || []).join(", ")}` },
+          { role: "user", content: `Create a content strategy for:\nKeyword: ${keyword}\nIntent: ${searchIntent || "informational"}\nSupporting keywords: ${(supportingKeywords || []).join(", ")}${serpResearch ? `\n\nCOMPETITOR RESEARCH (from SERP analysis of top results):\n- Common headings: ${(serpResearch.common_headings || []).join(", ")}\n- Content gaps to exploit: ${(serpResearch.content_gaps || []).join(", ")}\n- Competitor weaknesses: ${(serpResearch.competitor_weaknesses || []).join(", ")}\n- Avg word count: ${serpResearch.avg_word_count || "N/A"}, recommended: ${serpResearch.recommended_word_count || "N/A"}\n- FAQ questions: ${(serpResearch.faq_questions || []).join(", ")}\n- Unique angles: ${(serpResearch.unique_angles || []).join(", ")}\n\nBuild the strategy to OUTRANK these competitors by covering everything they cover PLUS the content gaps identified.` : ""}` },
         ],
         tools: [{
           type: "function",

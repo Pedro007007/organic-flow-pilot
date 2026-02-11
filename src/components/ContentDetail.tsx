@@ -23,6 +23,8 @@ import {
   RefreshCw,
   Maximize2,
   Minimize2,
+  ImageIcon,
+  Search,
 } from "lucide-react";
 import ContentPerformanceChart from "@/components/ContentPerformanceChart";
 import FulfilmentDashboard from "@/components/FulfilmentDashboard";
@@ -53,6 +55,8 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
   const [generating, setGenerating] = useState(false);
   const [publishing, setPublishing] = useState(false);
   const [optimizing, setOptimizing] = useState(false);
+  const [generatingImage, setGeneratingImage] = useState(false);
+  const [researchingSERP, setResearchingSERP] = useState(false);
 
   // Local editable state
   const [item, setItem] = useState<any>(null);
@@ -132,7 +136,7 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
     setGenerating(true);
     try {
       const res = await supabase.functions.invoke("content-generate", {
-        body: { contentItemId: item.id, keyword: item.keyword, title: item.title },
+        body: { contentItemId: item.id, keyword: item.keyword, title: item.title, serpResearch: item.serp_research || undefined },
       });
       if (res.error) throw res.error;
       const content = res.data?.content || "";
@@ -204,10 +208,45 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
     }
   };
 
+  const isBusy = saving || generating || optimizing || publishing || generatingImage || researchingSERP;
+
+  const handleSERPResearch = async () => {
+    setResearchingSERP(true);
+    try {
+      const res = await supabase.functions.invoke("serp-research", {
+        body: { contentItemId: item.id, keyword: item.keyword, limit: 10 },
+      });
+      if (res.error) throw res.error;
+      setItem((prev: any) => ({ ...prev, serp_research: res.data?.analysis }));
+      toast({ title: "SERP research complete", description: `Analysed ${res.data?.analysis?.raw_competitors?.length || 0} competitors` });
+      queryClient.invalidateQueries({ queryKey: ["content_items"] });
+    } catch (err: any) {
+      toast({ title: "SERP research failed", description: err.message, variant: "destructive" });
+    } finally {
+      setResearchingSERP(false);
+    }
+  };
+
+  const handleGenerateImage = async () => {
+    setGeneratingImage(true);
+    try {
+      const res = await supabase.functions.invoke("generate-hero-image", {
+        body: { contentItemId: item.id, keyword: item.keyword, title: item.title },
+      });
+      if (res.error) throw res.error;
+      setItem((prev: any) => ({ ...prev, hero_image_url: res.data?.hero_image_url }));
+      toast({ title: "Hero image generated" });
+      queryClient.invalidateQueries({ queryKey: ["content_items"] });
+    } catch (err: any) {
+      toast({ title: "Image generation failed", description: err.message, variant: "destructive" });
+    } finally {
+      setGeneratingImage(false);
+    }
+  };
+
   const currentStageIndex = item ? stages.indexOf(item.status) : -1;
   const canAdvance = currentStageIndex >= 0 && currentStageIndex < stages.length - 1;
   const nextStage = canAdvance ? stages[currentStageIndex + 1] : null;
-  const isBusy = saving || generating || optimizing || publishing;
 
   if (loading || !item) {
     return (
@@ -228,10 +267,16 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
         <div className="flex items-center gap-2">
           {/* AI Actions */}
           {(item.status === "discovery" || item.status === "strategy") && (
-            <Button size="sm" variant="outline" onClick={handleGenerate} disabled={isBusy} className="border-primary/30 text-primary hover:bg-primary/10">
-              {generating ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Sparkles className="mr-1.5 h-3.5 w-3.5" />}
-              Generate Content
-            </Button>
+            <>
+              <Button size="sm" variant="outline" onClick={handleSERPResearch} disabled={isBusy} className="border-info/30 text-info hover:bg-info/10">
+                {researchingSERP ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Search className="mr-1.5 h-3.5 w-3.5" />}
+                SERP Research
+              </Button>
+              <Button size="sm" variant="outline" onClick={handleGenerate} disabled={isBusy} className="border-primary/30 text-primary hover:bg-primary/10">
+                {generating ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Sparkles className="mr-1.5 h-3.5 w-3.5" />}
+                Generate Content
+              </Button>
+            </>
           )}
           {item.status === "writing" && (
             <Button size="sm" variant="outline" onClick={handleOptimize} disabled={isBusy} className="border-accent/30 text-accent hover:bg-accent/10">
@@ -298,6 +343,79 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
         </TabsList>
 
         <TabsContent value="content">
+          {/* Hero Image */}
+          <div className="rounded-lg border border-border bg-card mb-6">
+            <div className="border-b border-border px-5 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ImageIcon className="h-4 w-4 text-accent" />
+                <h3 className="text-sm font-semibold text-foreground">Hero Image</h3>
+              </div>
+              <Button size="sm" variant="outline" onClick={handleGenerateImage} disabled={isBusy} className="h-7 text-xs gap-1.5">
+                {generatingImage ? <Loader2 className="h-3 w-3 animate-spin" /> : <ImageIcon className="h-3 w-3" />}
+                {item.hero_image_url ? "Regenerate" : "Generate"}
+              </Button>
+            </div>
+            {item.hero_image_url ? (
+              <div className="p-4">
+                <img
+                  src={item.hero_image_url}
+                  alt={`Hero image for ${item.title}`}
+                  className="w-full max-h-64 object-cover rounded-md border border-border"
+                />
+              </div>
+            ) : (
+              <div className="p-8 text-center">
+                <ImageIcon className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
+                <p className="text-xs text-muted-foreground">No hero image yet. Click "Generate" to create one with AI.</p>
+              </div>
+            )}
+          </div>
+
+          {/* SERP Research Summary */}
+          {item.serp_research && (
+            <div className="rounded-lg border border-info/20 bg-info/5 mb-6 p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <Search className="h-4 w-4 text-info" />
+                <h3 className="text-sm font-semibold text-foreground">Competitor Intelligence</h3>
+                <Badge variant="outline" className="text-[10px] border-info/30 text-info">{item.serp_research.raw_competitors?.length || 0} competitors analysed</Badge>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                {item.serp_research.content_gaps?.length > 0 && (
+                  <div>
+                    <p className="font-semibold text-foreground mb-1">Content Gaps</p>
+                    <ul className="space-y-1 text-muted-foreground">
+                      {item.serp_research.content_gaps.slice(0, 5).map((g: string, i: number) => (
+                        <li key={i} className="flex items-start gap-1">
+                          <span className="text-success mt-0.5">+</span> {g}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {item.serp_research.competitor_weaknesses?.length > 0 && (
+                  <div>
+                    <p className="font-semibold text-foreground mb-1">Competitor Weaknesses</p>
+                    <ul className="space-y-1 text-muted-foreground">
+                      {item.serp_research.competitor_weaknesses.slice(0, 5).map((w: string, i: number) => (
+                        <li key={i} className="flex items-start gap-1">
+                          <span className="text-destructive mt-0.5">⚠</span> {w}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                <div>
+                  <p className="font-semibold text-foreground mb-1">Targets</p>
+                  <div className="space-y-1 text-muted-foreground">
+                    <p>Avg word count: <span className="font-mono text-foreground">{item.serp_research.avg_word_count || "—"}</span></p>
+                    <p>Target: <span className="font-mono text-foreground">{item.serp_research.recommended_word_count || "—"}+ words</span></p>
+                    <p>FAQs to answer: <span className="font-mono text-foreground">{item.serp_research.faq_questions?.length || 0}</span></p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Content + Metadata grid */}
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
             {/* Draft preview */}

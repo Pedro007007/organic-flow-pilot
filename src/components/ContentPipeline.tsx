@@ -142,19 +142,60 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
 
   const runFullPipeline = async (contentItemId: string, kw: string, ttl: string) => {
     try {
-      toast({ title: "🚀 Autopilot: Generating content..." });
+      // Step 1: SERP Research
+      toast({ title: "🔍 Autopilot: Researching competitors..." });
+      let serpResearch: any = null;
+      try {
+        const serpRes = await supabase.functions.invoke("serp-research", {
+          body: { contentItemId, keyword: kw, limit: 10 },
+        });
+        if (!serpRes.error && serpRes.data?.analysis) {
+          serpResearch = serpRes.data.analysis;
+        }
+      } catch {
+        console.warn("SERP research skipped (Firecrawl may not be configured)");
+      }
+
+      // Step 2: Content Strategy (with SERP data)
+      toast({ title: "📋 Autopilot: Building strategy..." });
+      let strategy: any = null;
+      try {
+        const stratRes = await supabase.functions.invoke("content-strategy", {
+          body: { keyword: kw, serpResearch },
+        });
+        if (!stratRes.error && stratRes.data?.strategy) {
+          strategy = stratRes.data.strategy;
+        }
+      } catch {
+        console.warn("Content strategy skipped");
+      }
+
+      // Step 3: Content Generation (with SERP + strategy)
+      toast({ title: "✍️ Autopilot: Writing content..." });
       const genRes = await supabase.functions.invoke("content-generate", {
-        body: { contentItemId, keyword: kw, title: ttl },
+        body: { contentItemId, keyword: kw, title: ttl, serpResearch, strategy },
       });
       if (genRes.error) throw genRes.error;
 
-      toast({ title: "🚀 Autopilot: Optimizing SEO..." });
+      // Step 4: Hero Image Generation
+      toast({ title: "🎨 Autopilot: Generating hero image..." });
+      try {
+        await supabase.functions.invoke("generate-hero-image", {
+          body: { contentItemId, keyword: kw, title: ttl },
+        });
+      } catch {
+        console.warn("Hero image generation skipped");
+      }
+
+      // Step 5: SEO Optimization
+      toast({ title: "🔧 Autopilot: Optimizing SEO..." });
       const optRes = await supabase.functions.invoke("seo-optimize", {
         body: { contentItemId, keyword: kw },
       });
       if (optRes.error) throw optRes.error;
 
-      toast({ title: "🚀 Autopilot: Publishing..." });
+      // Step 6: Publishing
+      toast({ title: "📤 Autopilot: Publishing..." });
       const pubRes = await supabase.functions.invoke("publish-webhook", {
         body: { contentItemId },
       });
@@ -206,7 +247,7 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
                 </Button>
               </div>
               <p className="text-[10px] text-muted-foreground text-center">
-                <strong>Autopilot</strong> runs the full pipeline: Generate → Optimize → Publish
+                <strong>Autopilot</strong> runs: SERP Research → Strategy → Generate → Hero Image → SEO → Publish
               </p>
             </div>
           </DialogContent>

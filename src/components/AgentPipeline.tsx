@@ -14,8 +14,10 @@ const statusConfig: Record<string, { icon: typeof Pause; color: string; bg: stri
 
 const agentFunctionMap: Record<string, string> = {
   "Keyword Discovery": "keyword-discovery",
+  "SERP Research": "serp-research",
   "Content Strategy": "content-strategy",
   "Content Generation": "content-generate",
+  "Image Generation": "generate-hero-image",
   "SEO Optimisation": "seo-optimize",
   "Publishing": "publish-webhook",
   "Monitoring & Refresh": "monitor-refresh",

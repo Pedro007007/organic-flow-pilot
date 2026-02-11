@@ -41,3 +41,9 @@ verify_jwt = false
 
 [functions.test-webhook]
 verify_jwt = false
+
+[functions.serp-research]
+verify_jwt = false
+
+[functions.generate-hero-image]
+verify_jwt = false

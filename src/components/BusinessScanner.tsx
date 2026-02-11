@@ -6,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Loader2, Search, Globe, Clock, ArrowRight, BarChart3, FileCode, FileText, Tag, Lightbulb, AlertTriangle, TrendingUp } from "lucide-react";
-
+import { Loader2, Search, Globe, Clock, ArrowRight, BarChart3, FileCode, FileText, Tag, Lightbulb, AlertTriangle, TrendingUp, Share2, Copy } from "lucide-react";
+import { useToast as useToastSonner } from "@/hooks/use-toast";
 const BusinessScanner = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -100,9 +100,21 @@ const BusinessScanner = () => {
       {activeScan && (
         <div className="space-y-8">
           {/* SEO Analysis Report Header */}
-          <div className="text-center space-y-1">
+          <div className="text-center space-y-2">
             <h2 className="text-lg font-bold text-foreground">SEO Analysis Report</h2>
             <p className="text-sm text-muted-foreground">{activeScan.domain}</p>
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1.5 text-xs"
+              onClick={() => {
+                const url = `${window.location.origin}/report/${activeScan.id}`;
+                navigator.clipboard.writeText(url);
+                toast({ title: "Link copied!", description: "Share this link with prospects to capture their email." });
+              }}
+            >
+              <Share2 className="h-3.5 w-3.5" /> Share Report
+            </Button>
           </div>
 
           {/* Score Cards */}

@@ -631,24 +631,30 @@ export type Database = {
           agent_schedule: Json | null
           created_at: string
           id: string
+          revalidation_prefix: string | null
           updated_at: string
           user_id: string
+          webhook_secret: string | null
           webhook_url: string | null
         }
         Insert: {
           agent_schedule?: Json | null
           created_at?: string
           id?: string
+          revalidation_prefix?: string | null
           updated_at?: string
           user_id: string
+          webhook_secret?: string | null
           webhook_url?: string | null
         }
         Update: {
           agent_schedule?: Json | null
           created_at?: string
           id?: string
+          revalidation_prefix?: string | null
           updated_at?: string
           user_id?: string
+          webhook_secret?: string | null
           webhook_url?: string | null
         }
         Relationships: []

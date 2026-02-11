@@ -38,3 +38,6 @@ verify_jwt = false
 
 [functions.business-scanner]
 verify_jwt = false
+
+[functions.test-webhook]
+verify_jwt = false

@@ -55,7 +55,7 @@ const GscConnectionCard = () => {
 
   const handleExchangeCode = async (code: string) => {
     setConnecting(true);
-    const redirectUri = `${window.location.origin}${window.location.pathname}?gsc_callback=true`;
+    const redirectUri = `${window.location.origin}/?gsc_callback=true`;
     const { data, error } = await supabase.functions.invoke("gsc-oauth", {
       body: { action: "exchange_code", code, redirect_uri: redirectUri },
     });
@@ -82,7 +82,7 @@ const GscConnectionCard = () => {
 
   const handleConnect = async () => {
     setConnecting(true);
-    const redirectUri = `${window.location.origin}${window.location.pathname}?gsc_callback=true`;
+    const redirectUri = `${window.location.origin}/?gsc_callback=true`;
     const { data, error } = await supabase.functions.invoke("gsc-oauth", {
       body: { action: "get_auth_url", redirect_uri: redirectUri },
     });

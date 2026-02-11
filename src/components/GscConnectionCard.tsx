@@ -39,18 +39,19 @@ const GscConnectionCard = () => {
     fetchStatus();
   }, [fetchStatus]);
 
-  // Handle OAuth callback
+  // Handle OAuth callback — wait for user to be available
   useEffect(() => {
+    if (!user) return; // Wait for auth session to restore
+
     const params = new URLSearchParams(window.location.search);
     const code = params.get("code");
     const gscCallback = params.get("gsc_callback");
 
     if (code && gscCallback === "true") {
-      // Clean URL
       window.history.replaceState({}, "", window.location.pathname);
       handleExchangeCode(code);
     }
-  }, []);
+  }, [user]);
 
   const handleExchangeCode = async (code: string) => {
     setConnecting(true);

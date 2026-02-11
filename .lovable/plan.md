@@ -1,34 +1,132 @@
 
 
-## Add Dedicated Leads Management Section
+# SERP-Informed Content Writer with Image Generation
 
-### Overview
-Create a new "Leads" section in the sidebar navigation that provides a full-featured leads management experience, replacing the basic list currently buried in Report Settings.
+## Overview
 
-### Changes
+Build a complete SERP-research-to-publish pipeline that scrapes competitor content from Google, analyses it with Gemini, generates strategically superior articles, and creates matching hero images using Nano Banana -- all automated.
 
-**1. New file: `src/components/LeadsManagement.tsx`**
-A dedicated component with:
-- Summary stats at the top (total leads, leads this week, leads today)
-- Search/filter bar to find leads by email or domain
-- Full table view using the existing Table UI components showing: email, associated domain (joined from `competitor_scans`), captured date, and status
-- CSV export button to download all leads
-- The query will join `report_leads` with `competitor_scans` on `scan_id` to show which domain/report each lead came from
+## Prerequisites
 
-**2. Update `src/components/SidebarNav.tsx`**
-- Add a new nav item `{ id: "leads", label: "Leads", icon: Users }` between "Reports" and "Checklist"
+**Firecrawl Connector** -- must be connected before building. Firecrawl's Search API will power the SERP research step, searching Google and scraping the top results in one call.
 
-**3. Update `src/pages/Index.tsx`**
-- Import and render `LeadsManagement` when `activeSection === "leads"`
-- Add "leads" to the `sectionTitles` map as "Lead Capture"
+## Architecture
 
-**4. Clean up `src/components/ReportSettings.tsx`**
-- Remove the inline leads table (lines ~402-425) since it now has its own section
-- Keep the small badge showing lead count as a quick indicator, linking users to the Leads section
+The enhanced pipeline adds two new backend functions and upgrades the existing content generation:
 
-### Technical Details
+```text
++-------------------+     +------------------+     +---------------------+
+| 1. Keyword        | --> | 2. SERP Research | --> | 3. Content Strategy |
+|    Discovery      |     |    (NEW)         |     |    (Enhanced)       |
++-------------------+     +------------------+     +---------------------+
+                                                            |
+                          +------------------+     +--------v------------+
+                          | 5. Image Gen     | <-- | 4. Content Generate |
+                          |    (NEW)         |     |    (Enhanced)       |
+                          +------------------+     +---------------------+
+                                                            |
+                          +------------------+     +--------v------------+
+                          | 7. Monitor &     | <-- | 6. SEO Optimize +   |
+                          |    Refresh       |     |    Publish          |
+                          +------------------+     +---------------------+
+```
 
-- Query: `supabase.from("report_leads").select("*, competitor_scans(domain)").eq("user_id", user.id).order("created_at", { ascending: false })`
-- CSV export: generate client-side from the loaded data using a simple Blob download
-- Search: client-side filter on email and domain fields
-- Uses existing `Table, TableHeader, TableBody, TableRow, TableHead, TableCell` components for consistent styling
+## Implementation Steps
+
+### Step 1: Connect Firecrawl
+
+Prompt you to connect the Firecrawl connector so `FIRECRAWL_API_KEY` is available in edge functions.
+
+### Step 2: New Edge Function -- `serp-research`
+
+**File:** `supabase/functions/serp-research/index.ts`
+
+- Accepts `{ keyword, limit? }` from the frontend
+- Calls Firecrawl Search API (`POST https://api.firecrawl.dev/v1/search`) with the keyword
+- Scrapes the top 10 results with `scrapeOptions: { formats: ['markdown'] }`
+- Extracts from each result: title, URL, headings structure, word count, key topics
+- Sends all extracted data to Gemini (`google/gemini-3-flash-preview`) for competitive analysis
+- Returns a structured competitor brief: common headings, content gaps, average word count, FAQ patterns, unique angles to exploit
+- Logs to `agent_runs` table
+
+### Step 3: Enhance `content-strategy`
+
+- Accept an optional `serpResearch` object (the output from step 2)
+- Update the Gemini prompt to incorporate competitor data: "Here are the top 10 ranking pages for this keyword..." so the strategy is built to outrank them specifically
+- Include competitor gap analysis in the returned strategy
+
+### Step 4: Enhance `content-generate`
+
+- Accept an optional `serpResearch` and `strategy` object
+- Update the system prompt to reference competitor weaknesses and content gaps
+- Add instruction: "Your article must cover everything competitors cover PLUS these gaps: [gaps from research]"
+- This ensures content is strategically superior, not written blind
+
+### Step 5: New Edge Function -- `generate-hero-image`
+
+**File:** `supabase/functions/generate-hero-image/index.ts`
+
+- Accepts `{ keyword, title, contentItemId }`
+- Calls Lovable AI Gateway with model `google/gemini-2.5-flash-image` (Nano Banana)
+- Prompt: generates a professional, blog-appropriate hero image based on the article title and keyword
+- Receives base64 image data
+- Uploads the image to Supabase Storage (new `content-images` bucket)
+- Saves the public URL back to the `content_items` table (new `hero_image_url` column)
+- Logs to `agent_runs` table
+
+### Step 6: Database Migration
+
+- Add `hero_image_url` (text, nullable) column to `content_items`
+- Add `serp_research` (jsonb, nullable) column to `content_items` to cache competitor data
+- Create a `content-images` storage bucket (public)
+- Add storage policy for authenticated users to upload
+
+### Step 7: Update Agent Pipeline UI
+
+- Add "SERP Research" and "Image Generation" to the `agentFunctionMap` in `AgentPipeline.tsx`
+- Update `mockAgents` in `mockData.ts` to include the two new agents
+- Update `AgentStatus` type if needed
+
+### Step 8: Update Autopilot Flow
+
+Enhance `ContentPipeline.tsx` autopilot to run the full enhanced pipeline:
+
+1. SERP Research (new)
+2. Content Strategy (with SERP data)
+3. Content Generate (with SERP data + strategy)
+4. Generate Hero Image (new)
+5. SEO Optimize
+6. Publish
+
+### Step 9: Display Hero Image
+
+Update `ContentDetail.tsx` to show the generated hero image above the content draft area, with a "Regenerate Image" button.
+
+### Step 10: Update `config.toml`
+
+Add entries for the two new functions:
+- `serp-research` with `verify_jwt = false`
+- `generate-hero-image` with `verify_jwt = false`
+
+## Technical Details
+
+**Firecrawl Search API call:**
+```text
+POST https://api.firecrawl.dev/v1/search
+Body: { query: keyword, limit: 10, scrapeOptions: { formats: ["markdown"] } }
+```
+
+**Nano Banana image generation call:**
+```text
+POST https://ai.gateway.lovable.dev/v1/chat/completions
+Body: {
+  model: "google/gemini-2.5-flash-image",
+  messages: [{ role: "user", content: "Generate a hero image for: [title]" }],
+  modalities: ["image", "text"]
+}
+```
+
+The base64 image from `choices[0].message.images[0].image_url.url` gets uploaded to storage, not passed back to the client directly.
+
+**Rate limit / error handling:** All new functions will catch 429 and 402 errors from both Firecrawl and the AI gateway, returning meaningful error messages to the frontend via toast notifications.
+

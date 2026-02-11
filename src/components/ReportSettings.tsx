@@ -357,13 +357,44 @@ const ReportSettings = () => {
           </Button>
         </div>
 
-        {/* Right: Live Preview */}
-        <div className="space-y-3">
+        {/* Right: Floating Sticky Preview */}
+        <div className="space-y-4 lg:sticky lg:top-4 lg:self-start">
           <div className="flex items-center gap-2">
             <Eye className="h-4 w-4 text-primary" />
-            <p className="text-xs font-bold text-foreground">Live Preview</p>
+            <p className="text-xs font-bold text-foreground">Live SEO Preview</p>
           </div>
-          <ReportPreview settings={settings} scanData={sampleScan} />
+          <div className="rounded-xl border border-border bg-card shadow-lg">
+            <ReportPreview settings={settings} scanData={sampleScan} />
+          </div>
+
+          {/* Call to Action Preview */}
+          {settings.cta_blocks.some((c) => c.enabled) && (
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-muted-foreground text-center">Call to Action Preview</p>
+              <div className="space-y-2">
+                {settings.cta_blocks
+                  .filter((c) => c.enabled)
+                  .map((cta) => (
+                    <div
+                      key={cta.id}
+                      className="flex items-center justify-between rounded-lg border border-border bg-card p-4 shadow-sm"
+                    >
+                      <div className="space-y-0.5">
+                        <p className="text-xs font-bold text-foreground">{cta.title}</p>
+                        <p className="text-[10px] text-muted-foreground">{cta.description}</p>
+                      </div>
+                      <Button
+                        size="sm"
+                        className="text-[10px] h-7 shrink-0"
+                        style={{ backgroundColor: settings.colors?.primary || "#6366f1" }}
+                      >
+                        {cta.button_text}
+                      </Button>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

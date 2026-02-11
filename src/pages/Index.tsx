@@ -14,6 +14,7 @@ import RankingsTracker from "@/components/RankingsTracker";
 import BusinessScanner from "@/components/BusinessScanner";
 import SeoChecklist from "@/components/SeoChecklist";
 import ReportSettings from "@/components/ReportSettings";
+import LeadsManagement from "@/components/LeadsManagement";
 import { usePerformanceMetrics, useKeywords, useContentItems, useAgentRuns } from "@/hooks/useDashboardData";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -64,6 +65,7 @@ const Index = () => {
     rankings: "AI SEO & Rankings",
     scanner: "Business Scanner",
     reports: "Reports",
+    leads: "Lead Capture",
     checklist: "SEO Checklist",
   };
 
@@ -188,6 +190,8 @@ const Index = () => {
         {activeSection === "scanner" && <BusinessScanner />}
 
         {activeSection === "reports" && <ReportSettings />}
+
+        {activeSection === "leads" && <LeadsManagement />}
 
         {activeSection === "checklist" && <SeoChecklist />}
       </main>

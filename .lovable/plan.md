@@ -1,38 +1,38 @@
 
 
-## Fix: GSC redirect_uri_mismatch
+## Fix: GSC OAuth callback not completing
 
 ### Problem
-The `GscConnectionCard` component builds the redirect URI dynamically using `window.location.pathname`, which includes `/dashboard`. But the URI registered in Google Cloud Console uses the root path `/`. Google requires an exact match.
+After authorizing with Google, the browser redirects to `/?gsc_callback=true&code=...`. This loads the **Landing page** (public marketing page), but the code that processes the OAuth callback lives in `GscConnectionCard` on the `/dashboard` page. The callback code is never executed, so the connection never completes.
 
 ### Solution
-Update the redirect URI in the code to always use a fixed path (`/`) instead of the dynamic `window.location.pathname`. This ensures it always matches what's registered in Google Console.
-
-### Also Check: Google Cloud "Testing" Mode
-If your Google Cloud project's OAuth consent screen is set to **"Testing"** (not "In production"), only users listed as **Test Users** can authorize. Make sure `pedroxoneal@gmail.com` is added under **OAuth consent screen > Test users** in Google Cloud Console.
+Add a redirect in `App.tsx` (or a small wrapper component) that detects GSC callback parameters on the `/` route and forwards them to `/dashboard`, where the existing handler will pick them up and complete the connection.
 
 ### Technical Details
 
-**File: `src/components/GscConnectionCard.tsx`**
+**File: `src/pages/Landing.tsx`**
 
-Two lines need to change:
+Add a `useEffect` at the top of the Landing component that checks for `?gsc_callback=true&code=...` in the URL. If found, redirect to `/dashboard` with the same query parameters so the existing handler in `GscConnectionCard` can process the OAuth code.
 
-1. **Line 58** (exchange code redirect URI):
-   - Change: `` const redirectUri = `${window.location.origin}${window.location.pathname}?gsc_callback=true`; ``
-   - To: `` const redirectUri = `${window.location.origin}/?gsc_callback=true`; ``
+```typescript
+// At the top of the Landing component:
+const navigate = useNavigate();
 
-2. **Line 85** (get auth URL redirect URI):
-   - Change: `` const redirectUri = `${window.location.origin}${window.location.pathname}?gsc_callback=true`; ``
-   - To: `` const redirectUri = `${window.location.origin}/?gsc_callback=true`; ``
+useEffect(() => {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("gsc_callback") === "true" && params.get("code")) {
+    navigate(`/dashboard?${params.toString()}`, { replace: true });
+  }
+}, [navigate]);
+```
 
-### Google Cloud Console URIs Required
-Confirm these exact URIs are saved in your Authorized redirect URIs:
-- `https://organic-flow-pilot.lovable.app/?gsc_callback=true`
-- `https://id-preview--884890d6-eef8-44fb-93f2-2e7a48cc2e5e.lovable.app/?gsc_callback=true`
+This requires adding `useNavigate` to the imports from `react-router-dom` and `useEffect` from `react`.
 
-You can remove the `/~oauth` URIs since those are only needed for Google Sign-In (which this app doesn't use -- it uses email/password login).
+**No other files need to change.** The existing `useEffect` in `GscConnectionCard.tsx` will handle the code exchange once the user lands on `/dashboard` with the callback parameters.
 
-### After the Code Fix
-1. Make sure your Google Cloud OAuth consent screen has `pedroxoneal@gmail.com` as a test user (if still in Testing mode)
-2. Try connecting GSC again from the Settings page
+### Why this works
+- Google redirects to `/?gsc_callback=true&code=ABC123`
+- Landing page detects the callback params and immediately redirects to `/dashboard?gsc_callback=true&code=ABC123`
+- The `ProtectedRoute` wrapper ensures the user is authenticated
+- `GscConnectionCard`'s existing `useEffect` picks up the `code` and `gsc_callback` params and exchanges the code for tokens
 

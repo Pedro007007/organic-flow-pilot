@@ -25,7 +25,7 @@ const RevenueProjection = ({ data, primaryColor, accentColor }: RevenueProjectio
       {/* Traffic comparison */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-center">
         <div className="rounded-lg border border-border bg-card p-4 text-center space-y-2">
-          <p className="text-[10px] text-muted-foreground">Current Traffic</p>
+          <p className="text-[10px] text-foreground/70">Current Traffic</p>
           <p className="text-xl font-bold text-foreground">{currentTraffic.toLocaleString()}</p>
           <p className="text-[10px] text-muted-foreground">/month</p>
         </div>
@@ -33,7 +33,7 @@ const RevenueProjection = ({ data, primaryColor, accentColor }: RevenueProjectio
           <ArrowRight className="h-6 w-6" style={{ color: primaryColor }} />
         </div>
         <div className="rounded-lg border-2 bg-card p-4 text-center space-y-2" style={{ borderColor: primaryColor }}>
-          <p className="text-[10px] text-muted-foreground">Potential Traffic</p>
+          <p className="text-[10px] text-foreground/70">Potential Traffic</p>
           <p className="text-xl font-bold" style={{ color: primaryColor }}>{potentialTraffic.toLocaleString()}</p>
           <p className="text-[10px] text-muted-foreground">/month</p>
         </div>
@@ -49,7 +49,7 @@ const RevenueProjection = ({ data, primaryColor, accentColor }: RevenueProjectio
             { label: "Average Customer Value", value: `£${avgValue.toLocaleString()}` },
           ].map((r) => (
             <div key={r.label} className="flex items-center justify-between">
-              <p className="text-xs text-muted-foreground">{r.label}</p>
+              <p className="text-xs text-foreground/80">{r.label}</p>
               <p className="text-xs font-mono font-semibold text-foreground">{r.value}</p>
             </div>
           ))}

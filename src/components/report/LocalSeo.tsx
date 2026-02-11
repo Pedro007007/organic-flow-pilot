@@ -42,19 +42,19 @@ const LocalSeo = ({ data, primaryColor }: LocalSeoProps) => {
         <div className="rounded-lg border border-border bg-card p-3 text-center space-y-1">
           <Star className="h-5 w-5 mx-auto" style={{ color: "#f59e0b" }} />
           <p className="text-lg font-bold text-foreground">{local.average_rating || 0}</p>
-          <p className="text-[10px] text-muted-foreground">Avg Rating</p>
+          <p className="text-[10px] text-foreground/70">Avg Rating</p>
         </div>
         <div className="rounded-lg border border-border bg-card p-3 text-center space-y-1">
           <p className="text-lg font-bold text-foreground">{local.reviews_count || 0}</p>
-          <p className="text-[10px] text-muted-foreground">Reviews</p>
+          <p className="text-[10px] text-foreground/70">Reviews</p>
         </div>
         <div className="rounded-lg border border-border bg-card p-3 text-center space-y-1">
           <p className="text-lg font-bold text-foreground">{local.local_keyword_count || 0}</p>
-          <p className="text-[10px] text-muted-foreground">Local Keywords</p>
+          <p className="text-[10px] text-foreground/70">Local Keywords</p>
         </div>
         <div className="rounded-lg border border-border bg-card p-3 text-center space-y-1">
           <p className="text-lg font-bold text-foreground">{local.local_visibility_score || 0}</p>
-          <p className="text-[10px] text-muted-foreground">Visibility Score</p>
+          <p className="text-[10px] text-foreground/70">Visibility Score</p>
         </div>
       </div>
 

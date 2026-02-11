@@ -38,7 +38,7 @@ const ActionPlan = ({ data, primaryColor }: ActionPlanProps) => {
               {phase.items.length > 0 ? phase.items.map((item: string, i: number) => (
                 <div key={i} className="flex items-start gap-3 px-4 py-2.5">
                   <Badge variant="secondary" className="text-[9px] w-5 h-5 p-0 justify-center shrink-0 mt-0.5">{i + 1}</Badge>
-                  <p className="text-xs text-muted-foreground">{item}</p>
+                  <p className="text-xs text-foreground/80">{item}</p>
                 </div>
               )) : (
                 <p className="text-xs text-muted-foreground px-4 py-3">No actions defined yet.</p>

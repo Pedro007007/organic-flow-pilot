@@ -40,7 +40,7 @@ const KeywordOpportunities = ({ data, primaryColor, accentColor }: KeywordOpport
                 <div key={i} className="grid grid-cols-[1fr_auto_auto_auto_auto] gap-0 items-center px-4 py-3 hover:bg-muted/20 transition-colors">
                   <div>
                     <p className="text-xs font-semibold text-foreground">{kw.keyword}</p>
-                    {kw.cpc && <p className="text-[10px] text-muted-foreground">CPC: £{kw.cpc}</p>}
+                    {kw.cpc && <p className="text-[10px] text-foreground/70">CPC: £{kw.cpc}</p>}
                   </div>
                   <span className="text-xs font-mono text-foreground w-16 text-center">{(kw.volume || 0).toLocaleString()}</span>
                   <span className="text-xs font-mono text-foreground w-12 text-center">{kw.current_position || "—"}</span>

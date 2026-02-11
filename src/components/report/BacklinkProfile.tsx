@@ -58,7 +58,7 @@ const BacklinkProfile = ({ data, primaryColor }: BacklinkProfileProps) => {
             {bl.top_referring.map((d: string, i: number) => (
               <div key={i} className="flex items-center gap-2 rounded border border-border bg-muted/20 px-3 py-2">
                 <Badge variant="secondary" className="text-[9px] w-5 h-5 p-0 justify-center shrink-0">{i + 1}</Badge>
-                <p className="text-xs text-muted-foreground font-mono">{d}</p>
+                <p className="text-xs text-foreground/70 font-mono">{d}</p>
               </div>
             ))}
           </div>

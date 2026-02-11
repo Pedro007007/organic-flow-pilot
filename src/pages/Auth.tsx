@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Eye, EyeOff } from "lucide-react";
+import { Loader2, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import searcheraLogo from "@/assets/searchera-logo.png";
 
 const Auth = () => {
@@ -72,7 +72,14 @@ const Auth = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 relative">
+      <button
+        onClick={() => navigate("/")}
+        className="absolute top-6 left-6 text-muted-foreground hover:text-foreground transition-colors"
+        aria-label="Back to home"
+      >
+        <ArrowLeft className="h-5 w-5" />
+      </button>
       <div className="w-full max-w-sm space-y-8">
         {/* Logo */}
         <div className="text-center">

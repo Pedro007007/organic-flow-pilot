@@ -64,11 +64,15 @@ const ReportPreview = ({ settings, scanData, isPublic = false, onLivePreview }: 
     setExporting(true);
     try {
       pdfRef.current.style.opacity = "1";
+      // Allow browser to paint the visible target before capturing
+      await new Promise((r) => setTimeout(r, 500));
 
       const canvas = await html2canvas(pdfRef.current, {
         scale: 2,
         useCORS: true,
         backgroundColor: "#1a1a2e",
+        scrollY: -window.scrollY,
+        windowHeight: pdfRef.current.scrollHeight,
       });
 
       const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
@@ -251,7 +255,7 @@ const ReportPreview = ({ settings, scanData, isPublic = false, onLivePreview }: 
       {/* Hidden PDF render target — seamless continuous layout */}
       <div
         ref={pdfRef}
-        className="fixed top-0 left-0 pointer-events-none"
+        className="fixed top-0 left-0 pointer-events-none pdf-export-target"
         style={{ opacity: 0, zIndex: -1, fontFamily: "system-ui, sans-serif", width: "794px", backgroundColor: "#1a1a2e", color: "#ffffff" }}
       >
         <div style={{ padding: "40px 36px 16px", textAlign: "center" }}>

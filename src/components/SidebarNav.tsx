@@ -11,6 +11,9 @@ import {
   Sun,
   Moon,
   Users,
+  TrendingUp,
+  Globe,
+  ListChecks,
 } from "lucide-react";
 import searcheraLogo from "@/assets/searchera-logo.png";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -26,9 +29,12 @@ const navItems = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { id: "keywords", label: "Keywords", icon: Search },
   { id: "content", label: "Content", icon: FileText },
+  { id: "rankings", label: "Rankings", icon: TrendingUp },
   { id: "calendar", label: "Calendar", icon: CalendarDays },
   { id: "agents", label: "Agents", icon: Bot },
   { id: "analytics", label: "Analytics", icon: BarChart3 },
+  { id: "scanner", label: "Scanner", icon: Globe },
+  { id: "checklist", label: "Checklist", icon: ListChecks },
   { id: "team", label: "Team", icon: Users },
   { id: "settings", label: "Settings", icon: Settings },
 ];

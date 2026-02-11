@@ -1,0 +1,104 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+
+  try {
+    const { contentItemId, userId } = await req.json();
+    if (!contentItemId || !userId) throw new Error("contentItemId and userId required");
+
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    );
+
+    // Get the content item
+    const { data: content, error: cErr } = await supabase
+      .from("content_items")
+      .select("*")
+      .eq("id", contentItemId)
+      .maybeSingle();
+
+    if (cErr || !content) throw new Error("Content item not found");
+
+    // Get fulfilment criteria for this content
+    const { data: criteria } = await supabase
+      .from("seo_fulfilment")
+      .select("*")
+      .eq("content_item_id", contentItemId)
+      .eq("user_id", userId);
+
+    if (!criteria || criteria.length === 0) {
+      return new Response(JSON.stringify({ passed: 0 }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // Use AI to check each criterion
+    const prompt = `Analyze this content item and determine which SEO/GEO criteria are met.
+
+Content:
+- Title: ${content.title}
+- SEO Title: ${content.seo_title || "not set"}
+- Meta Description: ${content.meta_description || "not set"}
+- Slug: ${content.slug || "not set"}
+- Schema Types: ${(content.schema_types || []).join(", ") || "none"}
+- Draft (first 1000 chars): ${(content.draft_content || "").substring(0, 1000)}
+- Word count: ~${(content.draft_content || "").split(/\s+/).length}
+
+Criteria to check:
+${criteria.map((c: any) => `- ID: ${c.id} | "${c.criterion}" (${c.category})`).join("\n")}
+
+Return JSON: { "results": [{ "id": "...", "passed": true/false, "details": "brief reason" }] }`;
+
+    const aiRes = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/ai-gateway`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}` },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [{ role: "user", content: prompt }],
+      }),
+    });
+
+    const aiData = await aiRes.json();
+    const text = aiData?.choices?.[0]?.message?.content || "";
+
+    let results: any[] = [];
+    try {
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        results = parsed.results || [];
+      }
+    } catch {
+      console.error("Failed to parse AI response:", text);
+    }
+
+    // Update each criterion
+    let passedCount = 0;
+    for (const r of results) {
+      if (r.id && typeof r.passed === "boolean") {
+        await supabase
+          .from("seo_fulfilment")
+          .update({ passed: r.passed, details: r.details || null, checked_at: new Date().toISOString() })
+          .eq("id", r.id);
+        if (r.passed) passedCount++;
+      }
+    }
+
+    return new Response(JSON.stringify({ passed: passedCount }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  } catch (err) {
+    console.error("fulfilment-scan error:", err);
+    return new Response(JSON.stringify({ error: err.message }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+});

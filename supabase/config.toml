@@ -26,3 +26,15 @@ verify_jwt = false
 
 [functions.gsc-oauth]
 verify_jwt = false
+
+[functions.checklist-verify]
+verify_jwt = false
+
+[functions.rankings-check]
+verify_jwt = false
+
+[functions.fulfilment-scan]
+verify_jwt = false
+
+[functions.business-scanner]
+verify_jwt = false

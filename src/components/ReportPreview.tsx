@@ -63,34 +63,43 @@ const ReportPreview = ({ settings, scanData, isPublic = false, onLivePreview }: 
     if (!pdfRef.current) return;
     setExporting(true);
     try {
-      // Make the container temporarily renderable
       pdfRef.current.style.opacity = "1";
 
-      const sections = pdfRef.current.querySelectorAll<HTMLElement>("[data-pdf-section]");
+      const canvas = await html2canvas(pdfRef.current, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: "#1a1a2e",
+      });
+
       const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
       const pageW = 210;
       const pageH = 297;
-      const margin = 15;
+      const margin = 10;
       const contentW = pageW - margin * 2;
-      const gap = 4;
-      let cursorY = margin;
+      const contentH = pageH - margin * 2;
+      const imgTotalH = (canvas.height * contentW) / canvas.width;
+      const totalPages = Math.ceil(imgTotalH / contentH);
 
-      for (let i = 0; i < sections.length; i++) {
-        const canvas = await html2canvas(sections[i], {
-          scale: 2,
-          useCORS: true,
-          backgroundColor: "#1a1a2e",
-        });
-        const imgData = canvas.toDataURL("image/jpeg", 0.95);
-        const imgH = (canvas.height * contentW) / canvas.width;
-
-        if (cursorY + imgH > pageH - margin && i > 0) {
-          pdf.addPage();
-          cursorY = margin;
+      for (let page = 0; page < totalPages; page++) {
+        if (page > 0) pdf.addPage();
+        // Fill page background
+        pdf.setFillColor(26, 26, 46);
+        pdf.rect(0, 0, pageW, pageH, "F");
+        // Slice strip from canvas
+        const srcY = Math.round((page * contentH / imgTotalH) * canvas.height);
+        const srcH = Math.round((contentH / imgTotalH) * canvas.height);
+        const sliceCanvas = document.createElement("canvas");
+        sliceCanvas.width = canvas.width;
+        sliceCanvas.height = Math.min(srcH, canvas.height - srcY);
+        const ctx = sliceCanvas.getContext("2d");
+        if (ctx) {
+          ctx.fillStyle = "#1a1a2e";
+          ctx.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height);
+          ctx.drawImage(canvas, 0, srcY, canvas.width, sliceCanvas.height, 0, 0, canvas.width, sliceCanvas.height);
         }
-
-        pdf.addImage(imgData, "JPEG", margin, cursorY, contentW, imgH);
-        cursorY += imgH + gap;
+        const sliceData = sliceCanvas.toDataURL("image/jpeg", 0.95);
+        const sliceH = (sliceCanvas.height * contentW) / sliceCanvas.width;
+        pdf.addImage(sliceData, "JPEG", margin, margin, contentW, sliceH);
       }
 
       pdf.save(`seo-report-${domain}.pdf`);
@@ -239,50 +248,49 @@ const ReportPreview = ({ settings, scanData, isPublic = false, onLivePreview }: 
         </TabsContent>
       </Tabs>
 
-      {/* Hidden PDF render target — all sections, inline styles for html2canvas */}
+      {/* Hidden PDF render target — seamless continuous layout */}
       <div
         ref={pdfRef}
-        className="fixed top-0 left-0 w-[210mm] pointer-events-none"
-        style={{ opacity: 0, zIndex: -1, fontFamily: "system-ui, sans-serif" }}
+        className="fixed top-0 left-0 pointer-events-none"
+        style={{ opacity: 0, zIndex: -1, fontFamily: "system-ui, sans-serif", width: "794px", backgroundColor: "#1a1a2e", color: "#ffffff" }}
       >
-        <div data-pdf-section style={{ color: "#ffffff", backgroundColor: "#1a1a2e", padding: "32px" }}>
-          <div style={{ textAlign: "center", marginBottom: "16px" }}>
-            <h1 style={{ fontSize: "24px", fontWeight: "bold", color: "#ffffff" }}>{settings.headline_text}</h1>
-            {settings.show_subheadline && <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.7)" }}>{settings.subheadline_text}</p>}
-            <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.5)" }}>Report for {domain}</p>
-          </div>
+        <div style={{ padding: "40px 36px 16px", textAlign: "center" }}>
+          <h1 style={{ fontSize: "22px", fontWeight: "bold", color: "#ffffff", margin: 0 }}>{settings.headline_text}</h1>
+          {settings.show_subheadline && <p style={{ fontSize: "13px", color: "rgba(255,255,255,0.65)", marginTop: "6px" }}>{settings.subheadline_text}</p>}
+          <p style={{ fontSize: "11px", color: "rgba(255,255,255,0.4)", marginTop: "4px" }}>Report for {domain}</p>
+          <div style={{ height: "1px", background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent)", marginTop: "20px" }} />
         </div>
-        <div data-pdf-section style={{ color: "#ffffff", backgroundColor: "#1a1a2e", padding: "32px" }}>
+        <div style={{ padding: "12px 36px 20px" }}>
           <ExecutiveSummary data={results} domain={domain} primaryColor={primaryColor} accentColor={accentColor} />
         </div>
-        <div data-pdf-section style={{ color: "#ffffff", backgroundColor: "#1a1a2e", padding: "32px" }}>
+        <div style={{ padding: "12px 36px 20px" }}>
           <TechnicalAudit data={results} primaryColor={primaryColor} />
         </div>
-        <div data-pdf-section style={{ color: "#ffffff", backgroundColor: "#1a1a2e", padding: "32px" }}>
+        <div style={{ padding: "12px 36px 20px" }}>
           <KeywordOpportunities data={results} primaryColor={primaryColor} accentColor={accentColor} />
         </div>
-        <div data-pdf-section style={{ color: "#ffffff", backgroundColor: "#1a1a2e", padding: "32px" }}>
+        <div style={{ padding: "12px 36px 20px" }}>
           <CompetitorGap data={results} domain={domain} primaryColor={primaryColor} />
         </div>
-        <div data-pdf-section style={{ color: "#ffffff", backgroundColor: "#1a1a2e", padding: "32px" }}>
+        <div style={{ padding: "12px 36px 20px" }}>
           <ContentAuthority data={results} primaryColor={primaryColor} />
         </div>
-        <div data-pdf-section style={{ color: "#ffffff", backgroundColor: "#1a1a2e", padding: "32px" }}>
+        <div style={{ padding: "12px 36px 20px" }}>
           <BacklinkProfile data={results} primaryColor={primaryColor} />
         </div>
-        <div data-pdf-section style={{ color: "#ffffff", backgroundColor: "#1a1a2e", padding: "32px" }}>
+        <div style={{ padding: "12px 36px 20px" }}>
           <RevenueProjection data={results} primaryColor={primaryColor} accentColor={accentColor} />
         </div>
-        <div data-pdf-section style={{ color: "#ffffff", backgroundColor: "#1a1a2e", padding: "32px" }}>
+        <div style={{ padding: "12px 36px 20px" }}>
           <ActionPlan data={results} primaryColor={primaryColor} />
         </div>
         {results.local_seo?.applicable && (
-          <div data-pdf-section style={{ color: "#ffffff", backgroundColor: "#1a1a2e", padding: "32px" }}>
+          <div style={{ padding: "12px 36px 20px" }}>
             <LocalSeo data={results} primaryColor={primaryColor} />
           </div>
         )}
         {settings.show_disclaimer && settings.disclaimer_text && (
-          <div data-pdf-section style={{ color: "rgba(255,255,255,0.5)", backgroundColor: "#1a1a2e", padding: "32px", textAlign: "center", fontSize: "10px" }}>
+          <div style={{ padding: "16px 36px 32px", textAlign: "center", fontSize: "10px", color: "rgba(255,255,255,0.4)" }}>
             {settings.disclaimer_text}
           </div>
         )}

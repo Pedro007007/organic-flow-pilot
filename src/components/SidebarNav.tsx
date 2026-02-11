@@ -14,6 +14,7 @@ import {
   TrendingUp,
   Globe,
   ListChecks,
+  FileBarChart,
 } from "lucide-react";
 import searcheraLogo from "@/assets/searchera-logo.png";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -34,6 +35,7 @@ const navItems = [
   { id: "agents", label: "Agents", icon: Bot },
   { id: "analytics", label: "Analytics", icon: BarChart3 },
   { id: "scanner", label: "Scanner", icon: Globe },
+  { id: "reports", label: "Reports", icon: FileBarChart },
   { id: "checklist", label: "Checklist", icon: ListChecks },
   { id: "team", label: "Team", icon: Users },
   { id: "settings", label: "Settings", icon: Settings },

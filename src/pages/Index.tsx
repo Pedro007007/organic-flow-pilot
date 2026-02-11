@@ -13,6 +13,7 @@ import NotificationBell from "@/components/NotificationBell";
 import RankingsTracker from "@/components/RankingsTracker";
 import BusinessScanner from "@/components/BusinessScanner";
 import SeoChecklist from "@/components/SeoChecklist";
+import ReportSettings from "@/components/ReportSettings";
 import { usePerformanceMetrics, useKeywords, useContentItems, useAgentRuns } from "@/hooks/useDashboardData";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -62,6 +63,7 @@ const Index = () => {
     calendar: "Content Calendar",
     rankings: "AI SEO & Rankings",
     scanner: "Business Scanner",
+    reports: "Reports",
     checklist: "SEO Checklist",
   };
 
@@ -184,6 +186,8 @@ const Index = () => {
         {activeSection === "rankings" && <RankingsTracker />}
 
         {activeSection === "scanner" && <BusinessScanner />}
+
+        {activeSection === "reports" && <ReportSettings />}
 
         {activeSection === "checklist" && <SeoChecklist />}
       </main>

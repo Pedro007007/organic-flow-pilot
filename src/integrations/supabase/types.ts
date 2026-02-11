@@ -398,6 +398,95 @@ export type Database = {
         }
         Relationships: []
       }
+      report_leads: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          scan_id: string | null
+          user_id: string
+          viewed_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          scan_id?: string | null
+          user_id: string
+          viewed_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          scan_id?: string | null
+          user_id?: string
+          viewed_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_leads_scan_id_fkey"
+            columns: ["scan_id"]
+            isOneToOne: false
+            referencedRelation: "competitor_scans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_settings: {
+        Row: {
+          colors: Json
+          created_at: string
+          cta_blocks: Json
+          disclaimer_text: string | null
+          headline_size: string
+          headline_text: string
+          hide_blurbs: boolean
+          id: string
+          show_disclaimer: boolean
+          show_headline: boolean
+          show_legal_links: boolean
+          show_subheadline: boolean
+          subheadline_text: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          colors?: Json
+          created_at?: string
+          cta_blocks?: Json
+          disclaimer_text?: string | null
+          headline_size?: string
+          headline_text?: string
+          hide_blurbs?: boolean
+          id?: string
+          show_disclaimer?: boolean
+          show_headline?: boolean
+          show_legal_links?: boolean
+          show_subheadline?: boolean
+          subheadline_text?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          colors?: Json
+          created_at?: string
+          cta_blocks?: Json
+          disclaimer_text?: string | null
+          headline_size?: string
+          headline_text?: string
+          hide_blurbs?: boolean
+          id?: string
+          show_disclaimer?: boolean
+          show_headline?: boolean
+          show_legal_links?: boolean
+          show_subheadline?: boolean
+          subheadline_text?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       seo_checklists: {
         Row: {
           auto_verified: boolean

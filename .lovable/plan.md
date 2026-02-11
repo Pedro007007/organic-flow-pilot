@@ -1,50 +1,38 @@
 
 
-# Add Landing Page with Privacy Policy and Terms & Conditions
+## Fix: GSC redirect_uri_mismatch
 
-## Why This Is Needed
-Google requires a verified Privacy Policy URL before approving OAuth consent screen apps. Without publicly accessible Privacy Policy and Terms pages, the GSC integration cannot be approved for production use.
+### Problem
+The `GscConnectionCard` component builds the redirect URI dynamically using `window.location.pathname`, which includes `/dashboard`. But the URI registered in Google Cloud Console uses the root path `/`. Google requires an exact match.
 
-## What Will Be Built
+### Solution
+Update the redirect URI in the code to always use a fixed path (`/`) instead of the dynamic `window.location.pathname`. This ensures it always matches what's registered in Google Console.
 
-### 1. Public Landing Page (`/landing`)
-- Hero section with app name, tagline, and CTA buttons (Sign In / Sign Up)
-- Brief feature highlights (AI-powered SEO, keyword discovery, content pipeline)
-- Footer with links to Privacy Policy and Terms & Conditions
-- Styled to match the existing dark/light theme
+### Also Check: Google Cloud "Testing" Mode
+If your Google Cloud project's OAuth consent screen is set to **"Testing"** (not "In production"), only users listed as **Test Users** can authorize. Make sure `pedroxoneal@gmail.com` is added under **OAuth consent screen > Test users** in Google Cloud Console.
 
-### 2. Privacy Policy Page (`/privacy`)
-- Standard privacy policy covering data collection, usage, storage, third-party services (Google Search Console), cookies, and user rights
-- Accessible without authentication
+### Technical Details
 
-### 3. Terms & Conditions Page (`/terms`)
-- Standard terms covering acceptable use, account responsibilities, service limitations, and liability
-- Accessible without authentication
+**File: `src/components/GscConnectionCard.tsx`**
 
-### 4. Route Changes
-- `/` becomes the public landing page (no auth required)
-- `/dashboard` becomes the protected app (moved from current `/`)
-- `/auth` remains unchanged
-- `/privacy` and `/terms` are new public routes
+Two lines need to change:
 
-### 5. Navigation Updates
-- Landing page footer links to `/privacy` and `/terms`
-- Auth page gets small footer links to Privacy Policy and Terms
-- Inside the app, Settings page links updated if needed
+1. **Line 58** (exchange code redirect URI):
+   - Change: `` const redirectUri = `${window.location.origin}${window.location.pathname}?gsc_callback=true`; ``
+   - To: `` const redirectUri = `${window.location.origin}/?gsc_callback=true`; ``
 
-## Files to Create
-- `src/pages/Landing.tsx` -- public landing page
-- `src/pages/Privacy.tsx` -- privacy policy content
-- `src/pages/Terms.tsx` -- terms and conditions content
+2. **Line 85** (get auth URL redirect URI):
+   - Change: `` const redirectUri = `${window.location.origin}${window.location.pathname}?gsc_callback=true`; ``
+   - To: `` const redirectUri = `${window.location.origin}/?gsc_callback=true`; ``
 
-## Files to Modify
-- `src/App.tsx` -- update routes: `/` to Landing, `/dashboard` to protected Index
-- `src/components/SidebarNav.tsx` -- update any home links to `/dashboard`
-- `src/pages/Auth.tsx` -- add footer links to privacy/terms
-- `src/components/ProtectedRoute.tsx` -- redirect to `/auth` (no change needed, already does this)
+### Google Cloud Console URIs Required
+Confirm these exact URIs are saved in your Authorized redirect URIs:
+- `https://organic-flow-pilot.lovable.app/?gsc_callback=true`
+- `https://id-preview--884890d6-eef8-44fb-93f2-2e7a48cc2e5e.lovable.app/?gsc_callback=true`
 
-## Technical Notes
-- All three new pages are public (no authentication required)
-- Privacy and Terms pages will use placeholder company name "SEO Engine" which can be customized later
-- The privacy policy will specifically mention Google Search Console data access, which is what Google reviewers look for
-- Pages will be statically rendered text -- no database or API calls needed
+You can remove the `/~oauth` URIs since those are only needed for Google Sign-In (which this app doesn't use -- it uses email/password login).
+
+### After the Code Fix
+1. Make sure your Google Cloud OAuth consent screen has `pedroxoneal@gmail.com` as a test user (if still in Testing mode)
+2. Try connecting GSC again from the Settings page
+

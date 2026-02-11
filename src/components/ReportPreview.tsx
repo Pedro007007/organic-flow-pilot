@@ -30,6 +30,7 @@ interface ReportPreviewProps {
   settings: ReportSettings;
   scanData?: any;
   isPublic?: boolean;
+  onLivePreview?: () => void;
 }
 
 const headlineSizeClass: Record<string, string> = {
@@ -38,7 +39,7 @@ const headlineSizeClass: Record<string, string> = {
   large: "text-2xl",
 };
 
-const ReportPreview = ({ settings, scanData, isPublic = false }: ReportPreviewProps) => {
+const ReportPreview = ({ settings, scanData, isPublic = false, onLivePreview }: ReportPreviewProps) => {
   const results = scanData?.scan_results || {};
   const keywords = scanData?.keywords_found || [];
   const schemas = scanData?.schema_types || [];
@@ -75,7 +76,7 @@ const ReportPreview = ({ settings, scanData, isPublic = false }: ReportPreviewPr
             </TabsTrigger>
           </TabsList>
           {!isPublic && (
-            <Button size="sm" variant="outline" className="text-xs h-7">
+            <Button size="sm" variant="outline" className="text-xs h-7" onClick={onLivePreview}>
               Live Preview
             </Button>
           )}

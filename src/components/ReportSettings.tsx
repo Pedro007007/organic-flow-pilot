@@ -9,6 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Loader2, Save, Palette, Type, MousePointerClick, Eye, Users } from "lucide-react";
 import ReportPreview from "./ReportPreview";
 
@@ -63,7 +64,7 @@ const ReportSettings = () => {
   const [saving, setSaving] = useState(false);
   const [sampleScan, setSampleScan] = useState<any>(null);
   const [leads, setLeads] = useState<any[]>([]);
-
+  const [previewOpen, setPreviewOpen] = useState(false);
   useEffect(() => {
     if (!user) return;
     loadSettings();
@@ -364,7 +365,7 @@ const ReportSettings = () => {
             <p className="text-xs font-bold text-foreground">Live SEO Preview</p>
           </div>
           <div className="rounded-xl border border-border bg-card shadow-lg">
-            <ReportPreview settings={settings} scanData={sampleScan} />
+            <ReportPreview settings={settings} scanData={sampleScan} onLivePreview={() => setPreviewOpen(true)} />
           </div>
 
           {/* Call to Action Preview */}
@@ -422,6 +423,42 @@ const ReportSettings = () => {
           </div>
         </div>
       )}
+
+      {/* Full-screen Live Preview Dialog */}
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] overflow-y-auto p-0">
+          <DialogTitle className="sr-only">Live Report Preview</DialogTitle>
+          <div className="bg-white dark:bg-card rounded-lg">
+            <ReportPreview settings={settings} scanData={sampleScan} isPublic />
+          </div>
+          {/* CTA Preview inside dialog */}
+          {settings.cta_blocks.some((c) => c.enabled) && (
+            <div className="px-6 pb-6 space-y-3">
+              <p className="text-xs font-semibold text-muted-foreground text-center">Call to Action Preview</p>
+              {settings.cta_blocks
+                .filter((c) => c.enabled)
+                .map((cta) => (
+                  <div
+                    key={cta.id}
+                    className="flex items-center justify-between rounded-lg border border-border bg-card p-4 shadow-sm"
+                  >
+                    <div className="space-y-0.5">
+                      <p className="text-xs font-bold text-foreground">{cta.title}</p>
+                      <p className="text-[10px] text-muted-foreground">{cta.description}</p>
+                    </div>
+                    <Button
+                      size="sm"
+                      className="text-[10px] h-7 shrink-0"
+                      style={{ backgroundColor: settings.colors?.primary || "#6366f1" }}
+                    >
+                      {cta.button_text}
+                    </Button>
+                  </div>
+                ))}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

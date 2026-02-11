@@ -56,6 +56,69 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_citations: {
+        Row: {
+          checked_at: string
+          cited: boolean
+          engine: string
+          id: string
+          snippet: string | null
+          url: string
+          user_id: string
+        }
+        Insert: {
+          checked_at?: string
+          cited?: boolean
+          engine: string
+          id?: string
+          snippet?: string | null
+          url: string
+          user_id: string
+        }
+        Update: {
+          checked_at?: string
+          cited?: boolean
+          engine?: string
+          id?: string
+          snippet?: string | null
+          url?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      competitor_scans: {
+        Row: {
+          created_at: string
+          domain: string
+          id: string
+          keywords_found: Json | null
+          meta_patterns: Json | null
+          scan_results: Json | null
+          schema_types: string[] | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          domain: string
+          id?: string
+          keywords_found?: Json | null
+          meta_patterns?: Json | null
+          scan_results?: Json | null
+          schema_types?: string[] | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          domain?: string
+          id?: string
+          keywords_found?: Json | null
+          meta_patterns?: Json | null
+          scan_results?: Json | null
+          schema_types?: string[] | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       content_items: {
         Row: {
           author: string
@@ -295,6 +358,133 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      rankings: {
+        Row: {
+          ai_cited: boolean
+          ai_engine: string | null
+          created_at: string
+          id: string
+          keyword: string
+          position: number | null
+          previous_position: number | null
+          snapshot_date: string
+          url: string
+          user_id: string
+        }
+        Insert: {
+          ai_cited?: boolean
+          ai_engine?: string | null
+          created_at?: string
+          id?: string
+          keyword: string
+          position?: number | null
+          previous_position?: number | null
+          snapshot_date?: string
+          url: string
+          user_id: string
+        }
+        Update: {
+          ai_cited?: boolean
+          ai_engine?: string | null
+          created_at?: string
+          id?: string
+          keyword?: string
+          position?: number | null
+          previous_position?: number | null
+          snapshot_date?: string
+          url?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      seo_checklists: {
+        Row: {
+          auto_verified: boolean
+          category: string
+          content_item_id: string | null
+          created_at: string
+          description: string | null
+          id: string
+          item_label: string
+          status: string
+          user_id: string
+          verified_at: string | null
+        }
+        Insert: {
+          auto_verified?: boolean
+          category: string
+          content_item_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          item_label: string
+          status?: string
+          user_id: string
+          verified_at?: string | null
+        }
+        Update: {
+          auto_verified?: boolean
+          category?: string
+          content_item_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          item_label?: string
+          status?: string
+          user_id?: string
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seo_checklists_content_item_id_fkey"
+            columns: ["content_item_id"]
+            isOneToOne: false
+            referencedRelation: "content_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      seo_fulfilment: {
+        Row: {
+          category: string
+          checked_at: string
+          content_item_id: string
+          criterion: string
+          details: string | null
+          id: string
+          passed: boolean
+          user_id: string
+        }
+        Insert: {
+          category: string
+          checked_at?: string
+          content_item_id: string
+          criterion: string
+          details?: string | null
+          id?: string
+          passed?: boolean
+          user_id: string
+        }
+        Update: {
+          category?: string
+          checked_at?: string
+          content_item_id?: string
+          criterion?: string
+          details?: string | null
+          id?: string
+          passed?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "seo_fulfilment_content_item_id_fkey"
+            columns: ["content_item_id"]
+            isOneToOne: false
+            referencedRelation: "content_items"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       team_invites: {
         Row: {

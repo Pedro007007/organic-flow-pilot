@@ -25,6 +25,8 @@ import {
   Minimize2,
 } from "lucide-react";
 import ContentPerformanceChart from "@/components/ContentPerformanceChart";
+import FulfilmentDashboard from "@/components/FulfilmentDashboard";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface ContentDetailProps {
   contentId: string;
@@ -288,138 +290,101 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
         })}
       </div>
 
-      {/* Content + Metadata grid */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Draft preview */}
-        <div className="lg:col-span-2 rounded-lg border border-border bg-card">
-          <div className="border-b border-border px-5 py-4 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <FileText className="h-4 w-4 text-primary" />
-              <h2 className="text-sm font-semibold text-foreground">Content Draft</h2>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => handleRewrite("rewrite")}
-                disabled={!!rewriting || !draftContent.trim()}
-                className="h-7 px-2.5 text-xs"
-              >
-                {rewriting === "rewrite" ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <RefreshCw className="mr-1 h-3 w-3" />}
-                Rewrite
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => handleRewrite("expand")}
-                disabled={!!rewriting || !draftContent.trim()}
-                className="h-7 px-2.5 text-xs"
-              >
-                {rewriting === "expand" ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Maximize2 className="mr-1 h-3 w-3" />}
-                Expand
-              </Button>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => handleRewrite("shorten")}
-                disabled={!!rewriting || !draftContent.trim()}
-                className="h-7 px-2.5 text-xs"
-              >
-                {rewriting === "shorten" ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Minimize2 className="mr-1 h-3 w-3" />}
-                Shorten
-              </Button>
-            </div>
-          </div>
-          <div className="p-5">
-            <Textarea
-              value={draftContent}
-              onChange={(e) => setDraftContent(e.target.value)}
-              placeholder="Draft content will appear here after the Content Generation agent runs..."
-              className="min-h-[400px] bg-background border-border font-mono text-sm leading-relaxed resize-y"
-            />
-          </div>
-        </div>
+      {/* Tabs: Content + Fulfilment */}
+      <Tabs defaultValue="content" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="content">Content & Metadata</TabsTrigger>
+          <TabsTrigger value="fulfilment">SEO/GEO Fulfilment</TabsTrigger>
+        </TabsList>
 
-        {/* Metadata sidebar */}
-        <div className="space-y-4">
-          <div className="rounded-lg border border-border bg-card p-5 space-y-4">
-            <h3 className="text-sm font-semibold text-foreground">SEO Metadata</h3>
-            <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">SEO Title</Label>
-              <Input
-                value={seoTitle}
-                onChange={(e) => setSeoTitle(e.target.value)}
-                placeholder="Meta title (≤60 chars)"
-                maxLength={60}
-                className="bg-background border-border text-sm"
-              />
-              <p className="text-[10px] text-muted-foreground text-right">{seoTitle.length}/60</p>
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">Meta Description</Label>
-              <Textarea
-                value={metaDescription}
-                onChange={(e) => setMetaDescription(e.target.value)}
-                placeholder="Meta description (≤155 chars)"
-                maxLength={155}
-                className="bg-background border-border text-sm min-h-[80px]"
-              />
-              <p className="text-[10px] text-muted-foreground text-right">{metaDescription.length}/155</p>
-            </div>
-            <div className="space-y-2">
-              <Label className="text-xs text-muted-foreground">URL Slug</Label>
-              <Input
-                value={slug}
-                onChange={(e) => setSlug(e.target.value)}
-                placeholder="url-slug"
-                maxLength={100}
-                className="bg-background border-border text-sm font-mono"
-              />
-            </div>
-          </div>
-
-          <div className="rounded-lg border border-border bg-card p-5 space-y-3">
-            <h3 className="text-sm font-semibold text-foreground">Details</h3>
-            <div className="space-y-2 text-xs">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Keyword</span>
-                <span className="font-mono text-foreground">{item.keyword}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Author</span>
-                <span className="text-foreground">{item.author}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Schema</span>
-                <span className="text-foreground">{(item.schema_types || []).join(", ") || "—"}</span>
-              </div>
-              {item.url && (
-                <div className="flex justify-between items-center">
-                  <span className="text-muted-foreground">URL</span>
-                  <span className="font-mono text-primary flex items-center gap-1">
-                    {item.url} <ExternalLink className="h-3 w-3" />
-                  </span>
+        <TabsContent value="content">
+          {/* Content + Metadata grid */}
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+            {/* Draft preview */}
+            <div className="lg:col-span-2 rounded-lg border border-border bg-card">
+              <div className="border-b border-border px-5 py-4 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-primary" />
+                  <h2 className="text-sm font-semibold text-foreground">Content Draft</h2>
                 </div>
-              )}
-              {item.position && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Rank</span>
-                  <span className="font-mono text-foreground">#{Number(item.position)}</span>
+                <div className="flex items-center gap-1.5">
+                  <Button size="sm" variant="ghost" onClick={() => handleRewrite("rewrite")} disabled={!!rewriting || !draftContent.trim()} className="h-7 px-2.5 text-xs">
+                    {rewriting === "rewrite" ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <RefreshCw className="mr-1 h-3 w-3" />}
+                    Rewrite
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => handleRewrite("expand")} disabled={!!rewriting || !draftContent.trim()} className="h-7 px-2.5 text-xs">
+                    {rewriting === "expand" ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Maximize2 className="mr-1 h-3 w-3" />}
+                    Expand
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => handleRewrite("shorten")} disabled={!!rewriting || !draftContent.trim()} className="h-7 px-2.5 text-xs">
+                    {rewriting === "shorten" ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Minimize2 className="mr-1 h-3 w-3" />}
+                    Shorten
+                  </Button>
                 </div>
-              )}
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Updated</span>
-                <span className="text-foreground">{item.updated_at?.split("T")[0]}</span>
+              </div>
+              <div className="p-5">
+                <Textarea
+                  value={draftContent}
+                  onChange={(e) => setDraftContent(e.target.value)}
+                  placeholder="Draft content will appear here after the Content Generation agent runs..."
+                  className="min-h-[400px] bg-background border-border font-mono text-sm leading-relaxed resize-y"
+                />
+              </div>
+            </div>
+
+            {/* Metadata sidebar */}
+            <div className="space-y-4">
+              <div className="rounded-lg border border-border bg-card p-5 space-y-4">
+                <h3 className="text-sm font-semibold text-foreground">SEO Metadata</h3>
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">SEO Title</Label>
+                  <Input value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} placeholder="Meta title (≤60 chars)" maxLength={60} className="bg-background border-border text-sm" />
+                  <p className="text-[10px] text-muted-foreground text-right">{seoTitle.length}/60</p>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">Meta Description</Label>
+                  <Textarea value={metaDescription} onChange={(e) => setMetaDescription(e.target.value)} placeholder="Meta description (≤155 chars)" maxLength={155} className="bg-background border-border text-sm min-h-[80px]" />
+                  <p className="text-[10px] text-muted-foreground text-right">{metaDescription.length}/155</p>
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">URL Slug</Label>
+                  <Input value={slug} onChange={(e) => setSlug(e.target.value)} placeholder="url-slug" maxLength={100} className="bg-background border-border text-sm font-mono" />
+                </div>
+              </div>
+
+              <div className="rounded-lg border border-border bg-card p-5 space-y-3">
+                <h3 className="text-sm font-semibold text-foreground">Details</h3>
+                <div className="space-y-2 text-xs">
+                  <div className="flex justify-between"><span className="text-muted-foreground">Keyword</span><span className="font-mono text-foreground">{item.keyword}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Author</span><span className="text-foreground">{item.author}</span></div>
+                  <div className="flex justify-between"><span className="text-muted-foreground">Schema</span><span className="text-foreground">{(item.schema_types || []).join(", ") || "—"}</span></div>
+                  {item.url && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">URL</span>
+                      <span className="font-mono text-primary flex items-center gap-1">{item.url} <ExternalLink className="h-3 w-3" /></span>
+                    </div>
+                  )}
+                  {item.position && (
+                    <div className="flex justify-between"><span className="text-muted-foreground">Rank</span><span className="font-mono text-foreground">#{Number(item.position)}</span></div>
+                  )}
+                  <div className="flex justify-between"><span className="text-muted-foreground">Updated</span><span className="text-foreground">{item.updated_at?.split("T")[0]}</span></div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Performance Chart */}
-      {(item.status === "published" || item.status === "monitoring") && (
-        <ContentPerformanceChart contentId={contentId} keyword={item.keyword} />
-      )}
+          {/* Performance Chart */}
+          {(item.status === "published" || item.status === "monitoring") && (
+            <ContentPerformanceChart contentId={contentId} keyword={item.keyword} />
+          )}
+        </TabsContent>
+
+        <TabsContent value="fulfilment">
+          <div className="rounded-lg border border-border bg-card p-5">
+            <FulfilmentDashboard contentItemId={contentId} />
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

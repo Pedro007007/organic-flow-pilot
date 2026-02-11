@@ -10,6 +10,9 @@ import SettingsPage from "@/components/SettingsPage";
 import TeamManagement from "@/components/TeamManagement";
 import AnalyticsDashboard from "@/components/AnalyticsDashboard";
 import NotificationBell from "@/components/NotificationBell";
+import RankingsTracker from "@/components/RankingsTracker";
+import BusinessScanner from "@/components/BusinessScanner";
+import SeoChecklist from "@/components/SeoChecklist";
 import { usePerformanceMetrics, useKeywords, useContentItems, useAgentRuns } from "@/hooks/useDashboardData";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -57,6 +60,9 @@ const Index = () => {
     team: "Team Management",
     settings: "Settings",
     calendar: "Content Calendar",
+    rankings: "AI SEO & Rankings",
+    scanner: "Business Scanner",
+    checklist: "SEO Checklist",
   };
 
   return (
@@ -174,6 +180,12 @@ const Index = () => {
         {activeSection === "team" && <TeamManagement />}
 
         {activeSection === "settings" && <SettingsPage />}
+
+        {activeSection === "rankings" && <RankingsTracker />}
+
+        {activeSection === "scanner" && <BusinessScanner />}
+
+        {activeSection === "checklist" && <SeoChecklist />}
       </main>
     </div>
   );

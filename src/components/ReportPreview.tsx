@@ -13,6 +13,8 @@ import BacklinkProfile from "./report/BacklinkProfile";
 import RevenueProjection from "./report/RevenueProjection";
 import ActionPlan from "./report/ActionPlan";
 import LocalSeo from "./report/LocalSeo";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 interface ReportSettings {
   headline_text: string;
@@ -61,19 +63,41 @@ const ReportPreview = ({ settings, scanData, isPublic = false, onLivePreview }: 
     if (!pdfRef.current) return;
     setExporting(true);
     try {
-      const html2pdf = (await import("html2pdf.js")).default;
-      const opt = {
-        margin: [10, 10, 10, 10],
-        filename: `seo-report-${domain}.pdf`,
-        image: { type: "jpeg", quality: 0.95 },
-        html2canvas: { scale: 2, useCORS: true, backgroundColor: "#1a1a2e" },
-        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-        pagebreak: { mode: ["avoid-all", "css", "legacy"] },
-      };
-      await html2pdf().set(opt).from(pdfRef.current).save();
+      // Make the container temporarily renderable
+      pdfRef.current.style.opacity = "1";
+
+      const sections = pdfRef.current.querySelectorAll<HTMLElement>("[data-pdf-section]");
+      const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait" });
+      const pageW = 210;
+      const pageH = 297;
+      const margin = 15;
+      const contentW = pageW - margin * 2;
+      const gap = 4;
+      let cursorY = margin;
+
+      for (let i = 0; i < sections.length; i++) {
+        const canvas = await html2canvas(sections[i], {
+          scale: 2,
+          useCORS: true,
+          backgroundColor: "#1a1a2e",
+        });
+        const imgData = canvas.toDataURL("image/jpeg", 0.95);
+        const imgH = (canvas.height * contentW) / canvas.width;
+
+        if (cursorY + imgH > pageH - margin && i > 0) {
+          pdf.addPage();
+          cursorY = margin;
+        }
+
+        pdf.addImage(imgData, "JPEG", margin, cursorY, contentW, imgH);
+        cursorY += imgH + gap;
+      }
+
+      pdf.save(`seo-report-${domain}.pdf`);
     } catch (err) {
       console.error("PDF export failed:", err);
     } finally {
+      if (pdfRef.current) pdfRef.current.style.opacity = "0";
       setExporting(false);
     }
   };
@@ -215,46 +239,52 @@ const ReportPreview = ({ settings, scanData, isPublic = false, onLivePreview }: 
         </TabsContent>
       </Tabs>
 
-      {/* Hidden PDF render target — all sections shown at once */}
+      {/* Hidden PDF render target — all sections, inline styles for html2canvas */}
       <div
         ref={pdfRef}
-        className="absolute left-[-9999px] top-0 w-[210mm] bg-[#1a1a2e] text-white p-8 space-y-10"
-        style={{ fontFamily: "system-ui, sans-serif" }}
+        className="fixed top-0 left-0 w-[210mm] pointer-events-none"
+        style={{ opacity: 0, zIndex: -1, fontFamily: "system-ui, sans-serif" }}
       >
-        <div className="text-center space-y-1 mb-4">
-          <h1 className="text-2xl font-bold">{settings.headline_text}</h1>
-          {settings.show_subheadline && <p className="text-sm opacity-70">{settings.subheadline_text}</p>}
-          <p className="text-xs opacity-50">Report for {domain}</p>
+        <div data-pdf-section style={{ color: "#ffffff", backgroundColor: "#1a1a2e", padding: "32px" }}>
+          <div style={{ textAlign: "center", marginBottom: "16px" }}>
+            <h1 style={{ fontSize: "24px", fontWeight: "bold", color: "#ffffff" }}>{settings.headline_text}</h1>
+            {settings.show_subheadline && <p style={{ fontSize: "14px", color: "rgba(255,255,255,0.7)" }}>{settings.subheadline_text}</p>}
+            <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.5)" }}>Report for {domain}</p>
+          </div>
         </div>
-        <ExecutiveSummary data={results} domain={domain} primaryColor={primaryColor} accentColor={accentColor} />
-        <div className="border-t border-white/10 pt-6">
+        <div data-pdf-section style={{ color: "#ffffff", backgroundColor: "#1a1a2e", padding: "32px" }}>
+          <ExecutiveSummary data={results} domain={domain} primaryColor={primaryColor} accentColor={accentColor} />
+        </div>
+        <div data-pdf-section style={{ color: "#ffffff", backgroundColor: "#1a1a2e", padding: "32px" }}>
           <TechnicalAudit data={results} primaryColor={primaryColor} />
         </div>
-        <div className="border-t border-white/10 pt-6">
+        <div data-pdf-section style={{ color: "#ffffff", backgroundColor: "#1a1a2e", padding: "32px" }}>
           <KeywordOpportunities data={results} primaryColor={primaryColor} accentColor={accentColor} />
         </div>
-        <div className="border-t border-white/10 pt-6">
+        <div data-pdf-section style={{ color: "#ffffff", backgroundColor: "#1a1a2e", padding: "32px" }}>
           <CompetitorGap data={results} domain={domain} primaryColor={primaryColor} />
         </div>
-        <div className="border-t border-white/10 pt-6">
+        <div data-pdf-section style={{ color: "#ffffff", backgroundColor: "#1a1a2e", padding: "32px" }}>
           <ContentAuthority data={results} primaryColor={primaryColor} />
         </div>
-        <div className="border-t border-white/10 pt-6">
+        <div data-pdf-section style={{ color: "#ffffff", backgroundColor: "#1a1a2e", padding: "32px" }}>
           <BacklinkProfile data={results} primaryColor={primaryColor} />
         </div>
-        <div className="border-t border-white/10 pt-6">
+        <div data-pdf-section style={{ color: "#ffffff", backgroundColor: "#1a1a2e", padding: "32px" }}>
           <RevenueProjection data={results} primaryColor={primaryColor} accentColor={accentColor} />
         </div>
-        <div className="border-t border-white/10 pt-6">
+        <div data-pdf-section style={{ color: "#ffffff", backgroundColor: "#1a1a2e", padding: "32px" }}>
           <ActionPlan data={results} primaryColor={primaryColor} />
         </div>
         {results.local_seo?.applicable && (
-          <div className="border-t border-white/10 pt-6">
+          <div data-pdf-section style={{ color: "#ffffff", backgroundColor: "#1a1a2e", padding: "32px" }}>
             <LocalSeo data={results} primaryColor={primaryColor} />
           </div>
         )}
         {settings.show_disclaimer && settings.disclaimer_text && (
-          <p className="text-[10px] opacity-50 text-center pt-4 border-t border-white/10">{settings.disclaimer_text}</p>
+          <div data-pdf-section style={{ color: "rgba(255,255,255,0.5)", backgroundColor: "#1a1a2e", padding: "32px", textAlign: "center", fontSize: "10px" }}>
+            {settings.disclaimer_text}
+          </div>
         )}
       </div>
     </div>

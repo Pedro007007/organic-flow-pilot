@@ -165,32 +165,42 @@ const Landing = () => {
             <h2 className="text-3xl font-black tracking-tight sm:text-4xl text-white">How <span className="bg-gradient-to-r from-blue-400 to-teal-400 bg-clip-text text-transparent">Searchera</span> Works</h2>
             <p className="mt-4 text-lg text-blue-200/80 max-w-2xl mx-auto font-medium">Get started in minutes. Our streamlined process takes you from setup to growth with minimal effort.</p>
           </div>
-          {/* Timeline row */}
-          <div className="relative hidden lg:flex items-center justify-between max-w-4xl mx-auto mb-4">
-            {/* Connecting line */}
-            <div className="absolute top-1/2 left-[40px] right-[40px] h-px bg-teal-400/40" />
-            {steps.map((s) => (
-              <div key={s.num} className="relative z-10 flex h-16 w-16 items-center justify-center rounded-full border-2 border-teal-400/60 bg-slate-900">
-                <span className="text-lg font-black text-teal-400">{s.num}</span>
-              </div>
-            ))}
+          {/* Desktop timeline */}
+          <div className="hidden lg:block">
+            {/* Circles + connecting line */}
+            <div className="relative grid grid-cols-4 max-w-4xl mx-auto mb-6">
+              <div className="absolute top-1/2 left-[12.5%] right-[12.5%] h-px bg-teal-400/40 -translate-y-1/2" />
+              {steps.map((s) => (
+                <div key={s.num} className="flex justify-center">
+                  <div className="relative z-10 flex h-16 w-16 items-center justify-center rounded-full border-2 border-teal-400/60 bg-slate-900">
+                    <span className="text-lg font-black text-teal-400">{s.num}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {/* Icons */}
+            <div className="grid grid-cols-4 max-w-4xl mx-auto mb-6">
+              {[Globe, FileText, Cpu, BarChart3].map((Icon, i) => (
+                <div key={i} className="flex justify-center">
+                  <Icon className="h-6 w-6 text-teal-400/70" />
+                </div>
+              ))}
+            </div>
+            {/* Labels */}
+            <div className="grid grid-cols-4 max-w-4xl mx-auto">
+              {steps.map((s) => (
+                <div key={s.num} className="text-center px-4">
+                  <h3 className="text-lg font-black text-white">{s.title}</h3>
+                  <p className="mt-2 text-sm text-blue-200/70 leading-relaxed">{s.desc}</p>
+                </div>
+              ))}
+            </div>
           </div>
-
-          {/* Icon row */}
-          <div className="hidden lg:grid grid-cols-4 max-w-4xl mx-auto mb-8">
-            {[Globe, FileText, Cpu, BarChart3].map((Icon, i) => (
-              <div key={i} className="flex justify-center">
-                <Icon className="h-6 w-6 text-teal-400/70" />
-              </div>
-            ))}
-          </div>
-
-          {/* Labels */}
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4 max-w-4xl mx-auto">
+          {/* Mobile fallback */}
+          <div className="grid gap-8 sm:grid-cols-2 lg:hidden">
             {steps.map((s) => (
               <div key={s.num} className="text-center">
-                {/* Mobile circle */}
-                <div className="lg:hidden flex h-14 w-14 items-center justify-center rounded-full border-2 border-teal-400/60 bg-slate-900 mx-auto mb-3">
+                <div className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-teal-400/60 bg-slate-900 mx-auto mb-3">
                   <span className="text-base font-black text-teal-400">{s.num}</span>
                 </div>
                 <h3 className="text-lg font-black text-white">{s.title}</h3>

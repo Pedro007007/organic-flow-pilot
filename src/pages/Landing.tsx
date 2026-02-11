@@ -46,7 +46,7 @@ const Landing = () => {
   }, [navigate]);
 
   return (
-  <div className="min-h-screen flex flex-col bg-white text-gray-900">
+  <div className="light min-h-screen flex flex-col bg-white text-gray-900">
     {/* Nav */}
     <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">

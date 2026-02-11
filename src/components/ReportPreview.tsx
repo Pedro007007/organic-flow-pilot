@@ -1,8 +1,9 @@
+import { useRef, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
-import { Search, Globe, FileText, Eye, BarChart3, Link2, MapPin, DollarSign, Rocket } from "lucide-react";
+import { Search, Globe, FileText, Eye, BarChart3, Link2, MapPin, DollarSign, Rocket, Download, Loader2 } from "lucide-react";
 import ExecutiveSummary from "./report/ExecutiveSummary";
 import TechnicalAudit from "./report/TechnicalAudit";
 import KeywordOpportunities from "./report/KeywordOpportunities";
@@ -53,6 +54,29 @@ const ReportPreview = ({ settings, scanData, isPublic = false, onLivePreview }: 
   const primaryColor = settings.colors?.primary || "#6366f1";
   const accentColor = settings.colors?.accent || "#f59e0b";
   const enabledCtas = (settings.cta_blocks || []).filter((c) => c.enabled);
+  const pdfRef = useRef<HTMLDivElement>(null);
+  const [exporting, setExporting] = useState(false);
+
+  const handleDownloadPdf = async () => {
+    if (!pdfRef.current) return;
+    setExporting(true);
+    try {
+      const html2pdf = (await import("html2pdf.js")).default;
+      const opt = {
+        margin: [10, 10, 10, 10],
+        filename: `seo-report-${domain}.pdf`,
+        image: { type: "jpeg", quality: 0.95 },
+        html2canvas: { scale: 2, useCORS: true, backgroundColor: "#1a1a2e" },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
+        pagebreak: { mode: ["avoid-all", "css", "legacy"] },
+      };
+      await html2pdf().set(opt).from(pdfRef.current).save();
+    } catch (err) {
+      console.error("PDF export failed:", err);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const tabs = [
     { value: "overview", label: "Overview", icon: Eye },
@@ -84,11 +108,17 @@ const ReportPreview = ({ settings, scanData, isPublic = false, onLivePreview }: 
               ))}
             </TabsList>
           </div>
-          {!isPublic && onLivePreview && (
-            <Button size="sm" variant="outline" className="text-[10px] h-7 shrink-0" onClick={onLivePreview}>
-              Live Preview
+          <div className="flex items-center gap-2 shrink-0">
+            <Button size="sm" variant="outline" className="text-[10px] h-7" onClick={handleDownloadPdf} disabled={exporting}>
+              {exporting ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <Download className="h-3 w-3 mr-1" />}
+              PDF
             </Button>
-          )}
+            {!isPublic && onLivePreview && (
+              <Button size="sm" variant="outline" className="text-[10px] h-7" onClick={onLivePreview}>
+                Live Preview
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Overview Tab */}
@@ -184,6 +214,49 @@ const ReportPreview = ({ settings, scanData, isPublic = false, onLivePreview }: 
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Hidden PDF render target — all sections shown at once */}
+      <div
+        ref={pdfRef}
+        className="absolute left-[-9999px] top-0 w-[210mm] bg-[#1a1a2e] text-white p-8 space-y-10"
+        style={{ fontFamily: "system-ui, sans-serif" }}
+      >
+        <div className="text-center space-y-1 mb-4">
+          <h1 className="text-2xl font-bold">{settings.headline_text}</h1>
+          {settings.show_subheadline && <p className="text-sm opacity-70">{settings.subheadline_text}</p>}
+          <p className="text-xs opacity-50">Report for {domain}</p>
+        </div>
+        <ExecutiveSummary data={results} domain={domain} primaryColor={primaryColor} accentColor={accentColor} />
+        <div className="border-t border-white/10 pt-6">
+          <TechnicalAudit data={results} primaryColor={primaryColor} />
+        </div>
+        <div className="border-t border-white/10 pt-6">
+          <KeywordOpportunities data={results} primaryColor={primaryColor} accentColor={accentColor} />
+        </div>
+        <div className="border-t border-white/10 pt-6">
+          <CompetitorGap data={results} domain={domain} primaryColor={primaryColor} />
+        </div>
+        <div className="border-t border-white/10 pt-6">
+          <ContentAuthority data={results} primaryColor={primaryColor} />
+        </div>
+        <div className="border-t border-white/10 pt-6">
+          <BacklinkProfile data={results} primaryColor={primaryColor} />
+        </div>
+        <div className="border-t border-white/10 pt-6">
+          <RevenueProjection data={results} primaryColor={primaryColor} accentColor={accentColor} />
+        </div>
+        <div className="border-t border-white/10 pt-6">
+          <ActionPlan data={results} primaryColor={primaryColor} />
+        </div>
+        {results.local_seo?.applicable && (
+          <div className="border-t border-white/10 pt-6">
+            <LocalSeo data={results} primaryColor={primaryColor} />
+          </div>
+        )}
+        {settings.show_disclaimer && settings.disclaimer_text && (
+          <p className="text-[10px] opacity-50 text-center pt-4 border-t border-white/10">{settings.disclaimer_text}</p>
+        )}
+      </div>
     </div>
   );
 };

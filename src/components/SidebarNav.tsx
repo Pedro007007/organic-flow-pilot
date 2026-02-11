@@ -6,13 +6,13 @@ import {
   Bot,
   BarChart3,
   Settings,
-  Zap,
   CalendarDays,
   Menu,
   Sun,
   Moon,
   Users,
 } from "lucide-react";
+import searcheraLogo from "@/assets/searchera-logo.png";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTheme } from "next-themes";
@@ -38,12 +38,10 @@ function SidebarContent({ activeSection, onNavigate }: SidebarNavProps) {
   return (
     <>
       <div className="flex items-center gap-2.5 border-b border-border px-5 py-4">
-        <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/15">
-          <Zap className="h-4 w-4 text-primary" />
-        </div>
+        <img src={searcheraLogo} alt="Searchera" className="h-7 w-7 rounded-md object-contain" />
         <div>
-          <h1 className="text-sm font-bold text-foreground tracking-tight">SEO Engine</h1>
-          <p className="text-[10px] text-muted-foreground">AI-Powered Growth</p>
+          <h1 className="text-sm font-bold text-foreground tracking-tight">Searchera</h1>
+          <p className="text-[10px] text-muted-foreground">AI SEO Growth Engine</p>
         </div>
       </div>
       <nav className="flex-1 space-y-0.5 px-3 py-3">

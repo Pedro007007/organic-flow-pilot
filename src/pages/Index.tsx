@@ -106,7 +106,7 @@ const Index = () => {
                     <Zap className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <h2 className="text-sm font-bold text-foreground">Welcome to SEO Engine!</h2>
+                    <h2 className="text-sm font-bold text-foreground">Welcome to Searchera!</h2>
                     <p className="text-xs text-muted-foreground">Get started by creating your first content piece or running keyword discovery.</p>
                   </div>
                 </div>

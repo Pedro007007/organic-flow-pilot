@@ -69,9 +69,40 @@ serve(async (req) => {
       .not("url", "is", null)
       .limit(20);
 
-    const internalLinks = (existingContent || [])
-      .filter((c: any) => c.url || c.slug)
-      .map((c: any) => `- [${c.title}](${c.url || `/blog/${c.slug}`}) — about "${c.keyword}"`)
+    // Fetch sitemap pages for richer internal link candidates
+    const resolvedBrandId = brandId || brand?.id;
+    let sitemapQuery = supabase
+      .from("sitemap_pages")
+      .select("url, title")
+      .eq("user_id", userId)
+      .limit(50);
+    if (resolvedBrandId) {
+      sitemapQuery = sitemapQuery.eq("brand_id", resolvedBrandId);
+    }
+    const { data: sitemapPages } = await sitemapQuery;
+
+    // Merge: sitemap pages first (real live URLs), then content items, deduplicated
+    const seen = new Set<string>();
+    const linkCandidates: { title: string; url: string; keyword?: string }[] = [];
+
+    for (const sp of sitemapPages || []) {
+      if (sp.url && !seen.has(sp.url)) {
+        seen.add(sp.url);
+        linkCandidates.push({ title: sp.title || sp.url, url: sp.url });
+      }
+    }
+    for (const c of (existingContent || []) as any[]) {
+      const u = c.url || (c.slug ? `/blog/${c.slug}` : null);
+      if (u && !seen.has(u)) {
+        seen.add(u);
+        linkCandidates.push({ title: c.title, url: u, keyword: c.keyword });
+      }
+    }
+
+    // Cap candidates at maxLinks * 3 to give AI options
+    const cappedCandidates = linkCandidates.slice(0, maxLinks * 3);
+    const internalLinks = cappedCandidates
+      .map((l) => `- [${l.title}](${l.url})${l.keyword ? ` — about "${l.keyword}"` : ""}`)
       .join("\n");
 
     // Build brand-aware system prompt

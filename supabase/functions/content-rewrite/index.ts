@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -6,13 +7,13 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const systemPrompts: Record<string, string> = {
+const basePrompts: Record<string, string> = {
   rewrite:
-    "You are a professional content editor. Rewrite the following text to be clearer, more engaging, and better structured while preserving the original meaning. Return only the rewritten text, no commentary.",
+    "Rewrite the following text to be clearer, more engaging, and better structured while preserving the original meaning. Return only the rewritten text, no commentary.",
   expand:
-    "You are a professional content writer. Expand the following text with additional detail, examples, and depth while maintaining the same tone and style. Return only the expanded text, no commentary.",
+    "Expand the following text with additional detail, examples, and depth while maintaining the same tone and style. Return only the expanded text, no commentary.",
   shorten:
-    "You are a professional editor. Condense the following text to be more concise while preserving all key information. Remove filler and redundancy. Return only the shortened text, no commentary.",
+    "Condense the following text to be more concise while preserving all key information. Remove filler and redundancy. Return only the shortened text, no commentary.",
 };
 
 serve(async (req) => {
@@ -21,14 +22,55 @@ serve(async (req) => {
   }
 
   try {
-    const { text, action } = await req.json();
+    const { text, action, brandId } = await req.json();
 
-    if (!text || !action || !systemPrompts[action]) {
+    if (!text || !action || !basePrompts[action]) {
       return new Response(
         JSON.stringify({ error: "Invalid request. Provide text and action (rewrite/expand/shorten)." }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    // Authenticate user & fetch brand
+    const authHeader = req.headers.get("Authorization");
+    let brand: any = null;
+
+    if (authHeader?.startsWith("Bearer ")) {
+      const supabase = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_ANON_KEY")!,
+        { global: { headers: { Authorization: authHeader } } }
+      );
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        if (brandId) {
+          const { data } = await supabase.from("brands").select("tone_of_voice, writing_style, writing_preferences").eq("id", brandId).eq("user_id", user.id).maybeSingle();
+          brand = data;
+        }
+        if (!brand) {
+          const { data } = await supabase.from("brands").select("tone_of_voice, writing_style, writing_preferences").eq("user_id", user.id).eq("is_default", true).maybeSingle();
+          brand = data;
+        }
+      }
+    }
+
+    // Build brand-aware system prompt
+    let brandRules = "";
+    if (brand) {
+      const parts: string[] = [];
+      if (brand.tone_of_voice) parts.push(`- Tone: ${brand.tone_of_voice}`);
+      if (brand.writing_style) parts.push(`- Style: ${brand.writing_style}`);
+      const cliches = (brand.writing_preferences as any)?.avoid_cliches;
+      if (Array.isArray(cliches) && cliches.length > 0) {
+        parts.push(`- NEVER use these phrases: ${cliches.join(", ")}`);
+      }
+      if (parts.length > 0) {
+        brandRules = `\n\nBrand voice rules:\n${parts.join("\n")}\n`;
+      }
+    }
+
+    const systemPrompt = `You are a professional content editor.${brandRules}\n${basePrompts[action]}`;
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
@@ -42,7 +84,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "google/gemini-3-flash-preview",
         messages: [
-          { role: "system", content: systemPrompts[action] },
+          { role: "system", content: systemPrompt },
           { role: "user", content: text },
         ],
       }),

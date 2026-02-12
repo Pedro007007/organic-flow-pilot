@@ -195,7 +195,7 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
     setRewriting(action);
     try {
       const res = await supabase.functions.invoke("content-rewrite", {
-        body: { text: draftContent, action },
+        body: { text: draftContent, action, brandId: item.brand_id },
       });
       if (res.error) throw res.error;
       if (res.data?.result) {

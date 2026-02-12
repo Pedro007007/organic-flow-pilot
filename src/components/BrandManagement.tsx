@@ -15,6 +15,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Loader2,
   Save,
@@ -26,6 +28,9 @@ import {
   Link2,
   Image,
   Star,
+  RefreshCw,
+  Globe,
+  ExternalLink,
 } from "lucide-react";
 
 interface Brand {
@@ -52,11 +57,24 @@ const BrandManagement = () => {
   const [saving, setSaving] = useState(false);
   const [creating, setCreating] = useState(false);
   const [newBrandName, setNewBrandName] = useState("");
+  const [syncing, setSyncing] = useState(false);
+  const [sitemapPages, setSitemapPages] = useState<any[]>([]);
+  const [sitemapUrl, setSitemapUrl] = useState("");
 
   useEffect(() => {
     if (!user) return;
     fetchBrands();
   }, [user]);
+
+  useEffect(() => {
+    if (selectedBrand) {
+      fetchSitemapPages(selectedBrand.id);
+      // Auto-populate sitemap URL from domain
+      if (selectedBrand.domain && !sitemapUrl) {
+        setSitemapUrl(`https://${selectedBrand.domain.replace(/^https?:\/\//, "")}/sitemap.xml`);
+      }
+    }
+  }, [selectedBrand?.id]);
 
   const fetchBrands = async () => {
     setLoading(true);
@@ -74,6 +92,36 @@ const BrandManagement = () => {
       }
     }
     setLoading(false);
+  };
+
+  const fetchSitemapPages = async (brandId: string) => {
+    const { data } = await supabase
+      .from("sitemap_pages")
+      .select("*")
+      .eq("brand_id", brandId)
+      .order("url", { ascending: true })
+      .limit(100);
+    setSitemapPages(data || []);
+  };
+
+  const handleSyncSitemap = async () => {
+    if (!selectedBrand || !sitemapUrl.trim()) return;
+    setSyncing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("sync-sitemap", {
+        body: { brandId: selectedBrand.id, sitemapUrl: sitemapUrl.trim() },
+      });
+      if (error) throw error;
+      toast({
+        title: "Sitemap synced",
+        description: `Imported ${data?.pages_imported || 0} pages from sitemap`,
+      });
+      fetchSitemapPages(selectedBrand.id);
+    } catch (err: any) {
+      const msg = err?.context?.json ? (await err.context.json())?.error : err?.message || "Sync failed";
+      toast({ title: "Sitemap sync failed", description: msg, variant: "destructive" });
+    }
+    setSyncing(false);
   };
 
   const handleCreate = async () => {
@@ -351,6 +399,45 @@ const BrandManagement = () => {
                     <SelectItem value="branded">Branded</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              {/* Sitemap Sync */}
+              <div className="mt-6 pt-4 border-t border-border space-y-3">
+                <div className="flex items-center gap-2">
+                  <Globe className="h-4 w-4 text-primary" />
+                  <h4 className="text-sm font-semibold text-foreground">Sitemap Sync</h4>
+                  {sitemapPages.length > 0 && (
+                    <Badge variant="secondary" className="text-[10px]">{sitemapPages.length} pages</Badge>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Import your XML sitemap to power intelligent internal linking during content generation.
+                </p>
+                <div className="flex gap-2">
+                  <Input
+                    value={sitemapUrl}
+                    onChange={(e) => setSitemapUrl(e.target.value)}
+                    placeholder="https://example.com/sitemap.xml"
+                    className="bg-background border-border text-sm font-mono"
+                  />
+                  <Button size="sm" onClick={handleSyncSitemap} disabled={syncing || !sitemapUrl.trim()}>
+                    {syncing ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="mr-1.5 h-3.5 w-3.5" />}
+                    Sync
+                  </Button>
+                </div>
+
+                {sitemapPages.length > 0 && (
+                  <ScrollArea className="h-40 rounded-md border border-border bg-background/50 p-2">
+                    <div className="space-y-1">
+                      {sitemapPages.map((page) => (
+                        <div key={page.id} className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground py-0.5">
+                          <ExternalLink className="h-3 w-3 shrink-0" />
+                          <span className="truncate font-mono">{page.url}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                )}
               </div>
             </TabsContent>
 

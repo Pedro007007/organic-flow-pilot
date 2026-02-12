@@ -47,3 +47,6 @@ verify_jwt = false
 
 [functions.generate-hero-image]
 verify_jwt = false
+
+[functions.sync-sitemap]
+verify_jwt = false

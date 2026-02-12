@@ -66,16 +66,6 @@ const BrandManagement = () => {
     fetchBrands();
   }, [user]);
 
-  useEffect(() => {
-    if (selectedBrand) {
-      fetchSitemapPages(selectedBrand.id);
-      // Auto-populate sitemap URL from domain
-      if (selectedBrand.domain && !sitemapUrl) {
-        setSitemapUrl(`https://${selectedBrand.domain.replace(/^https?:\/\//, "")}/sitemap.xml`);
-      }
-    }
-  }, [selectedBrand?.id]);
-
   const fetchBrands = async () => {
     setLoading(true);
     const { data, error } = await supabase
@@ -103,6 +93,15 @@ const BrandManagement = () => {
       .limit(100);
     setSitemapPages(data || []);
   };
+
+  useEffect(() => {
+    if (selectedBrand) {
+      fetchSitemapPages(selectedBrand.id);
+      if (selectedBrand.domain && !sitemapUrl) {
+        setSitemapUrl(`https://${selectedBrand.domain.replace(/^https?:\/\//, "")}/sitemap.xml`);
+      }
+    }
+  }, [selectedBrand?.id]);
 
   const handleSyncSitemap = async () => {
     if (!selectedBrand || !sitemapUrl.trim()) return;

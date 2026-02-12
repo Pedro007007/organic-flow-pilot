@@ -15,11 +15,16 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
     const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
+      supabaseUrl,
       Deno.env.get("SUPABASE_ANON_KEY")!,
       { global: { headers: { Authorization: authHeader } } }
     );
+
+    const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
     const { data: { user }, error: userError } = await supabase.auth.getUser();
     if (userError || !user) {
@@ -35,13 +40,27 @@ serve(async (req) => {
     const { data: run } = await supabase.from("agent_runs").insert({
       user_id: userId,
       agent_name: "Content Generation",
-      agent_description: "Writes human-quality, intent-based SEO content",
+      agent_description: "Writes human-quality, intent-based SEO content with internal links and images",
       status: "running",
       started_at: new Date().toISOString(),
     }).select("id").single();
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+
+    // Fetch existing content for internal linking
+    const { data: existingContent } = await supabase
+      .from("content_items")
+      .select("title, keyword, slug, url")
+      .eq("user_id", userId)
+      .neq("id", contentItemId || "")
+      .not("url", "is", null)
+      .limit(20);
+
+    const internalLinks = (existingContent || [])
+      .filter((c: any) => c.url || c.slug)
+      .map((c: any) => `- [${c.title}](${c.url || `/blog/${c.slug}`}) — about "${c.keyword}"`)
+      .join("\n");
 
     const systemPrompt = `You are a Human-level SEO Copywriter with deep subject understanding.
 
@@ -57,13 +76,15 @@ Must Include:
 - Scannable formatting with proper headings
 - FAQ section with direct answers
 - Strong call to action
-- Internal link placeholders
+- TWO image placeholders: place exactly {{IMAGE_1}} and {{IMAGE_2}} on their own lines at natural break points within the article (NOT at the very beginning or end). Place them between sections where a visual would enhance understanding.
+${internalLinks ? `- Internal links: naturally weave 2-4 of the following internal links into the article body where contextually relevant:\n${internalLinks}` : "- Internal link placeholders: use [Related: Topic Name](/blog/topic-slug) format for suggested internal links"}
 
 Must Avoid:
 - Keyword stuffing
 - Over-optimisation
 - Generic phrasing
 - Repetitive sentence patterns
+- Placing images at the start or end of the article
 
 Output format: Markdown with proper H1, H2, H3 headings.`;
 
@@ -77,7 +98,7 @@ Output format: Markdown with proper H1, H2, H3 headings.`;
         model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: `Write a complete SEO article.\n\nTitle: ${title || keyword}\nKeyword: ${keyword}\nOutline: ${JSON.stringify(outline || "Create your own outline based on the keyword")}${serpResearch ? `\n\nCOMPETITOR INTELLIGENCE:\n- Content gaps to exploit: ${(serpResearch.content_gaps || []).join(", ")}\n- Competitor weaknesses: ${(serpResearch.competitor_weaknesses || []).join(", ")}\n- FAQ questions to answer: ${(serpResearch.faq_questions || []).join(", ")}\n- Unique angles: ${(serpResearch.unique_angles || []).join(", ")}\n- Target word count: ${serpResearch.recommended_word_count || 2500}+\n- Common headings competitors use: ${(serpResearch.common_headings || []).join(", ")}\n\nCRITICAL: Your article MUST cover everything competitors cover PLUS the content gaps. Be more comprehensive, more actionable, and more expert than all competitors.` : ""}${strategy ? `\n\nCONTENT STRATEGY:\n${JSON.stringify(strategy)}` : ""}\n\nWrite in Markdown format.` },
+          { role: "user", content: `Write a complete SEO article.\n\nTitle: ${title || keyword}\nKeyword: ${keyword}\nOutline: ${JSON.stringify(outline || "Create your own outline based on the keyword")}${serpResearch ? `\n\nCOMPETITOR INTELLIGENCE:\n- Content gaps to exploit: ${(serpResearch.content_gaps || []).join(", ")}\n- Competitor weaknesses: ${(serpResearch.competitor_weaknesses || []).join(", ")}\n- FAQ questions to answer: ${(serpResearch.faq_questions || []).join(", ")}\n- Unique angles: ${(serpResearch.unique_angles || []).join(", ")}\n- Target word count: ${serpResearch.recommended_word_count || 2500}+\n- Common headings competitors use: ${(serpResearch.common_headings || []).join(", ")}\n\nCRITICAL: Your article MUST cover everything competitors cover PLUS the content gaps. Be more comprehensive, more actionable, and more expert than all competitors.` : ""}${strategy ? `\n\nCONTENT STRATEGY:\n${JSON.stringify(strategy)}` : ""}\n\nIMPORTANT: Include exactly two image placeholders {{IMAGE_1}} and {{IMAGE_2}} placed at natural visual break points within the article body. Write in Markdown format.` },
         ],
       }),
     });
@@ -90,7 +111,94 @@ Output format: Markdown with proper H1, H2, H3 headings.`;
     }
 
     const aiResult = await response.json();
-    const content = aiResult.choices?.[0]?.message?.content || "";
+    let content = aiResult.choices?.[0]?.message?.content || "";
+
+    // Generate 2 in-body images
+    const imagePrompts = [
+      `Generate a professional, clean blog illustration for an article about "${title || keyword}". The image should visually explain a key concept related to "${keyword}". Modern editorial style, no text in the image, 16:9 aspect ratio. Ultra high resolution.`,
+      `Generate a different professional blog illustration for "${title || keyword}". Show a practical example, diagram, or scenario related to "${keyword}". Clean, modern style, no text, 16:9 aspect ratio. Ultra high resolution.`,
+    ];
+
+    const imageUrls: string[] = [];
+
+    for (let i = 0; i < imagePrompts.length; i++) {
+      try {
+        console.log(`Generating body image ${i + 1} for: ${title || keyword}`);
+        const imgRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash-image",
+            messages: [{ role: "user", content: imagePrompts[i] }],
+            modalities: ["image", "text"],
+          }),
+        });
+
+        if (!imgRes.ok) {
+          console.warn(`Body image ${i + 1} generation failed: ${imgRes.status}`);
+          imageUrls.push("");
+          continue;
+        }
+
+        const imgResult = await imgRes.json();
+        const imageData = imgResult.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+
+        if (!imageData) {
+          imageUrls.push("");
+          continue;
+        }
+
+        const base64Match = imageData.match(/^data:image\/(\w+);base64,(.+)$/);
+        if (!base64Match) {
+          imageUrls.push("");
+          continue;
+        }
+
+        const imageFormat = base64Match[1];
+        const base64Data = base64Match[2];
+        const binaryData = Uint8Array.from(atob(base64Data), (c) => c.charCodeAt(0));
+
+        const fileName = `${userId}/${contentItemId || crypto.randomUUID()}-body-${i + 1}.${imageFormat}`;
+
+        const { error: uploadError } = await supabaseAdmin.storage
+          .from("content-images")
+          .upload(fileName, binaryData, {
+            contentType: `image/${imageFormat}`,
+            upsert: true,
+          });
+
+        if (uploadError) {
+          console.warn(`Body image ${i + 1} upload failed:`, uploadError.message);
+          imageUrls.push("");
+          continue;
+        }
+
+        const { data: publicUrlData } = supabaseAdmin.storage
+          .from("content-images")
+          .getPublicUrl(fileName);
+
+        imageUrls.push(publicUrlData.publicUrl);
+        console.log(`Body image ${i + 1} uploaded:`, publicUrlData.publicUrl);
+      } catch (imgErr) {
+        console.warn(`Body image ${i + 1} error:`, imgErr);
+        imageUrls.push("");
+      }
+    }
+
+    // Replace image placeholders with actual markdown images
+    if (imageUrls[0]) {
+      content = content.replace("{{IMAGE_1}}", `![${keyword} - visual guide](${imageUrls[0]})`);
+    } else {
+      content = content.replace("{{IMAGE_1}}", "");
+    }
+    if (imageUrls[1]) {
+      content = content.replace("{{IMAGE_2}}", `![${keyword} - practical example](${imageUrls[1]})`);
+    } else {
+      content = content.replace("{{IMAGE_2}}", "");
+    }
 
     // Update content item if provided
     if (contentItemId) {
@@ -104,7 +212,7 @@ Output format: Markdown with proper H1, H2, H3 headings.`;
       status: "completed",
       items_processed: 1,
       completed_at: new Date().toISOString(),
-      result: { content_length: content.length, content_item_id: contentItemId },
+      result: { content_length: content.length, content_item_id: contentItemId, body_images: imageUrls.filter(Boolean).length },
     }).eq("id", run?.id);
 
     return new Response(JSON.stringify({ success: true, content }), {

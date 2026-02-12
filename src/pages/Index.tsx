@@ -15,6 +15,7 @@ import BusinessScanner from "@/components/BusinessScanner";
 import SeoChecklist from "@/components/SeoChecklist";
 import ReportSettings from "@/components/ReportSettings";
 import LeadsManagement from "@/components/LeadsManagement";
+import BrandManagement from "@/components/BrandManagement";
 import { usePerformanceMetrics, useKeywords, useContentItems, useAgentRuns } from "@/hooks/useDashboardData";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -67,6 +68,7 @@ const Index = () => {
     reports: "Reports",
     leads: "Lead Capture",
     checklist: "SEO Checklist",
+    brands: "Brand Management",
   };
 
   return (
@@ -194,6 +196,8 @@ const Index = () => {
         {activeSection === "leads" && <LeadsManagement />}
 
         {activeSection === "checklist" && <SeoChecklist />}
+
+        {activeSection === "brands" && <BrandManagement />}
       </main>
     </div>
   );

@@ -15,6 +15,7 @@ import {
   Globe,
   ListChecks,
   FileBarChart,
+  Tag,
 } from "lucide-react";
 import searcheraLogo from "@/assets/searchera-logo.png";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -38,6 +39,7 @@ const navItems = [
   { id: "reports", label: "Reports", icon: FileBarChart },
   { id: "leads", label: "Leads", icon: Users },
   { id: "checklist", label: "Checklist", icon: ListChecks },
+  { id: "brands", label: "Brands", icon: Tag },
   { id: "team", label: "Team", icon: Users },
   { id: "settings", label: "Settings", icon: Settings },
 ];

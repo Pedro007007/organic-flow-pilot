@@ -53,3 +53,6 @@ verify_jwt = false
 
 [functions.optimization-score]
 verify_jwt = false
+
+[functions.content-repurpose]
+verify_jwt = false

@@ -27,6 +27,7 @@ import {
   Search,
 } from "lucide-react";
 import ContentPerformanceChart from "@/components/ContentPerformanceChart";
+import ContentPreview from "@/components/ContentPreview";
 import FulfilmentDashboard from "@/components/FulfilmentDashboard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -66,6 +67,7 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
   const [draftContent, setDraftContent] = useState("");
   const [fetched, setFetched] = useState(false);
   const [rewriting, setRewriting] = useState<string | false>(false);
+  const [viewMode, setViewMode] = useState<"edit" | "preview">("preview");
 
   // Fetch on mount
   if (!fetched) {
@@ -343,33 +345,27 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
         </TabsList>
 
         <TabsContent value="content">
-          {/* Hero Image */}
-          <div className="rounded-lg border border-border bg-card mb-6">
-            <div className="border-b border-border px-5 py-3 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <ImageIcon className="h-4 w-4 text-accent" />
-                <h3 className="text-sm font-semibold text-foreground">Hero Image</h3>
+          {/* Hero image generate button (image shown in preview) */}
+          {!item.hero_image_url && (
+            <div className="rounded-lg border border-border bg-card mb-6 p-5 flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <ImageIcon className="h-4 w-4" />
+                <span>No hero image yet</span>
               </div>
               <Button size="sm" variant="outline" onClick={handleGenerateImage} disabled={isBusy} className="h-7 text-xs gap-1.5">
                 {generatingImage ? <Loader2 className="h-3 w-3 animate-spin" /> : <ImageIcon className="h-3 w-3" />}
-                {item.hero_image_url ? "Regenerate" : "Generate"}
+                Generate Hero Image
               </Button>
             </div>
-            {item.hero_image_url ? (
-              <div className="p-4">
-                <img
-                  src={item.hero_image_url}
-                  alt={`Hero image for ${item.title}`}
-                  className="w-full max-h-64 object-cover rounded-md border border-border"
-                />
-              </div>
-            ) : (
-              <div className="p-8 text-center">
-                <ImageIcon className="h-8 w-8 text-muted-foreground/30 mx-auto mb-2" />
-                <p className="text-xs text-muted-foreground">No hero image yet. Click "Generate" to create one with AI.</p>
-              </div>
-            )}
-          </div>
+          )}
+          {item.hero_image_url && (
+            <div className="flex justify-end mb-4">
+              <Button size="sm" variant="outline" onClick={handleGenerateImage} disabled={isBusy} className="h-7 text-xs gap-1.5">
+                {generatingImage ? <Loader2 className="h-3 w-3 animate-spin" /> : <ImageIcon className="h-3 w-3" />}
+                Regenerate Hero Image
+              </Button>
+            </div>
+          )}
 
           {/* SERP Research Summary */}
           {item.serp_research && (
@@ -426,27 +422,58 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
                   <h2 className="text-sm font-semibold text-foreground">Content Draft</h2>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <Button size="sm" variant="ghost" onClick={() => handleRewrite("rewrite")} disabled={!!rewriting || !draftContent.trim()} className="h-7 px-2.5 text-xs">
-                    {rewriting === "rewrite" ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <RefreshCw className="mr-1 h-3 w-3" />}
-                    Rewrite
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={() => handleRewrite("expand")} disabled={!!rewriting || !draftContent.trim()} className="h-7 px-2.5 text-xs">
-                    {rewriting === "expand" ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Maximize2 className="mr-1 h-3 w-3" />}
-                    Expand
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={() => handleRewrite("shorten")} disabled={!!rewriting || !draftContent.trim()} className="h-7 px-2.5 text-xs">
-                    {rewriting === "shorten" ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Minimize2 className="mr-1 h-3 w-3" />}
-                    Shorten
-                  </Button>
+                  {viewMode === "edit" && (
+                    <>
+                      <Button size="sm" variant="ghost" onClick={() => handleRewrite("rewrite")} disabled={!!rewriting || !draftContent.trim()} className="h-7 px-2.5 text-xs">
+                        {rewriting === "rewrite" ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <RefreshCw className="mr-1 h-3 w-3" />}
+                        Rewrite
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => handleRewrite("expand")} disabled={!!rewriting || !draftContent.trim()} className="h-7 px-2.5 text-xs">
+                        {rewriting === "expand" ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Maximize2 className="mr-1 h-3 w-3" />}
+                        Expand
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => handleRewrite("shorten")} disabled={!!rewriting || !draftContent.trim()} className="h-7 px-2.5 text-xs">
+                        {rewriting === "shorten" ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <Minimize2 className="mr-1 h-3 w-3" />}
+                        Shorten
+                      </Button>
+                    </>
+                  )}
+                  <div className="flex items-center border border-border rounded-md overflow-hidden ml-2">
+                    <button
+                      onClick={() => setViewMode("edit")}
+                      className={`px-3 py-1 text-xs font-medium transition-colors ${viewMode === "edit" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => setViewMode("preview")}
+                      className={`px-3 py-1 text-xs font-medium transition-colors ${viewMode === "preview" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}
+                    >
+                      Preview
+                    </button>
+                  </div>
                 </div>
               </div>
               <div className="p-5">
-                <Textarea
-                  value={draftContent}
-                  onChange={(e) => setDraftContent(e.target.value)}
-                  placeholder="Draft content will appear here after the Content Generation agent runs..."
-                  className="min-h-[400px] bg-background border-border font-mono text-sm leading-relaxed resize-y"
-                />
+                {viewMode === "edit" ? (
+                  <Textarea
+                    value={draftContent}
+                    onChange={(e) => setDraftContent(e.target.value)}
+                    placeholder="Draft content will appear here after the Content Generation agent runs..."
+                    className="min-h-[400px] bg-background border-border font-mono text-sm leading-relaxed resize-y"
+                  />
+                ) : (
+                  <ContentPreview
+                    title={item.title}
+                    seoTitle={seoTitle}
+                    metaDescription={metaDescription}
+                    author={item.author}
+                    keyword={item.keyword}
+                    heroImageUrl={item.hero_image_url}
+                    draftContent={draftContent}
+                    updatedAt={item.updated_at}
+                  />
+                )}
               </div>
             </div>
 

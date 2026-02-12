@@ -81,8 +81,7 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
       .then(({ data, error }) => {
         setLoading(false);
         if (error || !data) {
-          toast({ title: "Content not found", variant: "destructive" });
-          onBack();
+          setItem(null);
           return;
         }
         setItem(data);
@@ -250,10 +249,19 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
   const canAdvance = currentStageIndex >= 0 && currentStageIndex < stages.length - 1;
   const nextStage = canAdvance ? stages[currentStageIndex + 1] : null;
 
-  if (loading || !item) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
         <Loader2 className="h-6 w-6 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!item) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 gap-4">
+        <p className="text-sm text-muted-foreground">Content not found. It may have been deleted.</p>
+        <button onClick={onBack} className="text-sm text-primary hover:underline">← Back to pipeline</button>
       </div>
     );
   }

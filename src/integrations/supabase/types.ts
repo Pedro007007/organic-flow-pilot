@@ -184,6 +184,7 @@ export type Database = {
           meta_description: string | null
           position: number | null
           schema_types: string[] | null
+          seo_score: number | null
           seo_title: string | null
           serp_research: Json | null
           slug: string | null
@@ -206,6 +207,7 @@ export type Database = {
           meta_description?: string | null
           position?: number | null
           schema_types?: string[] | null
+          seo_score?: number | null
           seo_title?: string | null
           serp_research?: Json | null
           slug?: string | null
@@ -228,6 +230,7 @@ export type Database = {
           meta_description?: string | null
           position?: number | null
           schema_types?: string[] | null
+          seo_score?: number | null
           seo_title?: string | null
           serp_research?: Json | null
           slug?: string | null
@@ -363,6 +366,53 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      optimization_jobs: {
+        Row: {
+          action_plan: Json | null
+          completed_at: string | null
+          content_item_id: string
+          created_at: string
+          error_message: string | null
+          id: string
+          overall_score: number | null
+          scores: Json | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          action_plan?: Json | null
+          completed_at?: string | null
+          content_item_id: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          overall_score?: number | null
+          scores?: Json | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          action_plan?: Json | null
+          completed_at?: string | null
+          content_item_id?: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          overall_score?: number | null
+          scores?: Json | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "optimization_jobs_content_item_id_fkey"
+            columns: ["content_item_id"]
+            isOneToOne: false
+            referencedRelation: "content_items"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       performance_snapshots: {
         Row: {

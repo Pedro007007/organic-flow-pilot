@@ -29,6 +29,7 @@ import {
 import ContentPerformanceChart from "@/components/ContentPerformanceChart";
 import ContentPreview from "@/components/ContentPreview";
 import FulfilmentDashboard from "@/components/FulfilmentDashboard";
+import OptimizationTab from "@/components/OptimizationTab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface ContentDetailProps {
@@ -349,6 +350,7 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
       <Tabs defaultValue="content" className="space-y-4">
         <TabsList>
           <TabsTrigger value="content">Content & Metadata</TabsTrigger>
+          <TabsTrigger value="optimization">Optimization</TabsTrigger>
           <TabsTrigger value="fulfilment">SEO/GEO Fulfilment</TabsTrigger>
         </TabsList>
 
@@ -530,6 +532,12 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
           {(item.status === "published" || item.status === "monitoring") && (
             <ContentPerformanceChart contentId={contentId} keyword={item.keyword} />
           )}
+        </TabsContent>
+
+        <TabsContent value="optimization">
+          <div className="rounded-lg border border-border bg-card p-5">
+            <OptimizationTab contentItemId={contentId} />
+          </div>
         </TabsContent>
 
         <TabsContent value="fulfilment">

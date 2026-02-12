@@ -37,7 +37,6 @@ serve(async (req) => {
       .from("content_items")
       .select("*")
       .eq("id", contentItemId)
-      .eq("user_id", userId)
       .maybeSingle();
 
     if (itemError || !item) {

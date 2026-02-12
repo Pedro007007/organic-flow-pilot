@@ -1,93 +1,74 @@
 
 
-## Optimization Jobs — AI-Driven Content Scoring and Action Plans
+## Multi-Channel Content Repurposing
 
-Add a new "Optimization Jobs" system that scores existing content items against SEO best practices and generates prioritized action plans for improvement.
-
-### Overview
-
-This feature introduces a dedicated scoring engine that analyzes published/monitored content and produces a structured SEO score (0-100) with a breakdown across key dimensions, plus a concrete action plan. Users can trigger optimization scans from the Content Detail view or run them in bulk from a new sidebar section.
+Transform existing long-form content into platform-specific formats: LinkedIn posts, YouTube descriptions, and Twitter/X threads -- all brand-aware and generated via AI.
 
 ### What Gets Built
 
-**1. Database: `optimization_jobs` table**
+**1. Database: `repurposed_content` table**
 
-Stores each optimization scan result:
-- `id`, `user_id`, `content_item_id` (FK to content_items)
-- `overall_score` (integer 0-100)
-- `scores` (JSONB — breakdown by dimension: technical, on_page, readability, keyword_usage, internal_links)
-- `action_plan` (JSONB — array of prioritized actions with effort/impact labels)
-- `status` (pending, running, completed, error)
-- `created_at`, `completed_at`
-- RLS: users can only see their own jobs
+Stores each repurposed output:
+- `id` (uuid), `user_id`, `content_item_id` (FK to content_items)
+- `channel` (text: "linkedin", "youtube", "twitter")
+- `output` (text -- the generated content)
+- `status` (text: "generating", "completed", "error")
+- `created_at`
+- RLS: users can only see their own repurposed content
 
-**2. Edge function: `supabase/functions/optimization-score/index.ts`**
+**2. Edge function: `supabase/functions/content-repurpose/index.ts`**
 
-- Accepts `contentItemId` (required)
-- Fetches the content item's draft, SEO metadata, keyword, brand settings, and sitemap links
-- Sends to AI with structured function calling to return scores + action plan
-- Saves result to `optimization_jobs` table
-- Updates `content_items` with the overall score (new `seo_score` column)
+- Accepts `contentItemId` and `channel` (linkedin | youtube | twitter)
+- Authenticates the user, fetches the content item's `draft_content`, `title`, `keyword`, and brand settings
+- Sends to Lovable AI with a channel-specific system prompt:
+  - **LinkedIn**: Professional post (1300 chars max), hook-first, CTA at end, relevant hashtags
+  - **YouTube**: Title, description (5000 chars), timestamps placeholder, tags
+  - **Twitter/X**: Thread format (numbered tweets, 280 chars each), hook tweet first
+- Saves result to `repurposed_content` table
+- Returns the generated output
 
-**3. Content Detail: "Optimization" tab**
+**3. New UI tab: "Repurpose" in ContentDetail**
 
-- Add a new tab in the Content Detail view alongside Editor, Preview, Performance, Fulfilment
-- Shows the latest optimization score as a gauge/ring chart
-- Displays score breakdown (5 dimensions) as progress bars
-- Lists the action plan as a checklist with effort/impact badges
-- "Run Optimization Scan" button to trigger a new analysis
+- Add a new tab alongside Content & Metadata, Optimization, and SEO/GEO Fulfilment
+- Shows three channel cards (LinkedIn, YouTube, Twitter) with generate buttons
+- Displays previously generated outputs per channel with copy-to-clipboard
+- "Regenerate" button for each channel
 
-**4. New `seo_score` column on `content_items`**
+**4. New component: `src/components/RepurposeTab.tsx`**
 
-- Integer column (nullable) to store the latest overall score
-- Displayed as a small badge in the Content Pipeline list view for quick scanning
+- Fetches existing repurposed content for the current content item
+- Channel cards with icons, generate/regenerate buttons
+- Output display with copy button
+- Loading states during generation
 
-**5. Content Pipeline: score badges**
+### Files Changed
 
-- Show a small colored score badge (green/amber/red) next to each content item in the pipeline list
-- Makes it easy to spot which content needs attention
+| File | Action |
+|------|--------|
+| Database migration | Create `repurposed_content` table with RLS |
+| `supabase/functions/content-repurpose/index.ts` | New edge function |
+| `supabase/config.toml` | Add function config (auto-managed) |
+| `src/components/RepurposeTab.tsx` | New UI component |
+| `src/components/ContentDetail.tsx` | Add "Repurpose" tab |
 
 ### No Changes To
 
-- Sidebar navigation (no new section -- optimization lives inside the content detail view)
-- Existing agent pipeline
-- Brand management
+- Content Pipeline list view
+- Sidebar navigation
+- Existing agent pipeline or optimization jobs
 
 ### Technical Details
 
-**Score Dimensions (weighted):**
-```text
-Technical SEO (25%) -- meta title length, meta description, schema types, slug
-On-Page SEO (25%) -- keyword in title, keyword density, heading structure  
-Readability (20%) -- sentence length, paragraph breaks, plain language
-Internal Linking (15%) -- number of internal links, link relevance
-Content Depth (15%) -- word count vs competitors, topic coverage
-```
+**Channel Prompts:**
 
-**Action Plan Structure:**
-```json
-[
-  {
-    "action": "Add FAQ schema markup",
-    "dimension": "technical",
-    "effort": "low",
-    "impact": "high",
-    "priority": 1
-  }
-]
-```
+LinkedIn: "Convert this article into a compelling LinkedIn post. Start with a strong hook line. Keep under 1300 characters. End with a call-to-action. Add 3-5 relevant hashtags. No markdown formatting."
 
-**AI Prompt Pattern:**
-The edge function uses structured function calling (same pattern as `seo-optimize`) to ensure consistent JSON output with scores and actions.
+YouTube: "Create a YouTube video description from this article. Include: an engaging title suggestion, a detailed description (under 5000 chars), 5 timestamp placeholders, and 10 relevant tags as a comma-separated list."
 
-**Database Migration:**
-1. Create `optimization_jobs` table with RLS
-2. Add `seo_score` integer column to `content_items`
+Twitter/X: "Convert this article into a Twitter thread. Format as numbered tweets (1/, 2/, etc). Each tweet must be under 280 characters. Start with a compelling hook. End with a CTA tweet. Aim for 5-8 tweets."
 
-**New/Modified Files:**
-- `supabase/functions/optimization-score/index.ts` (new)
-- `src/components/OptimizationTab.tsx` (new -- score display + action plan)
-- `src/components/ContentDetail.tsx` (add Optimization tab)
-- `src/components/ContentPipeline.tsx` (show score badges)
-- Database migration for new table + column
+**Brand Integration:**
+Same pattern as content-rewrite -- fetches brand tone, style, and cliche rules, injects into system prompt.
+
+**AI Model:** google/gemini-3-flash-preview (default, fast and cost-effective for reformatting tasks).
 

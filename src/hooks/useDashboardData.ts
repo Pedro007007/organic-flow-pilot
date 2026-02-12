@@ -84,6 +84,7 @@ export function useContentItems() {
         clicks: c.clicks ?? undefined,
         position: c.position ? Number(c.position) : undefined,
         url: c.url ?? undefined,
+        seoScore: c.seo_score ?? undefined,
       }));
     },
   });

@@ -382,6 +382,15 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
                 <span className={`inline-flex shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase ${config.bg} ${config.color}`}>
                   {config.label}
                 </span>
+                {item.seoScore != null && (
+                  <span className={`inline-flex shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold font-mono ${
+                    item.seoScore >= 75 ? "bg-success/15 border-success/20 text-success" :
+                    item.seoScore >= 50 ? "bg-warning/15 border-warning/20 text-warning" :
+                    "bg-destructive/15 border-destructive/20 text-destructive"
+                  }`}>
+                    {item.seoScore}
+                  </span>
+                )}
                 {item.status === "published" && item.position && (
                   <div className="hidden sm:flex items-center gap-3 shrink-0">
                     <div className="text-right">

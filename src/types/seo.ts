@@ -22,6 +22,7 @@ export interface ContentItem {
   clicks?: number;
   position?: number;
   url?: string;
+  seoScore?: number;
 }
 
 export interface AgentStatus {

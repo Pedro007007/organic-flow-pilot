@@ -1,28 +1,40 @@
 
+## Brand-Aware Content Rewrite
 
-## Sitemap-Powered Internal Linking
-
-Upgrade the `content-generate` edge function to prioritize real sitemap URLs when building internal link suggestions for AI-generated content.
-
-### How It Works Today
-
-The function queries `content_items` (up to 20 rows with a non-null URL) and feeds those as internal link candidates to the AI prompt. If no links exist, it falls back to placeholder format.
+Make the `content-rewrite` edge function respect brand identity (tone, style, cliche rules) so that rewrites, expansions, and shortenings match the selected brand's voice.
 
 ### What Changes
 
-**Edge function: `supabase/functions/content-generate/index.ts`**
+**1. Edge function: `supabase/functions/content-rewrite/index.ts`**
 
-After fetching `content_items` for links, also query `sitemap_pages` filtered by the brand (if available). Merge both sources into a single deduplicated list of internal link candidates, with sitemap pages taking priority (they represent real, live URLs on the domain).
+- Accept an optional `brandId` parameter in the request body
+- Add Supabase client initialization (same pattern as `content-generate`)
+- Authenticate the user via the Authorization header
+- If `brandId` is provided, fetch the brand's `tone_of_voice`, `writing_style`, and `writing_preferences.avoid_cliches` from the `brands` table
+- If no `brandId`, fall back to the user's default brand
+- Inject brand settings into each system prompt (rewrite/expand/shorten) so the AI follows the brand voice
+- Example: "Write in a [confident, witty] tone. Use [conversational] style. Never use: [list of cliches]."
+
+**2. Frontend: `src/components/ContentDetail.tsx`**
+
+- Pass the content item's `brand_id` to the `content-rewrite` invocation so the function knows which brand to load
+- Update the `handleRewrite` call: `body: { text: draftContent, action, brandId: item.brand_id }`
+
+### No Database Changes
+
+The `brands` table already has all the required fields (`tone_of_voice`, `writing_style`, `writing_preferences`). No schema updates needed.
 
 ### Technical Details
 
-1. **Query sitemap_pages** -- After the existing `content_items` fetch (line ~64), add a query:
-   - Filter by `user_id` and optionally by `brand_id` (from the content item's brand or the resolved brand)
-   - Select `url` and `title`, limit 50
-   
-2. **Merge and deduplicate** -- Combine sitemap pages + content items into one link list. Sitemap pages come first (real URLs). Deduplicate by URL. Cap at `maxLinks * 3` candidates (give AI more options than the final count).
+The enhanced system prompt will look like:
 
-3. **Update the prompt** -- The existing `internalLinks` variable will now contain a richer set of real URLs from the sitemap, making the AI's internal linking much more accurate and useful.
+```text
+You are a professional content editor.
+Brand voice rules:
+- Tone: {brand.tone_of_voice}
+- Style: {brand.writing_style}
+- NEVER use these phrases: {avoid_cliches list}
+Rewrite the following text to be clearer...
+```
 
-No database changes needed -- the `sitemap_pages` table already has the right schema. No UI changes needed -- this is a backend-only improvement that automatically benefits all content generation.
-
+If no brand is found, the function falls back to the current generic prompts -- fully backward-compatible.

@@ -86,6 +86,57 @@ export type Database = {
         }
         Relationships: []
       }
+      brands: {
+        Row: {
+          created_at: string
+          domain: string | null
+          id: string
+          image_defaults: Json | null
+          internal_linking_config: Json | null
+          is_default: boolean | null
+          name: string
+          research_depth: string | null
+          seo_settings: Json | null
+          tone_of_voice: string | null
+          updated_at: string
+          user_id: string
+          writing_preferences: Json | null
+          writing_style: string | null
+        }
+        Insert: {
+          created_at?: string
+          domain?: string | null
+          id?: string
+          image_defaults?: Json | null
+          internal_linking_config?: Json | null
+          is_default?: boolean | null
+          name: string
+          research_depth?: string | null
+          seo_settings?: Json | null
+          tone_of_voice?: string | null
+          updated_at?: string
+          user_id: string
+          writing_preferences?: Json | null
+          writing_style?: string | null
+        }
+        Update: {
+          created_at?: string
+          domain?: string | null
+          id?: string
+          image_defaults?: Json | null
+          internal_linking_config?: Json | null
+          is_default?: boolean | null
+          name?: string
+          research_depth?: string | null
+          seo_settings?: Json | null
+          tone_of_voice?: string | null
+          updated_at?: string
+          user_id?: string
+          writing_preferences?: Json | null
+          writing_style?: string | null
+        }
+        Relationships: []
+      }
       competitor_scans: {
         Row: {
           created_at: string
@@ -122,6 +173,7 @@ export type Database = {
       content_items: {
         Row: {
           author: string
+          brand_id: string | null
           clicks: number | null
           created_at: string
           draft_content: string | null
@@ -143,6 +195,7 @@ export type Database = {
         }
         Insert: {
           author?: string
+          brand_id?: string | null
           clicks?: number | null
           created_at?: string
           draft_content?: string | null
@@ -164,6 +217,7 @@ export type Database = {
         }
         Update: {
           author?: string
+          brand_id?: string | null
           clicks?: number | null
           created_at?: string
           draft_content?: string | null
@@ -183,7 +237,15 @@ export type Database = {
           url?: string | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "content_items_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       gsc_connections: {
         Row: {
@@ -577,6 +639,44 @@ export type Database = {
             columns: ["content_item_id"]
             isOneToOne: false
             referencedRelation: "content_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sitemap_pages: {
+        Row: {
+          brand_id: string
+          created_at: string
+          id: string
+          last_synced_at: string | null
+          title: string | null
+          url: string
+          user_id: string
+        }
+        Insert: {
+          brand_id: string
+          created_at?: string
+          id?: string
+          last_synced_at?: string | null
+          title?: string | null
+          url: string
+          user_id: string
+        }
+        Update: {
+          brand_id?: string
+          created_at?: string
+          id?: string
+          last_synced_at?: string | null
+          title?: string | null
+          url?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sitemap_pages_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
             referencedColumns: ["id"]
           },
         ]

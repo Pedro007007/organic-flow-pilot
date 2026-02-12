@@ -1,74 +1,40 @@
 
 
-## Multi-Channel Content Repurposing
+## Fix: Optimization Score "Content item not found" Error
 
-Transform existing long-form content into platform-specific formats: LinkedIn posts, YouTube descriptions, and Twitter/X threads -- all brand-aware and generated via AI.
+### Root Cause
 
-### What Gets Built
+The `optimization-score` edge function queries `content_items` with **two filters**: `.eq("id", contentItemId)` AND `.eq("user_id", userId)`. However, the `ContentDetail` component fetches content items using only `.eq("id", contentId)` -- relying on RLS (which includes an admin role check). This mismatch means:
 
-**1. Database: `repurposed_content` table**
+- If an admin user views someone else's content item, ContentDetail loads it fine (RLS allows it), but the optimization scan fails because the edge function's explicit `user_id` check doesn't match.
+- If a session token is slightly stale or the user ID resolution differs, the same issue occurs.
 
-Stores each repurposed output:
-- `id` (uuid), `user_id`, `content_item_id` (FK to content_items)
-- `channel` (text: "linkedin", "youtube", "twitter")
-- `output` (text -- the generated content)
-- `status` (text: "generating", "completed", "error")
-- `created_at`
-- RLS: users can only see their own repurposed content
+### Fix
 
-**2. Edge function: `supabase/functions/content-repurpose/index.ts`**
+**1. Update `optimization-score` edge function** -- Remove the redundant `.eq("user_id", userId)` filter when fetching the content item. Instead, rely on the Supabase client (which carries the user's auth token) and RLS to enforce access control. This aligns with how every other edge function in the project works.
 
-- Accepts `contentItemId` and `channel` (linkedin | youtube | twitter)
-- Authenticates the user, fetches the content item's `draft_content`, `title`, `keyword`, and brand settings
-- Sends to Lovable AI with a channel-specific system prompt:
-  - **LinkedIn**: Professional post (1300 chars max), hook-first, CTA at end, relevant hashtags
-  - **YouTube**: Title, description (5000 chars), timestamps placeholder, tags
-  - **Twitter/X**: Thread format (numbered tweets, 280 chars each), hook tweet first
-- Saves result to `repurposed_content` table
-- Returns the generated output
+```
+// Before (line ~43-47 of optimization-score/index.ts):
+.eq("id", contentItemId)
+.eq("user_id", userId)
 
-**3. New UI tab: "Repurpose" in ContentDetail**
+// After:
+.eq("id", contentItemId)
+```
 
-- Add a new tab alongside Content & Metadata, Optimization, and SEO/GEO Fulfilment
-- Shows three channel cards (LinkedIn, YouTube, Twitter) with generate buttons
-- Displays previously generated outputs per channel with copy-to-clipboard
-- "Regenerate" button for each channel
+Keep the `user_id` for the `optimization_jobs` insert (that's correct -- the job belongs to the user running it).
 
-**4. New component: `src/components/RepurposeTab.tsx`**
-
-- Fetches existing repurposed content for the current content item
-- Channel cards with icons, generate/regenerate buttons
-- Output display with copy button
-- Loading states during generation
+**2. Same fix for the brand lookup** -- The brand query also uses `.eq("user_id", userId)` which is fine since brands are user-owned, but this is unrelated to the bug.
 
 ### Files Changed
 
-| File | Action |
+| File | Change |
 |------|--------|
-| Database migration | Create `repurposed_content` table with RLS |
-| `supabase/functions/content-repurpose/index.ts` | New edge function |
-| `supabase/config.toml` | Add function config (auto-managed) |
-| `src/components/RepurposeTab.tsx` | New UI component |
-| `src/components/ContentDetail.tsx` | Add "Repurpose" tab |
+| `supabase/functions/optimization-score/index.ts` | Remove `.eq("user_id", userId)` from content_items query (line 45), keep RLS-based access control |
 
-### No Changes To
+### Why This Fixes It
 
-- Content Pipeline list view
-- Sidebar navigation
-- Existing agent pipeline or optimization jobs
-
-### Technical Details
-
-**Channel Prompts:**
-
-LinkedIn: "Convert this article into a compelling LinkedIn post. Start with a strong hook line. Keep under 1300 characters. End with a call-to-action. Add 3-5 relevant hashtags. No markdown formatting."
-
-YouTube: "Create a YouTube video description from this article. Include: an engaging title suggestion, a detailed description (under 5000 chars), 5 timestamp placeholders, and 10 relevant tags as a comma-separated list."
-
-Twitter/X: "Convert this article into a Twitter thread. Format as numbered tweets (1/, 2/, etc). Each tweet must be under 280 characters. Start with a compelling hook. End with a CTA tweet. Aim for 5-8 tweets."
-
-**Brand Integration:**
-Same pattern as content-rewrite -- fetches brand tone, style, and cliche rules, injects into system prompt.
-
-**AI Model:** google/gemini-3-flash-preview (default, fast and cost-effective for reformatting tasks).
+- RLS on `content_items` already enforces `auth.uid() = user_id OR has_role(auth.uid(), 'admin')`.
+- The edge function creates a Supabase client with the user's JWT, so RLS applies automatically.
+- Removing the redundant filter lets admins and regular users both use the scan without conflict.
 

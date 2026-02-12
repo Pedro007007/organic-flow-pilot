@@ -35,7 +35,7 @@ const Index = () => {
 
   const displayMetrics = metrics?.length ? metrics : mockMetrics;
   const displayKeywords = keywords?.length ? keywords : mockKeywords;
-  const displayContent = content?.length ? content : mockContent;
+  const displayContent = content || [];
   const displayAgents = agents?.length ? agents : mockAgents;
 
   const isLoading = metricsLoading || keywordsLoading || contentLoading || agentsLoading;

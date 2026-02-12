@@ -1,5 +1,5 @@
-import { useState, useMemo } from "react";
-import { FileText, Plus, Rocket, Loader2, Search, Filter, CheckSquare, Square, Download } from "lucide-react";
+import { useState, useMemo, useEffect } from "react";
+import { FileText, Plus, Rocket, Loader2, Search, Filter, CheckSquare, Square, Download, Tag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -46,6 +46,19 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
   const [keyword, setKeyword] = useState("");
   const [creating, setCreating] = useState(false);
   const [autopilot, setAutopilot] = useState(false);
+  const [brandId, setBrandId] = useState<string>("");
+  const [brands, setBrands] = useState<{ id: string; name: string }[]>([]);
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("brands").select("id, name, is_default").order("created_at").then(({ data }) => {
+      if (data) {
+        setBrands(data);
+        const def = data.find((b: any) => b.is_default);
+        if (def) setBrandId(def.id);
+      }
+    });
+  }, [user]);
 
   // Filters
   const [search, setSearch] = useState("");
@@ -116,6 +129,7 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
           keyword: keyword.trim(),
           status: "discovery",
           author: "Agent",
+          brand_id: brandId || null,
         })
         .select("id")
         .single();
@@ -130,7 +144,7 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
 
       if (runAutopilot && data?.id) {
         setAutopilot(true);
-        await runFullPipeline(data.id, keyword.trim(), title.trim());
+        await runFullPipeline(data.id, keyword.trim(), title.trim(), brandId || undefined);
         setAutopilot(false);
       }
     } catch (err: any) {
@@ -140,7 +154,7 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
     }
   };
 
-  const runFullPipeline = async (contentItemId: string, kw: string, ttl: string) => {
+  const runFullPipeline = async (contentItemId: string, kw: string, ttl: string, pipelineBrandId?: string) => {
     try {
       // Step 1: SERP Research
       toast({ title: "🔍 Autopilot: Researching competitors..." });
@@ -173,7 +187,7 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
       // Step 3: Content Generation (with SERP + strategy)
       toast({ title: "✍️ Autopilot: Writing content..." });
       const genRes = await supabase.functions.invoke("content-generate", {
-        body: { contentItemId, keyword: kw, title: ttl, serpResearch, strategy },
+        body: { contentItemId, keyword: kw, title: ttl, serpResearch, strategy, brandId: pipelineBrandId },
       });
       if (genRes.error) throw genRes.error;
 
@@ -181,7 +195,7 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
       toast({ title: "🎨 Autopilot: Generating hero image..." });
       try {
         await supabase.functions.invoke("generate-hero-image", {
-          body: { contentItemId, keyword: kw, title: ttl },
+          body: { contentItemId, keyword: kw, title: ttl, brandId: pipelineBrandId },
         });
       } catch {
         console.warn("Hero image generation skipped");
@@ -190,7 +204,7 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
       // Step 5: SEO Optimization
       toast({ title: "🔧 Autopilot: Optimizing SEO..." });
       const optRes = await supabase.functions.invoke("seo-optimize", {
-        body: { contentItemId, keyword: kw },
+        body: { contentItemId, keyword: kw, brandId: pipelineBrandId },
       });
       if (optRes.error) throw optRes.error;
 
@@ -236,6 +250,22 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
                 <Label className="text-xs text-muted-foreground">Target Keyword</Label>
                 <Input value={keyword} onChange={(e) => setKeyword(e.target.value)} placeholder="seo rankings" className="bg-background border-border text-sm font-mono" />
               </div>
+              {brands.length > 0 && (
+                <div className="space-y-2">
+                  <Label className="text-xs text-muted-foreground">Brand</Label>
+                  <Select value={brandId} onValueChange={setBrandId}>
+                    <SelectTrigger className="bg-background border-border text-sm">
+                      <Tag className="h-3 w-3 mr-1.5 text-muted-foreground" />
+                      <SelectValue placeholder="Select brand..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {brands.map((b) => (
+                        <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div className="flex gap-2">
                 <Button onClick={() => handleCreate(false)} disabled={creating || !title.trim() || !keyword.trim()} className="flex-1">
                   {creating ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Plus className="mr-1.5 h-3.5 w-3.5" />}

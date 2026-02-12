@@ -605,6 +605,44 @@ export type Database = {
         }
         Relationships: []
       }
+      repurposed_content: {
+        Row: {
+          channel: string
+          content_item_id: string
+          created_at: string
+          id: string
+          output: string | null
+          status: string
+          user_id: string
+        }
+        Insert: {
+          channel: string
+          content_item_id: string
+          created_at?: string
+          id?: string
+          output?: string | null
+          status?: string
+          user_id: string
+        }
+        Update: {
+          channel?: string
+          content_item_id?: string
+          created_at?: string
+          id?: string
+          output?: string | null
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "repurposed_content_content_item_id_fkey"
+            columns: ["content_item_id"]
+            isOneToOne: false
+            referencedRelation: "content_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       seo_checklists: {
         Row: {
           auto_verified: boolean

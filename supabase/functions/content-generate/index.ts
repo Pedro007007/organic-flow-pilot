@@ -32,9 +32,21 @@ serve(async (req) => {
     }
     const userId = user.id;
 
-    const { contentItemId, outline, keyword, title, serpResearch, strategy } = await req.json();
+    const { contentItemId, outline, keyword, title, serpResearch, strategy, brandId } = await req.json();
     if (!outline && !keyword) {
       return new Response(JSON.stringify({ error: "outline or keyword required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // Fetch brand settings if brandId provided
+    let brand: any = null;
+    if (brandId) {
+      const { data } = await supabase.from("brands").select("*").eq("id", brandId).eq("user_id", userId).maybeSingle();
+      brand = data;
+    }
+    if (!brand) {
+      // Fallback to default brand
+      const { data } = await supabase.from("brands").select("*").eq("user_id", userId).eq("is_default", true).maybeSingle();
+      brand = data;
     }
 
     const { data: run } = await supabase.from("agent_runs").insert({
@@ -62,13 +74,32 @@ serve(async (req) => {
       .map((c: any) => `- [${c.title}](${c.url || `/blog/${c.slug}`}) — about "${c.keyword}"`)
       .join("\n");
 
+    // Build brand-aware system prompt
+    const wp = brand?.writing_preferences || {};
+    const linkConfig = brand?.internal_linking_config || {};
+    const maxLinks = linkConfig.max_links_per_article || 5;
+    const anchorStyle = linkConfig.anchor_text_style || "natural";
+
+    const toneInstruction = brand?.tone_of_voice ? `- Tone of voice: ${brand.tone_of_voice}` : "";
+    const styleInstruction = brand?.writing_style ? `- Writing style: ${brand.writing_style}` : "";
+    const wordCountInstruction = wp.min_word_count || wp.max_word_count
+      ? `- Target word count: ${wp.min_word_count || 1500}–${wp.max_word_count || 3500} words`
+      : "";
+    const clicheInstruction = (wp.avoid_cliches || []).length > 0
+      ? `- NEVER use these phrases: ${wp.avoid_cliches.join(", ")}`
+      : '- No AI clichés ("In today\'s digital landscape", "Let\'s dive in", etc.)';
+
     const systemPrompt = `You are a Human-level SEO Copywriter with deep subject understanding.
+${brand ? `\nBrand: ${brand.name}${brand.domain ? ` (${brand.domain})` : ""}` : ""}
 
 Style Rules:
 - Confident, clear, practical
-- No AI clichés ("In today's digital landscape", "Let's dive in", etc.)
+${toneInstruction}
+${styleInstruction}
+${clicheInstruction}
 - No fluff or filler intros
 - Write like a real expert with first-hand experience
+${wordCountInstruction}
 
 Must Include:
 - Clear answers to user intent
@@ -77,7 +108,7 @@ Must Include:
 - FAQ section with direct answers
 - Strong call to action
 - TWO image placeholders: place exactly {{IMAGE_1}} and {{IMAGE_2}} on their own lines at natural break points within the article (NOT at the very beginning or end). Place them between sections where a visual would enhance understanding.
-${internalLinks ? `- Internal links: naturally weave 2-4 of the following internal links into the article body where contextually relevant:\n${internalLinks}` : "- Internal link placeholders: use [Related: Topic Name](/blog/topic-slug) format for suggested internal links"}
+${internalLinks ? `- Internal links: naturally weave ${Math.min(maxLinks, 4)} of the following internal links (${anchorStyle} anchor text) into the article body where contextually relevant:\n${internalLinks}` : "- Internal link placeholders: use [Related: Topic Name](/blog/topic-slug) format for suggested internal links"}
 
 Must Avoid:
 - Keyword stuffing
@@ -113,10 +144,15 @@ Output format: Markdown with proper H1, H2, H3 headings.`;
     const aiResult = await response.json();
     let content = aiResult.choices?.[0]?.message?.content || "";
 
-    // Generate 2 in-body images
+    // Generate 2 in-body images with brand-aware prompts
+    const imgDefaults = brand?.image_defaults || {};
+    const imgStyle = imgDefaults.style || "modern editorial";
+    const imgPalette = imgDefaults.color_palette || "";
+    const paletteNote = imgPalette ? ` Use a ${imgPalette} color palette.` : "";
+
     const imagePrompts = [
-      `Generate a professional, clean blog illustration for an article about "${title || keyword}". The image should visually explain a key concept related to "${keyword}". Modern editorial style, no text in the image, 16:9 aspect ratio. Ultra high resolution.`,
-      `Generate a different professional blog illustration for "${title || keyword}". Show a practical example, diagram, or scenario related to "${keyword}". Clean, modern style, no text, 16:9 aspect ratio. Ultra high resolution.`,
+      `Generate a professional, clean blog illustration for an article about "${title || keyword}". The image should visually explain a key concept related to "${keyword}". ${imgStyle} style, no text in the image, 16:9 aspect ratio.${paletteNote} Ultra high resolution.`,
+      `Generate a different professional blog illustration for "${title || keyword}". Show a practical example, diagram, or scenario related to "${keyword}". Clean, ${imgStyle} style, no text, 16:9 aspect ratio.${paletteNote} Ultra high resolution.`,
     ];
 
     const imageUrls: string[] = [];
@@ -205,6 +241,7 @@ Output format: Markdown with proper H1, H2, H3 headings.`;
       await supabase.from("content_items").update({
         draft_content: content,
         status: "writing",
+        brand_id: brandId || brand?.id || null,
       }).eq("id", contentItemId).eq("user_id", userId);
     }
 
@@ -212,7 +249,7 @@ Output format: Markdown with proper H1, H2, H3 headings.`;
       status: "completed",
       items_processed: 1,
       completed_at: new Date().toISOString(),
-      result: { content_length: content.length, content_item_id: contentItemId, body_images: imageUrls.filter(Boolean).length },
+      result: { content_length: content.length, content_item_id: contentItemId, body_images: imageUrls.filter(Boolean).length, brand: brand?.name || null },
     }).eq("id", run?.id);
 
     return new Response(JSON.stringify({ success: true, content }), {

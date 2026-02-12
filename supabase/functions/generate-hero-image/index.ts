@@ -18,7 +18,6 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
-    // Auth client for user validation
     const supabaseAuth = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -29,15 +28,29 @@ serve(async (req) => {
     }
     const userId = user.id;
 
-    // Service role client for storage upload
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { keyword, title, contentItemId } = await req.json();
+    const { keyword, title, contentItemId, brandId } = await req.json();
     if (!keyword && !title) {
       return new Response(JSON.stringify({ error: "keyword or title required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Log agent run
+    // Fetch brand settings for image defaults
+    let brand: any = null;
+    if (brandId) {
+      const { data } = await supabaseAuth.from("brands").select("*").eq("id", brandId).eq("user_id", userId).maybeSingle();
+      brand = data;
+    }
+    if (!brand) {
+      const { data } = await supabaseAuth.from("brands").select("*").eq("user_id", userId).eq("is_default", true).maybeSingle();
+      brand = data;
+    }
+
+    const imgDefaults = brand?.image_defaults || {};
+    const imgStyle = imgDefaults.style || "modern editorial";
+    const imgPalette = imgDefaults.color_palette || "";
+    const imgRatio = imgDefaults.aspect_ratio || "16:9";
+
     const { data: run } = await supabaseAuth.from("agent_runs").insert({
       user_id: userId,
       agent_name: "Image Generation",
@@ -49,14 +62,15 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const imagePrompt = `Generate a professional, modern blog hero image for an article titled "${title || keyword}". 
+    const paletteNote = imgPalette ? ` Use a ${imgPalette} color palette.` : "";
+
+    const imagePrompt = `Generate a professional, ${imgStyle} blog hero image for an article titled "${title || keyword}". 
 The image should be:
-- 16:9 aspect ratio, suitable for a blog header
+- ${imgRatio} aspect ratio, suitable for a blog header
 - Clean, professional design with subtle gradients
 - Visually representing the concept of "${keyword}"
 - No text or words in the image
-- Modern, editorial style photography or illustration
-- High contrast, vibrant but professional colors
+- High contrast, vibrant but professional colors${paletteNote}
 Ultra high resolution.`;
 
     console.log("Generating hero image for:", title || keyword);
@@ -89,13 +103,12 @@ Ultra high resolution.`;
       return new Response(JSON.stringify({ error: "No image generated" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Extract base64 data and upload to storage
     const base64Match = imageData.match(/^data:image\/(\w+);base64,(.+)$/);
     if (!base64Match) {
       throw new Error("Invalid image data format");
     }
 
-    const imageFormat = base64Match[1]; // png, jpg, etc.
+    const imageFormat = base64Match[1];
     const base64Data = base64Match[2];
     const binaryData = Uint8Array.from(atob(base64Data), (c) => c.charCodeAt(0));
 
@@ -120,10 +133,10 @@ Ultra high resolution.`;
     const heroImageUrl = publicUrlData.publicUrl;
     console.log("Hero image uploaded:", heroImageUrl);
 
-    // Update content item if provided
     if (contentItemId) {
       await supabaseAuth.from("content_items").update({
         hero_image_url: heroImageUrl,
+        brand_id: brandId || brand?.id || null,
       }).eq("id", contentItemId).eq("user_id", userId);
     }
 
@@ -131,7 +144,7 @@ Ultra high resolution.`;
       status: "completed",
       items_processed: 1,
       completed_at: new Date().toISOString(),
-      result: { hero_image_url: heroImageUrl, content_item_id: contentItemId },
+      result: { hero_image_url: heroImageUrl, content_item_id: contentItemId, brand: brand?.name || null },
     }).eq("id", run?.id);
 
     return new Response(JSON.stringify({ success: true, hero_image_url: heroImageUrl }), {

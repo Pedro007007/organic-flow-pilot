@@ -27,15 +27,31 @@ serve(async (req) => {
     }
     const userId = user.id;
 
-    const { contentItemId, draftContent, keyword } = await req.json();
+    const { contentItemId, draftContent, keyword, brandId } = await req.json();
     if (!draftContent && !contentItemId) {
       return new Response(JSON.stringify({ error: "draftContent or contentItemId required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    // Fetch brand settings
+    let brand: any = null;
+    if (brandId) {
+      const { data } = await supabase.from("brands").select("*").eq("id", brandId).eq("user_id", userId).maybeSingle();
+      brand = data;
+    }
+    if (!brand) {
+      const { data } = await supabase.from("brands").select("*").eq("user_id", userId).eq("is_default", true).maybeSingle();
+      brand = data;
+    }
+
     let content = draftContent;
     if (!content && contentItemId) {
-      const { data: item } = await supabase.from("content_items").select("draft_content, keyword").eq("id", contentItemId).eq("user_id", userId).maybeSingle();
+      const { data: item } = await supabase.from("content_items").select("draft_content, keyword, brand_id").eq("id", contentItemId).eq("user_id", userId).maybeSingle();
       content = item?.draft_content;
+      // If content item has a brand_id and we don't have one yet, use it
+      if (!brand && item?.brand_id) {
+        const { data } = await supabase.from("brands").select("*").eq("id", item.brand_id).eq("user_id", userId).maybeSingle();
+        brand = data;
+      }
     }
 
     const { data: run } = await supabase.from("agent_runs").insert({
@@ -49,13 +65,19 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
+    const seoSettings = brand?.seo_settings || {};
+    const metaSuffix = seoSettings.meta_title_suffix || "";
+    const defaultSchemas = (seoSettings.default_schema_types || []).join(", ");
+    const intentFocus = seoSettings.search_intent_focus || "";
+
     const systemPrompt = `You are a Technical SEO Specialist. Maximise crawlability, indexability, CTR, and AI readability.
+${brand ? `\nBrand: ${brand.name}${brand.domain ? ` (${brand.domain})` : ""}` : ""}
 
 Tasks:
-- Generate meta title (≤60 chars)
+- Generate meta title (≤60 chars)${metaSuffix ? ` — append "${metaSuffix}" if it fits within the limit` : ""}
 - Generate meta description (≤155 chars)
 - Create SEO-friendly URL slug
-- Determine schema types (Article, FAQ, HowTo)
+- Determine schema types (${defaultSchemas || "Article, FAQ, HowTo"})${intentFocus ? `\n- Optimise for ${intentFocus} search intent` : ""}
 - Suggest internal links
 - Provide SEO improvement notes`;
 

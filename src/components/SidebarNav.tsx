@@ -16,6 +16,7 @@ import {
   ListChecks,
   FileBarChart,
   Tag,
+  Sparkles,
 } from "lucide-react";
 import searcheraLogo from "@/assets/searchera-logo.png";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -32,6 +33,7 @@ const navItems = [
   { id: "keywords", label: "Keywords", icon: Search },
   { id: "content", label: "Content", icon: FileText },
   { id: "rankings", label: "Rankings", icon: TrendingUp },
+  { id: "llm-search", label: "LLM Search", icon: Sparkles },
   { id: "calendar", label: "Calendar", icon: CalendarDays },
   { id: "agents", label: "Agents", icon: Bot },
   { id: "analytics", label: "Analytics", icon: BarChart3 },

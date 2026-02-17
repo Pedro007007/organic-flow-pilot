@@ -16,6 +16,7 @@ import SeoChecklist from "@/components/SeoChecklist";
 import ReportSettings from "@/components/ReportSettings";
 import LeadsManagement from "@/components/LeadsManagement";
 import BrandManagement from "@/components/BrandManagement";
+import LlmSearchLab from "@/components/LlmSearchLab";
 import { usePerformanceMetrics, useKeywords, useContentItems, useAgentRuns } from "@/hooks/useDashboardData";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -64,6 +65,7 @@ const Index = () => {
     settings: "Settings",
     calendar: "Content Calendar",
     rankings: "AI SEO & Rankings",
+    "llm-search": "LLM Search Lab",
     scanner: "Business Scanner",
     reports: "Reports",
     leads: "Lead Capture",
@@ -188,6 +190,8 @@ const Index = () => {
         {activeSection === "settings" && <SettingsPage />}
 
         {activeSection === "rankings" && <RankingsTracker />}
+
+        {activeSection === "llm-search" && <LlmSearchLab />}
 
         {activeSection === "scanner" && <BusinessScanner />}
 

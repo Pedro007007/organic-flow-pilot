@@ -56,3 +56,12 @@ verify_jwt = false
 
 [functions.content-repurpose]
 verify_jwt = false
+
+[functions.llm-search]
+verify_jwt = false
+
+[functions.aeo-score]
+verify_jwt = false
+
+[functions.generate-answer-blocks]
+verify_jwt = false

@@ -1,0 +1,263 @@
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
+import { Loader2, Search, Plus, Sparkles, Clock, Target, AlertTriangle } from "lucide-react";
+
+interface QueryResult {
+  query: string;
+  intent: string;
+  volume_tier: string;
+  reasoning: string;
+  match_type: "matched" | "partial" | "gap";
+  matched_keyword: {
+    keyword: string;
+    intent: string;
+    impressions: number;
+    position: number;
+    clicks: number;
+  } | null;
+}
+
+interface Session {
+  id: string;
+  prompt: string;
+  queries: any[];
+  keyword_matches: QueryResult[];
+  created_at: string;
+}
+
+const intentColors: Record<string, string> = {
+  informational: "bg-info/15 text-info border-info/30",
+  commercial: "bg-warning/15 text-warning border-warning/30",
+  transactional: "bg-success/15 text-success border-success/30",
+  navigational: "bg-primary/15 text-primary border-primary/30",
+};
+
+const matchColors: Record<string, string> = {
+  matched: "bg-success/15 text-success border-success/30",
+  partial: "bg-warning/15 text-warning border-warning/30",
+  gap: "bg-destructive/15 text-destructive border-destructive/30",
+};
+
+const LlmSearchLab = () => {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [prompt, setPrompt] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [results, setResults] = useState<QueryResult[]>([]);
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [sessionsFetched, setSessionsFetched] = useState(false);
+  const [addingKeyword, setAddingKeyword] = useState<string | null>(null);
+
+  // Fetch past sessions
+  if (!sessionsFetched && user) {
+    setSessionsFetched(true);
+    supabase
+      .from("llm_search_sessions")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(10)
+      .then(({ data }) => {
+        if (data) setSessions(data as unknown as Session[]);
+      });
+  }
+
+  const handleSearch = async () => {
+    if (!prompt.trim() || loading) return;
+    setLoading(true);
+    setResults([]);
+    try {
+      const res = await supabase.functions.invoke("llm-search", {
+        body: { prompt: prompt.trim() },
+      });
+      if (res.error) {
+        const errBody = res.error?.context ? await res.error.context.json?.() : null;
+        throw new Error(errBody?.error || res.error.message || "Search failed");
+      }
+      const queries = res.data?.queries || [];
+      setResults(queries);
+      // Refresh sessions
+      const { data: updated } = await supabase
+        .from("llm_search_sessions")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(10);
+      if (updated) setSessions(updated as unknown as Session[]);
+      toast({ title: "Search complete", description: `Found ${queries.length} queries` });
+    } catch (err: any) {
+      toast({ title: "Search failed", description: err.message, variant: "destructive" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddKeyword = async (q: QueryResult) => {
+    if (!user) return;
+    setAddingKeyword(q.query);
+    try {
+      const { error } = await supabase.from("keywords").insert({
+        user_id: user.id,
+        keyword: q.query,
+        search_intent: q.intent,
+        opportunity: q.volume_tier === "high" ? "high" : q.volume_tier === "medium" ? "medium" : "low",
+      });
+      if (error) throw error;
+      toast({ title: "Keyword added", description: q.query });
+      // Update match status locally
+      setResults((prev) =>
+        prev.map((r) => (r.query === q.query ? { ...r, match_type: "matched" as const } : r))
+      );
+    } catch (err: any) {
+      toast({ title: "Failed to add keyword", description: err.message, variant: "destructive" });
+    } finally {
+      setAddingKeyword(null);
+    }
+  };
+
+  const loadSession = (session: Session) => {
+    setPrompt(session.prompt);
+    setResults(session.keyword_matches || []);
+  };
+
+  const gapCount = results.filter((r) => r.match_type === "gap").length;
+  const matchCount = results.filter((r) => r.match_type === "matched").length;
+
+  return (
+    <div className="space-y-6">
+      {/* Search input */}
+      <Card className="p-6">
+        <div className="flex items-center gap-2 mb-3">
+          <Sparkles className="h-5 w-5 text-primary" />
+          <h2 className="text-sm font-bold text-foreground">LLM Search Intelligence</h2>
+        </div>
+        <p className="text-xs text-muted-foreground mb-4">
+          Enter a topic and discover what queries AI models use to research it. Cross-referenced against your keyword list.
+        </p>
+        <div className="flex gap-2">
+          <Input
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            placeholder="Enter a topic, e.g. 'best CRM for small business'"
+            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+            className="flex-1"
+          />
+          <Button onClick={handleSearch} disabled={loading || !prompt.trim()}>
+            {loading ? <Loader2 className="h-4 w-4 animate-spin mr-1.5" /> : <Search className="h-4 w-4 mr-1.5" />}
+            Search
+          </Button>
+        </div>
+      </Card>
+
+      {/* Results summary */}
+      {results.length > 0 && (
+        <div className="flex items-center gap-3">
+          <Badge variant="outline" className="text-xs gap-1">
+            <Target className="h-3 w-3" /> {results.length} queries
+          </Badge>
+          <Badge variant="outline" className={`text-xs gap-1 ${matchColors.matched}`}>
+            {matchCount} matched
+          </Badge>
+          <Badge variant="outline" className={`text-xs gap-1 ${matchColors.gap}`}>
+            <AlertTriangle className="h-3 w-3" /> {gapCount} gaps
+          </Badge>
+        </div>
+      )}
+
+      {/* Results table */}
+      {results.length > 0 && (
+        <Card className="overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="border-b border-border bg-muted/50">
+                  <th className="text-left px-4 py-2.5 font-semibold text-foreground">Query</th>
+                  <th className="text-left px-4 py-2.5 font-semibold text-foreground">Intent</th>
+                  <th className="text-left px-4 py-2.5 font-semibold text-foreground">Volume</th>
+                  <th className="text-left px-4 py-2.5 font-semibold text-foreground">Match</th>
+                  <th className="text-left px-4 py-2.5 font-semibold text-foreground">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {results.map((q, i) => (
+                  <tr key={i} className="border-b border-border last:border-0 hover:bg-muted/30">
+                    <td className="px-4 py-3">
+                      <p className="font-medium text-foreground">{q.query}</p>
+                      <p className="text-muted-foreground mt-0.5">{q.reasoning}</p>
+                    </td>
+                    <td className="px-4 py-3">
+                      <Badge variant="outline" className={`text-[10px] ${intentColors[q.intent] || ""}`}>
+                        {q.intent}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="capitalize text-muted-foreground">{q.volume_tier}</span>
+                    </td>
+                    <td className="px-4 py-3">
+                      <Badge variant="outline" className={`text-[10px] ${matchColors[q.match_type]}`}>
+                        {q.match_type === "matched" ? "✓ Matched" : q.match_type === "partial" ? "~ Partial" : "✗ Gap"}
+                      </Badge>
+                      {q.matched_keyword && (
+                        <p className="text-muted-foreground mt-0.5">
+                          → {q.matched_keyword.keyword} (pos {q.matched_keyword.position})
+                        </p>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      {q.match_type !== "matched" && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 text-xs gap-1"
+                          disabled={addingKeyword === q.query}
+                          onClick={() => handleAddKeyword(q)}
+                        >
+                          {addingKeyword === q.query ? (
+                            <Loader2 className="h-3 w-3 animate-spin" />
+                          ) : (
+                            <Plus className="h-3 w-3" />
+                          )}
+                          Add
+                        </Button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
+
+      {/* Session history */}
+      {sessions.length > 0 && (
+        <div>
+          <h3 className="text-xs font-semibold text-foreground mb-2 flex items-center gap-1.5">
+            <Clock className="h-3.5 w-3.5 text-muted-foreground" />
+            Recent Sessions
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            {sessions.map((s) => (
+              <button
+                key={s.id}
+                onClick={() => loadSession(s)}
+                className="text-left rounded-md border border-border bg-card p-3 hover:bg-muted/50 transition-colors"
+              >
+                <p className="text-xs font-medium text-foreground truncate">{s.prompt}</p>
+                <p className="text-[10px] text-muted-foreground mt-1">
+                  {(s.keyword_matches || []).length} queries • {new Date(s.created_at).toLocaleDateString()}
+                </p>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default LlmSearchLab;

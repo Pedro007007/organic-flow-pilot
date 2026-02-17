@@ -14,6 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      aeo_scores: {
+        Row: {
+          content_item_id: string
+          created_at: string
+          id: string
+          overall_score: number | null
+          recommendations: Json | null
+          scores: Json | null
+          user_id: string
+        }
+        Insert: {
+          content_item_id: string
+          created_at?: string
+          id?: string
+          overall_score?: number | null
+          recommendations?: Json | null
+          scores?: Json | null
+          user_id: string
+        }
+        Update: {
+          content_item_id?: string
+          created_at?: string
+          id?: string
+          overall_score?: number | null
+          recommendations?: Json | null
+          scores?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "aeo_scores_content_item_id_fkey"
+            columns: ["content_item_id"]
+            isOneToOne: false
+            referencedRelation: "content_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_runs: {
         Row: {
           agent_description: string | null
@@ -189,6 +227,7 @@ export type Database = {
           serp_research: Json | null
           slug: string | null
           status: string
+          structured_data: Json | null
           title: string
           updated_at: string
           url: string | null
@@ -212,6 +251,7 @@ export type Database = {
           serp_research?: Json | null
           slug?: string | null
           status?: string
+          structured_data?: Json | null
           title: string
           updated_at?: string
           url?: string | null
@@ -235,6 +275,7 @@ export type Database = {
           serp_research?: Json | null
           slug?: string | null
           status?: string
+          structured_data?: Json | null
           title?: string
           updated_at?: string
           url?: string | null
@@ -330,6 +371,33 @@ export type Database = {
           search_intent?: string
           supporting_keywords?: string[] | null
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      llm_search_sessions: {
+        Row: {
+          created_at: string
+          id: string
+          keyword_matches: Json | null
+          prompt: string
+          queries: Json | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          keyword_matches?: Json | null
+          prompt: string
+          queries?: Json | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          keyword_matches?: Json | null
+          prompt?: string
+          queries?: Json | null
           user_id?: string
         }
         Relationships: []

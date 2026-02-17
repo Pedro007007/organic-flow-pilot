@@ -54,6 +54,15 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "Content item not found" }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    // Fetch AEO score if available
+    const { data: aeoScore } = await supabase
+      .from("aeo_scores")
+      .select("overall_score, scores")
+      .eq("content_item_id", contentItemId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
     const { data: run } = await supabase.from("agent_runs").insert({
       user_id: userId,
       agent_name: "Publishing",
@@ -65,6 +74,40 @@ serve(async (req) => {
     const slug = item.slug || item.id;
     const revalidatePath = `${revalidationPrefix}/${slug}`;
     const now = new Date().toISOString();
+
+    // Build structured data
+    const structuredData = item.structured_data || {};
+    const jsonLd = {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      headline: item.seo_title || item.title,
+      description: item.meta_description || "",
+      datePublished: now,
+      dateModified: now,
+      author: { "@type": "Person", name: item.author || "Author" },
+      ...(item.hero_image_url ? { image: item.hero_image_url } : {}),
+    };
+
+    // Build FAQ schema if content has FAQ markers
+    let faqSchema = null;
+    if ((item.schema_types || []).includes("FAQPage") && structuredData.answer_blocks?.faqs) {
+      faqSchema = {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: structuredData.answer_blocks.faqs.map((f: any) => ({
+          "@type": "Question",
+          name: f.question,
+          acceptedAnswer: { "@type": "Answer", text: f.answer },
+        })),
+      };
+    }
+
+    const ogTags = {
+      "og:title": item.seo_title || item.title,
+      "og:description": item.meta_description || "",
+      "og:type": "article",
+      ...(item.hero_image_url ? { "og:image": item.hero_image_url } : {}),
+    };
 
     const payload = {
       action: "publish",
@@ -78,6 +121,17 @@ serve(async (req) => {
       schema_types: item.schema_types,
       publishedAt: now,
       updatedAt: now,
+      structured_data: {
+        json_ld: jsonLd,
+        faq_schema: faqSchema,
+        og_tags: ogTags,
+        answer_blocks: structuredData.answer_blocks || null,
+      },
+      scores: {
+        seo: item.seo_score || null,
+        aeo: aeoScore?.overall_score || null,
+        aeo_breakdown: aeoScore?.scores || null,
+      },
     };
 
     let webhookResult: any = { status: "no_webhook_configured" };
@@ -93,6 +147,9 @@ serve(async (req) => {
         };
         if (webhookSecret) {
           webhookHeaders["x-webhook-secret"] = webhookSecret;
+        }
+        if (aeoScore?.overall_score != null) {
+          webhookHeaders["x-aeo-score"] = String(aeoScore.overall_score);
         }
 
         const webhookResponse = await fetch(targetUrl, {

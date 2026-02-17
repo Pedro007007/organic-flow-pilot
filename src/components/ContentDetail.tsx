@@ -31,6 +31,7 @@ import ContentPreview from "@/components/ContentPreview";
 import FulfilmentDashboard from "@/components/FulfilmentDashboard";
 import OptimizationTab from "@/components/OptimizationTab";
 import RepurposeTab from "@/components/RepurposeTab";
+import AeoTab from "@/components/AeoTab";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface ContentDetailProps {
@@ -352,6 +353,7 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
         <TabsList>
           <TabsTrigger value="content">Content & Metadata</TabsTrigger>
           <TabsTrigger value="optimization">Optimization</TabsTrigger>
+          <TabsTrigger value="aeo">AEO</TabsTrigger>
           <TabsTrigger value="fulfilment">SEO/GEO Fulfilment</TabsTrigger>
           <TabsTrigger value="repurpose">Repurpose</TabsTrigger>
         </TabsList>
@@ -539,6 +541,12 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
         <TabsContent value="optimization">
           <div className="rounded-lg border border-border bg-card p-5">
             <OptimizationTab contentItemId={contentId} />
+          </div>
+        </TabsContent>
+
+        <TabsContent value="aeo">
+          <div className="rounded-lg border border-border bg-card p-5">
+            <AeoTab contentId={contentId} hasContent={!!draftContent.trim()} />
           </div>
         </TabsContent>
 

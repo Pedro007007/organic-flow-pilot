@@ -6,13 +6,25 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { Loader2, Search, Plus, Sparkles, Clock, Target, AlertTriangle } from "lucide-react";
+import { Loader2, Search, Plus, Sparkles, Clock, Target, AlertTriangle, TrendingUp, DollarSign } from "lucide-react";
+
+interface MonthlySearch {
+  year: number;
+  month: number;
+  search_volume: number;
+}
 
 interface QueryResult {
   query: string;
   intent: string;
   volume_tier: string;
   reasoning: string;
+  search_volume: number | null;
+  cpc: number | null;
+  competition: number | null;
+  competition_level: string | null;
+  monthly_searches: MonthlySearch[];
+  data_source: "dataforseo" | "ai_estimate";
   match_type: "matched" | "partial" | "gap";
   matched_keyword: {
     keyword: string;
@@ -43,6 +55,35 @@ const matchColors: Record<string, string> = {
   partial: "bg-warning/15 text-warning border-warning/30",
   gap: "bg-destructive/15 text-destructive border-destructive/30",
 };
+
+const compColors: Record<string, string> = {
+  LOW: "text-success",
+  MEDIUM: "text-warning",
+  HIGH: "text-destructive",
+};
+
+function MiniTrend({ data }: { data: MonthlySearch[] }) {
+  if (!data || data.length === 0) return <span className="text-muted-foreground">—</span>;
+  const last12 = data.slice(-12);
+  const max = Math.max(...last12.map((d) => d.search_volume), 1);
+  return (
+    <div className="flex items-end gap-px h-5">
+      {last12.map((d, i) => (
+        <div
+          key={i}
+          className="w-1.5 rounded-sm bg-primary/60"
+          style={{ height: `${Math.max((d.search_volume / max) * 100, 8)}%` }}
+          title={`${d.month}/${d.year}: ${d.search_volume.toLocaleString()}`}
+        />
+      ))}
+    </div>
+  );
+}
+
+function formatVolume(vol: number | null, tier: string): string {
+  if (vol !== null && vol !== undefined) return vol.toLocaleString();
+  return tier; // fallback to AI estimate
+}
 
 const LlmSearchLab = () => {
   const { user } = useAuth();
@@ -81,7 +122,6 @@ const LlmSearchLab = () => {
       }
       const queries = res.data?.queries || [];
       setResults(queries);
-      // Refresh sessions
       const { data: updated } = await supabase
         .from("llm_search_sessions")
         .select("*")
@@ -100,15 +140,16 @@ const LlmSearchLab = () => {
     if (!user) return;
     setAddingKeyword(q.query);
     try {
-      const { error } = await supabase.from("keywords").insert({
+      const insertData: any = {
         user_id: user.id,
         keyword: q.query,
         search_intent: q.intent,
-        opportunity: q.volume_tier === "high" ? "high" : q.volume_tier === "medium" ? "medium" : "low",
-      });
+        opportunity: q.competition_level === "HIGH" ? "high" : q.competition_level === "MEDIUM" ? "medium" : "low",
+      };
+      if (q.search_volume !== null) insertData.impressions = q.search_volume;
+      const { error } = await supabase.from("keywords").insert(insertData);
       if (error) throw error;
       toast({ title: "Keyword added", description: q.query });
-      // Update match status locally
       setResults((prev) =>
         prev.map((r) => (r.query === q.query ? { ...r, match_type: "matched" as const } : r))
       );
@@ -126,6 +167,7 @@ const LlmSearchLab = () => {
 
   const gapCount = results.filter((r) => r.match_type === "gap").length;
   const matchCount = results.filter((r) => r.match_type === "matched").length;
+  const hasRealData = results.some((r) => r.data_source === "dataforseo");
 
   return (
     <div className="space-y-6">
@@ -136,7 +178,7 @@ const LlmSearchLab = () => {
           <h2 className="text-sm font-bold text-foreground">LLM Search Intelligence</h2>
         </div>
         <p className="text-xs text-muted-foreground mb-4">
-          Enter a topic and discover what queries AI models use to research it. Cross-referenced against your keyword list.
+          Enter a topic and discover what queries AI models use to research it. Enriched with real search volume, CPC &amp; competition data.
         </p>
         <div className="flex gap-2">
           <Input
@@ -155,7 +197,7 @@ const LlmSearchLab = () => {
 
       {/* Results summary */}
       {results.length > 0 && (
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <Badge variant="outline" className="text-xs gap-1">
             <Target className="h-3 w-3" /> {results.length} queries
           </Badge>
@@ -165,6 +207,11 @@ const LlmSearchLab = () => {
           <Badge variant="outline" className={`text-xs gap-1 ${matchColors.gap}`}>
             <AlertTriangle className="h-3 w-3" /> {gapCount} gaps
           </Badge>
+          {hasRealData && (
+            <Badge variant="outline" className="text-xs gap-1 bg-primary/10 text-primary border-primary/30">
+              <TrendingUp className="h-3 w-3" /> Real data
+            </Badge>
+          )}
         </div>
       )}
 
@@ -177,7 +224,10 @@ const LlmSearchLab = () => {
                 <tr className="border-b border-border bg-muted/50">
                   <th className="text-left px-4 py-2.5 font-semibold text-foreground">Query</th>
                   <th className="text-left px-4 py-2.5 font-semibold text-foreground">Intent</th>
-                  <th className="text-left px-4 py-2.5 font-semibold text-foreground">Volume</th>
+                  <th className="text-right px-4 py-2.5 font-semibold text-foreground">Volume</th>
+                  <th className="text-right px-4 py-2.5 font-semibold text-foreground">CPC</th>
+                  <th className="text-left px-4 py-2.5 font-semibold text-foreground">Comp.</th>
+                  <th className="text-left px-4 py-2.5 font-semibold text-foreground">Trend</th>
                   <th className="text-left px-4 py-2.5 font-semibold text-foreground">Match</th>
                   <th className="text-left px-4 py-2.5 font-semibold text-foreground">Action</th>
                 </tr>
@@ -185,17 +235,44 @@ const LlmSearchLab = () => {
               <tbody>
                 {results.map((q, i) => (
                   <tr key={i} className="border-b border-border last:border-0 hover:bg-muted/30">
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3 max-w-[260px]">
                       <p className="font-medium text-foreground">{q.query}</p>
-                      <p className="text-muted-foreground mt-0.5">{q.reasoning}</p>
+                      <p className="text-muted-foreground mt-0.5 truncate">{q.reasoning}</p>
                     </td>
                     <td className="px-4 py-3">
                       <Badge variant="outline" className={`text-[10px] ${intentColors[q.intent] || ""}`}>
                         {q.intent}
                       </Badge>
                     </td>
+                    <td className="px-4 py-3 text-right tabular-nums">
+                      <span className="font-medium text-foreground">
+                        {formatVolume(q.search_volume, q.volume_tier)}
+                      </span>
+                      {q.data_source === "ai_estimate" && q.search_volume === null && (
+                        <span className="block text-[10px] text-muted-foreground">est.</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-right tabular-nums">
+                      {q.cpc !== null ? (
+                        <span className="text-foreground flex items-center justify-end gap-0.5">
+                          <DollarSign className="h-3 w-3 text-muted-foreground" />
+                          {q.cpc.toFixed(2)}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </td>
                     <td className="px-4 py-3">
-                      <span className="capitalize text-muted-foreground">{q.volume_tier}</span>
+                      {q.competition_level && q.competition_level !== "UNKNOWN" ? (
+                        <span className={`font-medium text-[10px] uppercase ${compColors[q.competition_level] || "text-muted-foreground"}`}>
+                          {q.competition_level}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <MiniTrend data={q.monthly_searches || []} />
                     </td>
                     <td className="px-4 py-3">
                       <Badge variant="outline" className={`text-[10px] ${matchColors[q.match_type]}`}>

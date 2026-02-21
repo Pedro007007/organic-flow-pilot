@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { Loader2, Search, Plus, Sparkles, Clock, Target, AlertTriangle, TrendingUp, DollarSign } from "lucide-react";
+import { Loader2, Search, Plus, Sparkles, Clock, Target, AlertTriangle, TrendingUp, DollarSign, HelpCircle, ChevronDown } from "lucide-react";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 
 interface MonthlySearch {
   year: number;
@@ -91,6 +92,7 @@ const LlmSearchLab = () => {
   const { toast } = useToast();
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
   const [results, setResults] = useState<QueryResult[]>([]);
   const [sessions, setSessions] = useState<Session[]>([]);
   const [sessionsFetched, setSessionsFetched] = useState(false);
@@ -195,6 +197,62 @@ const LlmSearchLab = () => {
           </Button>
         </div>
       </Card>
+
+      {/* User guide */}
+      <Collapsible open={showGuide} onOpenChange={setShowGuide}>
+        <Card className="p-0 overflow-hidden">
+          <CollapsibleTrigger className="flex items-center justify-between w-full px-4 py-3 text-left hover:bg-muted/30 transition-colors">
+            <span className="flex items-center gap-2 text-xs font-semibold text-foreground">
+              <HelpCircle className="h-4 w-4 text-muted-foreground" />
+              How to read results
+            </span>
+            <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${showGuide ? "rotate-180" : ""}`} />
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="px-4 pb-4 space-y-3 text-xs text-muted-foreground border-t border-border pt-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <p className="font-semibold text-foreground mb-0.5">Volume</p>
+                  <p>Average monthly Google searches. Higher = more people searching. Shows "est." with a tier label when exact data isn't available.</p>
+                </div>
+                <div>
+                  <p className="font-semibold text-foreground mb-0.5">CPC (Cost Per Click)</p>
+                  <p>How much advertisers pay per click on Google Ads. Higher CPC = more commercial value. A $5+ CPC keyword is worth targeting.</p>
+                </div>
+                <div>
+                  <p className="font-semibold text-foreground mb-0.5">Competition</p>
+                  <p>How many advertisers bid on this keyword. LOW = easier to rank for, HIGH = very competitive.</p>
+                </div>
+                <div>
+                  <p className="font-semibold text-foreground mb-0.5">Trend</p>
+                  <p>12-month sparkline showing seasonal patterns. Rising bars = growing interest. Flat = steady demand.</p>
+                </div>
+                <div>
+                  <p className="font-semibold text-foreground mb-0.5">Intent</p>
+                  <ul className="list-disc list-inside space-y-0.5 ml-1">
+                    <li><span className="font-medium text-info">Informational</span> — wants to learn</li>
+                    <li><span className="font-medium text-warning">Commercial</span> — comparing options</li>
+                    <li><span className="font-medium text-success">Transactional</span> — ready to buy</li>
+                    <li><span className="font-medium text-primary">Navigational</span> — looking for a specific site</li>
+                  </ul>
+                </div>
+                <div>
+                  <p className="font-semibold text-foreground mb-0.5">Match Status</p>
+                  <ul className="list-disc list-inside space-y-0.5 ml-1">
+                    <li><span className="font-medium text-success">Matched</span> — you already track this keyword</li>
+                    <li><span className="font-medium text-warning">Partial</span> — similar keyword exists in your tracker</li>
+                    <li><span className="font-medium text-destructive">Gap</span> — nobody is targeting this yet — your opportunity</li>
+                  </ul>
+                </div>
+              </div>
+              <div className="border-t border-border pt-2">
+                <p className="font-semibold text-foreground mb-0.5">💡 What to look for</p>
+                <p>Prioritise <span className="font-medium text-destructive">gaps</span> with high volume, low competition, and commercial/transactional intent. Click <span className="font-medium text-foreground">Add</span> to send them to your keyword tracker.</p>
+              </div>
+            </div>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
 
       {/* Results summary */}
       {results.length > 0 && (

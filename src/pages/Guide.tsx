@@ -23,7 +23,7 @@ import {
   Clock,
   CheckCircle2,
 } from "lucide-react";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import searcheraLogo from "@/assets/searchera-logo.png";
 
 interface GuideSection {
@@ -227,6 +227,7 @@ const quickStartSteps = [
 const Guide = () => {
   const navigate = useNavigate();
   const [openSections, setOpenSections] = useState<Set<string>>(new Set());
+  const [activeSection, setActiveSection] = useState<GuideSection | null>(null);
 
   const toggleSection = (id: string) => {
     setOpenSections((prev) => {
@@ -343,53 +344,25 @@ const Guide = () => {
                 <div className="w-full space-y-0">
                   {sections.map((section, idx) => {
                     const Icon = section.icon;
-                    const isOpen = openSections.has(section.id);
                     const isLast = idx === sections.length - 1;
                     return (
                       <div key={section.id} className="flex flex-col items-center">
-                        <Collapsible open={isOpen} onOpenChange={() => toggleSection(section.id)}>
-                          <CollapsibleTrigger asChild>
-                            <button className="w-full group flex items-center gap-2.5 rounded-lg border border-border bg-card p-2.5 text-left hover:shadow-md hover:border-primary/30 transition-all duration-200">
-                              <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-gradient-to-br ${section.color} text-white text-[10px] font-bold`}>
-                                {section.step}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-1.5">
-                                  <Icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                                  <span className="text-xs font-semibold text-foreground truncate">{section.title}</span>
-                                </div>
-                                <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">{section.summary}</p>
-                              </div>
-                              {isOpen ? (
-                                <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                              ) : (
-                                <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                              )}
-                            </button>
-                          </CollapsibleTrigger>
-                          <CollapsibleContent>
-                            <div className="mx-2 mt-0 mb-0 rounded-b-lg border border-t-0 border-border bg-muted/30 p-3 space-y-2">
-                              <ul className="space-y-1.5">
-                                {section.details.map((detail, i) => (
-                                  <li key={i} className="flex items-start gap-1.5 text-[10px] text-muted-foreground">
-                                    <CheckCircle2 className="h-3 w-3 shrink-0 text-primary mt-0.5" />
-                                    <span>{detail}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                              {section.proTip && (
-                                <div className="rounded-md bg-primary/5 border border-primary/10 px-2 py-1.5 flex items-start gap-1.5">
-                                  <Target className="h-3 w-3 shrink-0 text-primary mt-0.5" />
-                                  <p className="text-[10px] text-foreground">
-                                    <span className="font-semibold text-primary">Pro Tip: </span>
-                                    {section.proTip}
-                                  </p>
-                                </div>
-                              )}
+                        <button
+                          onClick={() => setActiveSection(section)}
+                          className="w-full group flex items-center gap-2.5 rounded-lg border border-border bg-card p-2.5 text-left hover:shadow-md hover:border-primary/30 transition-all duration-200"
+                        >
+                          <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-gradient-to-br ${section.color} text-white text-[10px] font-bold`}>
+                            {section.step}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1.5">
+                              <Icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                              <span className="text-xs font-semibold text-foreground truncate">{section.title}</span>
                             </div>
-                          </CollapsibleContent>
-                        </Collapsible>
-                        {/* Connector between nodes */}
+                            <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-1">{section.summary}</p>
+                          </div>
+                          <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground group-hover:text-primary transition-colors" />
+                        </button>
                         {!isLast && <div className="w-px h-2 bg-border" />}
                       </div>
                     );
@@ -399,6 +372,52 @@ const Guide = () => {
             );
           })}
         </div>
+
+        {/* Detail Popup Dialog */}
+        <Dialog open={!!activeSection} onOpenChange={(open) => !open && setActiveSection(null)}>
+          <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
+            {activeSection && (() => {
+              const Icon = activeSection.icon;
+              return (
+                <>
+                  <DialogHeader>
+                    <div className="flex items-center gap-3 mb-1">
+                      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br ${activeSection.color} text-white text-sm font-bold`}>
+                        {activeSection.step}
+                      </div>
+                      <div>
+                        <DialogTitle className="flex items-center gap-2 text-base">
+                          <Icon className="h-4 w-4 text-muted-foreground" />
+                          {activeSection.title}
+                        </DialogTitle>
+                        <p className="text-sm text-muted-foreground mt-0.5">{activeSection.summary}</p>
+                      </div>
+                    </div>
+                  </DialogHeader>
+                  <div className="space-y-4 mt-2">
+                    <ul className="space-y-3">
+                      {activeSection.details.map((detail, i) => (
+                        <li key={i} className="flex items-start gap-2.5 text-sm text-muted-foreground">
+                          <CheckCircle2 className="h-4 w-4 shrink-0 text-primary mt-0.5" />
+                          <span>{detail}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    {activeSection.proTip && (
+                      <div className="rounded-lg bg-primary/5 border border-primary/10 px-4 py-3 flex items-start gap-2.5">
+                        <Target className="h-4 w-4 shrink-0 text-primary mt-0.5" />
+                        <p className="text-sm text-foreground">
+                          <span className="font-semibold text-primary">Pro Tip: </span>
+                          {activeSection.proTip}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </>
+              );
+            })()}
+          </DialogContent>
+        </Dialog>
 
         {/* Footer CTA */}
         <div className="rounded-xl border border-border bg-card p-6 text-center">

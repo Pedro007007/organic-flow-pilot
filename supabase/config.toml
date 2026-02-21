@@ -65,3 +65,6 @@ verify_jwt = false
 
 [functions.generate-answer-blocks]
 verify_jwt = false
+
+[functions.content-section-rewrite]
+verify_jwt = false

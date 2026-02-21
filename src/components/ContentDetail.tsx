@@ -25,6 +25,7 @@ import {
   Minimize2,
   ImageIcon,
   Search,
+  PenLine,
 } from "lucide-react";
 import ContentPerformanceChart from "@/components/ContentPerformanceChart";
 import ContentPreview from "@/components/ContentPreview";
@@ -71,6 +72,10 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
   const [fetched, setFetched] = useState(false);
   const [rewriting, setRewriting] = useState<string | false>(false);
   const [viewMode, setViewMode] = useState<"edit" | "preview">("preview");
+  const [sectionRewriting, setSectionRewriting] = useState(false);
+  const [selectedText, setSelectedText] = useState("");
+  const [selectionRange, setSelectionRange] = useState<{ start: number; end: number } | null>(null);
+  
 
   // Fetch on mount
   if (!fetched) {
@@ -212,7 +217,51 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
     }
   };
 
-  const isBusy = saving || generating || optimizing || publishing || generatingImage || researchingSERP;
+  const handleSectionRewrite = async () => {
+    if (!selectedText.trim() || !selectionRange) return;
+    setSectionRewriting(true);
+    try {
+      const res = await supabase.functions.invoke("content-section-rewrite", {
+        body: {
+          sectionContent: selectedText,
+          sectionHeading: "",
+          articleTopic: item.title,
+          targetKeyword: item.keyword,
+          searchIntent: "informational",
+          funnelStage: "middle of funnel",
+          brandId: item.brand_id,
+        },
+      });
+      if (res.error) throw res.error;
+      if (res.data?.result) {
+        const before = draftContent.slice(0, selectionRange.start);
+        const after = draftContent.slice(selectionRange.end);
+        setDraftContent(before + res.data.result + after);
+        setSelectedText("");
+        setSelectionRange(null);
+        toast({ title: "Section rewritten" });
+      }
+    } catch (err: any) {
+      toast({ title: "Section rewrite failed", description: err.message, variant: "destructive" });
+    } finally {
+      setSectionRewriting(false);
+    }
+  };
+
+  const handleTextSelect = (e: React.SyntheticEvent<HTMLTextAreaElement>) => {
+    const target = e.target as HTMLTextAreaElement;
+    const start = target.selectionStart;
+    const end = target.selectionEnd;
+    if (start !== end) {
+      setSelectedText(target.value.slice(start, end));
+      setSelectionRange({ start, end });
+    } else {
+      setSelectedText("");
+      setSelectionRange(null);
+    }
+  };
+
+  const isBusy = saving || generating || optimizing || publishing || generatingImage || researchingSERP || sectionRewriting;
 
   const handleSERPResearch = async () => {
     setResearchingSERP(true);
@@ -438,6 +487,12 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
                 <div className="flex items-center gap-1.5">
                   {viewMode === "edit" && (
                     <>
+                      {selectedText && (
+                        <Button size="sm" variant="ghost" onClick={handleSectionRewrite} disabled={sectionRewriting} className="h-7 px-2.5 text-xs text-accent border border-accent/30">
+                          {sectionRewriting ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <PenLine className="mr-1 h-3 w-3" />}
+                          Rewrite Selection
+                        </Button>
+                      )}
                       <Button size="sm" variant="ghost" onClick={() => handleRewrite("rewrite")} disabled={!!rewriting || !draftContent.trim()} className="h-7 px-2.5 text-xs">
                         {rewriting === "rewrite" ? <Loader2 className="mr-1 h-3 w-3 animate-spin" /> : <RefreshCw className="mr-1 h-3 w-3" />}
                         Rewrite
@@ -473,6 +528,8 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
                   <Textarea
                     value={draftContent}
                     onChange={(e) => setDraftContent(e.target.value)}
+                    onSelect={handleTextSelect}
+                    onMouseUp={handleTextSelect}
                     placeholder="Draft content will appear here after the Content Generation agent runs..."
                     className="min-h-[400px] bg-background border-border font-mono text-sm leading-relaxed resize-y"
                   />

@@ -7,14 +7,14 @@ import DanielaSection from "@/components/DanielaSection";
 import DanielaChat from "@/components/DanielaChat";
 
 const features = [
-  { icon: Search, title: "Keyword Discovery", desc: "Uncover high-impact keywords with AI-driven analysis of your search landscape. Target positions 8–30 for maximum growth." },
-  { icon: FileText, title: "Content Pipeline", desc: "Generate, optimize, and publish SEO & AEO-ready content at scale with intelligent automation and editorial control." },
-  { icon: Bot, title: "Autonomous Agents", desc: "AI agents continuously monitor rankings, discover opportunities, and take action — 24/7 on autopilot." },
-  { icon: BarChart3, title: "Performance Analytics", desc: "Track clicks, impressions, and positions with real-time Google Search Console data and actionable insights." },
-  { icon: Target, title: "Competitor Analysis", desc: "Scan competitor domains, uncover their keyword strategies, and find gaps you can exploit for faster growth." },
-  { icon: Globe, title: "SEO & AEO Intelligence Reports", desc: "Generate comprehensive audit reports with revenue projections, technical scores, AEO readiness, and shareable client-ready PDFs." },
-  { icon: LineChart, title: "Rankings & AI Citation Tracker", desc: "Monitor your Google positions and AI citation appearances across ChatGPT, Perplexity, and Google AI Overviews." },
-  { icon: Cpu, title: "SEO & AEO Fulfilment Engine", desc: "Automated quality checks ensure every piece of content meets on-page SEO, technical SEO, schema markup, and AEO standards." },
+  { icon: Search, title: "Keyword Discovery", desc: "Uncover high-impact keywords with AI-driven analysis of your search landscape. Target positions 8–30 for maximum growth.", color: "bg-orange-500", badge: "AVAILABLE" },
+  { icon: FileText, title: "Content Pipeline", desc: "Generate, optimize, and publish SEO & AEO-ready content at scale with intelligent automation and editorial control.", color: "bg-teal-500", badge: "AVAILABLE" },
+  { icon: Bot, title: "Autonomous Agents", desc: "AI agents continuously monitor rankings, discover opportunities, and take action — 24/7 on autopilot.", color: "bg-violet-500", badge: "POPULAR", badgeColor: "text-rose-500 bg-rose-50 border-rose-200" },
+  { icon: BarChart3, title: "Performance Analytics", desc: "Track clicks, impressions, and positions with real-time Google Search Console data and actionable insights.", color: "bg-blue-500", badge: "AVAILABLE" },
+  { icon: Target, title: "Competitor Analysis", desc: "Scan competitor domains, uncover their keyword strategies, and find gaps you can exploit for faster growth.", color: "bg-amber-500", badge: "AVAILABLE" },
+  { icon: Globe, title: "SEO & AEO Intelligence Reports", desc: "Generate comprehensive audit reports with revenue projections, technical scores, AEO readiness, and shareable client-ready PDFs.", color: "bg-emerald-500", badge: "AVAILABLE" },
+  { icon: LineChart, title: "Rankings & AI Citation Tracker", desc: "Monitor your Google positions and AI citation appearances across ChatGPT, Perplexity, and Google AI Overviews.", color: "bg-cyan-500", badge: "NEW", badgeColor: "text-emerald-600 bg-emerald-50 border-emerald-200" },
+  { icon: Cpu, title: "SEO & AEO Fulfilment Engine", desc: "Automated quality checks ensure every piece of content meets on-page SEO, technical SEO, schema markup, and AEO standards.", color: "bg-rose-500", badge: "AVAILABLE" },
 ];
 
 const stats = [
@@ -149,14 +149,19 @@ const Landing = () => {
             <h2 className="text-3xl font-black tracking-tight sm:text-4xl">Everything You Need to <span className="bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent">Rank Higher</span></h2>
             <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto font-medium">A complete AI-powered toolkit for SEO & AEO — from keyword research and content creation to AI citation tracking and answer engine optimization.</p>
           </div>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {features.map((f) => (
-              <div key={f.title} className="group rounded-2xl border border-gray-200 bg-white p-6 hover:border-blue-200 hover:shadow-lg hover:shadow-blue-500/5 transition-all duration-300">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-blue-50 to-teal-50 border border-blue-100 mb-4">
-                  <f.icon className="h-6 w-6 text-blue-600" />
+              <div key={f.title} className="group relative rounded-2xl border border-gray-200 bg-white p-8 hover:border-gray-300 hover:shadow-xl hover:shadow-gray-200/50 transition-all duration-300">
+                <div className="flex items-start justify-between mb-8">
+                  <div className={`flex h-14 w-14 items-center justify-center rounded-2xl ${f.color} shadow-lg`}>
+                    <f.icon className="h-7 w-7 text-white" />
+                  </div>
+                  <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold ${f.badgeColor || "text-gray-500 bg-gray-50 border-gray-200"}`}>
+                    {f.badge}
+                  </span>
                 </div>
-                <h3 className="text-base font-black text-gray-900">{f.title}</h3>
-                <p className="mt-2 text-sm text-gray-600 leading-relaxed">{f.desc}</p>
+                <h3 className="text-lg font-black text-gray-900">{f.title}</h3>
+                <p className="mt-2 text-sm text-gray-500 leading-relaxed">{f.desc}</p>
               </div>
             ))}
           </div>

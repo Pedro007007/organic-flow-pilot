@@ -15,19 +15,20 @@
 5. [Content Generation](#5-content-generation)
 6. [SEO Optimization](#6-seo-optimization)
 7. [Content Rewrite](#7-content-rewrite)
-8. [Content Repurpose](#8-content-repurpose)
-9. [AEO Score](#9-aeo-score)
-10. [Generate Answer Blocks](#10-generate-answer-blocks)
-11. [Optimization Score](#11-optimization-score)
-12. [Monitor & Refresh](#12-monitor--refresh)
-13. [Business Scanner](#13-business-scanner)
-14. [Fulfilment Scan](#14-fulfilment-scan)
-15. [Checklist Verify](#15-checklist-verify)
-16. [Rankings Check](#16-rankings-check)
-17. [LLM Search Lab](#17-llm-search-lab)
-18. [Hero Image Generation](#18-hero-image-generation)
-19. [Daniela Avatar Generation](#19-daniela-avatar-generation)
-20. [Send Digest](#20-send-digest)
+8. [Content Section Rewrite](#8-content-section-rewrite)
+9. [Content Repurpose](#9-content-repurpose)
+10. [AEO Score](#10-aeo-score)
+11. [Generate Answer Blocks](#11-generate-answer-blocks)
+12. [Optimization Score](#12-optimization-score)
+13. [Monitor & Refresh](#13-monitor--refresh)
+14. [Business Scanner](#14-business-scanner)
+15. [Fulfilment Scan](#15-fulfilment-scan)
+16. [Checklist Verify](#16-checklist-verify)
+17. [Rankings Check](#17-rankings-check)
+18. [LLM Search Lab](#18-llm-search-lab)
+19. [Hero Image Generation](#19-hero-image-generation)
+20. [Daniela Avatar Generation](#20-daniela-avatar-generation)
+21. [Send Digest](#21-send-digest)
 
 ---
 
@@ -450,7 +451,107 @@ ${basePrompts[action]}
 
 ---
 
-## 8. Content Repurpose
+## 8. Content Section Rewrite
+
+**Source:** `supabase/functions/content-section-rewrite/index.ts`  
+**Model:** `google/gemini-3-flash-preview`  
+**Type:** System prompt (free-form response)
+
+### System Prompt
+
+```text
+You are an elite-level SEO + AEO content editor and conversion copywriter.
+
+You are NOT writing from scratch.
+You are improving and rewriting a SPECIFIC SECTION of an existing article.
+
+Your job is to rewrite the selected section so it:
+- Matches the company's brand voice perfectly
+- Improves clarity, authority, and persuasiveness
+- Aligns with SEO and Answer Engine Optimisation (AEO)
+- Increases conversion intent
+- Feels human, expert, and experience-driven
+
+-----------------------------
+BRAND CONTEXT
+-----------------------------
+${brandContext}
+
+Tone Instructions:
+${toneInstruction}
+
+Style Instructions:
+${styleInstruction}
+
+Cliché Avoidance:
+${clicheInstruction}
+
+-----------------------------
+SECTION CONTEXT
+-----------------------------
+Article Topic: ${articleTopic || "N/A"}
+Target Keyword: ${targetKeyword || "N/A"}
+Search Intent: ${searchIntent || "Informational / Commercial"}
+Funnel Stage: ${funnelStage || "Middle of funnel"}
+
+Section Heading:
+${sectionHeading}
+
+Original Section Content:
+${sectionContent}
+
+-----------------------------
+REWRITE OBJECTIVES
+-----------------------------
+Rewrite this section to:
+1. Improve clarity and readability (Grade 6–8 reading level where possible)
+2. Strengthen authority and expertise (EEAT)
+3. Naturally incorporate semantic keyword variations
+4. Answer the user intent directly and clearly
+5. Improve flow and structure (short paragraphs, strong rhythm)
+6. Add subtle persuasion and conversion triggers
+7. Maintain continuity with surrounding article sections
+8. Remove fluff, repetition, and generic phrasing
+9. Keep it concise but impactful
+10. Ensure it sounds like it was written by a human expert — NOT AI
+
+-----------------------------
+AEO (ANSWER ENGINE OPTIMISATION)
+-----------------------------
+Where relevant in this section:
+- Add direct, clear answers to likely questions
+- Use definition-style sentences when appropriate
+- Include structured phrasing that works for featured snippets
+- Optimise for voice search and conversational queries
+
+-----------------------------
+FORMATTING RULES
+-----------------------------
+- Keep the original heading unless improvement is necessary
+- Use short paragraphs (2–4 lines max)
+- Use bullet points ONLY if it improves clarity
+- No emojis
+- No unnecessary filler intros or outros
+- Do NOT add image placeholders
+- Do NOT repeat the full article — only rewrite this section
+
+-----------------------------
+OUTPUT
+-----------------------------
+Return ONLY the rewritten section in clean Markdown.
+Do NOT explain what you changed.
+Do NOT include notes.
+Do NOT include commentary.
+Only output the improved section.
+
+Consider yourself a senior editor at a top SEO agency and write accordingly.
+```
+
+**Dynamic variables:** `${brandContext}`, `${toneInstruction}`, `${styleInstruction}`, `${clicheInstruction}`, `${articleTopic}`, `${targetKeyword}`, `${searchIntent}`, `${funnelStage}`, `${sectionHeading}`, `${sectionContent}`
+
+---
+
+## 9. Content Repurpose
 
 **Source:** `supabase/functions/content-repurpose/index.ts`  
 **Model:** `google/gemini-3-flash-preview`  
@@ -496,7 +597,7 @@ ${contentItem.draft_content}
 
 ---
 
-## 9. AEO Score
+## 10. AEO Score
 
 **Source:** `supabase/functions/aeo-score/index.ts`  
 **Model:** `google/gemini-3-flash-preview`  
@@ -531,7 +632,7 @@ ${content.slice(0, 8000)}
 
 ---
 
-## 10. Generate Answer Blocks
+## 11. Generate Answer Blocks
 
 **Source:** `supabase/functions/generate-answer-blocks/index.ts`  
 **Model:** `google/gemini-3-flash-preview`  
@@ -555,7 +656,7 @@ ${item.draft_content.slice(0, 8000)}
 
 ---
 
-## 11. Optimization Score
+## 12. Optimization Score
 
 **Source:** `supabase/functions/optimization-score/index.ts`  
 **Model:** `google/gemini-3-flash-preview`  
@@ -601,7 +702,7 @@ ${content.substring(0, 10000)}
 
 ---
 
-## 12. Monitor & Refresh
+## 13. Monitor & Refresh
 
 **Source:** `supabase/functions/monitor-refresh/index.ts`  
 **Model:** `google/gemini-3-flash-preview`  
@@ -636,7 +737,7 @@ ${JSON.stringify(publishedContent || [])}
 
 ---
 
-## 13. Business Scanner
+## 14. Business Scanner
 
 **Source:** `supabase/functions/business-scanner/index.ts`  
 **Model:** `google/gemini-2.5-flash`  
@@ -709,7 +810,7 @@ IMPORTANT: Return ONLY the JSON object, no markdown, no code fences. Be specific
 
 ---
 
-## 14. Fulfilment Scan
+## 15. Fulfilment Scan
 
 **Source:** `supabase/functions/fulfilment-scan/index.ts`  
 **Model:** `google/gemini-2.5-flash`  
@@ -739,7 +840,7 @@ Return JSON: { "results": [{ "id": "...", "passed": true/false, "details": "brie
 
 ---
 
-## 15. Checklist Verify
+## 16. Checklist Verify
 
 **Source:** `supabase/functions/checklist-verify/index.ts`  
 **Model:** `google/gemini-2.5-flash`  
@@ -762,7 +863,7 @@ Return a JSON array of IDs that should be marked as done. Only mark items that a
 
 ---
 
-## 16. Rankings Check
+## 17. Rankings Check
 
 **Source:** `supabase/functions/rankings-check/index.ts`  
 **Model:** `google/gemini-2.5-flash`  
@@ -783,7 +884,7 @@ Return JSON: { "citations": [{ "url": "...", "ai_cited": true/false, "ai_engine"
 
 ---
 
-## 17. LLM Search Lab
+## 18. LLM Search Lab
 
 **Source:** `supabase/functions/llm-search/index.ts`  
 **Model:** `google/gemini-3-flash-preview`  
@@ -808,7 +909,7 @@ Generate exactly 5 high-volume search queries. Focus on the most popular, common
 
 ---
 
-## 18. Hero Image Generation
+## 19. Hero Image Generation
 
 **Source:** `supabase/functions/generate-hero-image/index.ts`  
 **Model:** `google/gemini-2.5-flash-image`  
@@ -831,7 +932,7 @@ Ultra high resolution.
 
 ---
 
-## 19. Daniela Avatar Generation
+## 20. Daniela Avatar Generation
 
 **Source:** `supabase/functions/generate-daniela-avatar/index.ts`  
 **Model:** `google/gemini-3-pro-image-preview`  
@@ -845,7 +946,7 @@ Generate a 3D ultra-realistic portrait of a beautiful Brazilian woman named Dani
 
 ---
 
-## 20. Send Digest
+## 21. Send Digest
 
 **Source:** `supabase/functions/send-digest/index.ts`  
 **Model:** None  

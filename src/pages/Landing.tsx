@@ -8,33 +8,33 @@ import DanielaChat from "@/components/DanielaChat";
 
 const features = [
   { icon: Search, title: "Keyword Discovery", desc: "Uncover high-impact keywords with AI-driven analysis of your search landscape. Target positions 8–30 for maximum growth." },
-  { icon: FileText, title: "Content Pipeline", desc: "Generate, optimize, and publish SEO-ready content at scale with intelligent automation and editorial control." },
+  { icon: FileText, title: "Content Pipeline", desc: "Generate, optimize, and publish SEO & AEO-ready content at scale with intelligent automation and editorial control." },
   { icon: Bot, title: "Autonomous Agents", desc: "AI agents continuously monitor rankings, discover opportunities, and take action — 24/7 on autopilot." },
   { icon: BarChart3, title: "Performance Analytics", desc: "Track clicks, impressions, and positions with real-time Google Search Console data and actionable insights." },
   { icon: Target, title: "Competitor Analysis", desc: "Scan competitor domains, uncover their keyword strategies, and find gaps you can exploit for faster growth." },
-  { icon: Globe, title: "SEO Intelligence Reports", desc: "Generate comprehensive audit reports with revenue projections, technical scores, and shareable client-ready PDFs." },
-  { icon: LineChart, title: "Rankings Tracker", desc: "Monitor your Google positions and AI citation appearances across search engines with daily snapshots." },
-  { icon: Cpu, title: "SEO Fulfilment Engine", desc: "Automated quality checks ensure every piece of content meets on-page, technical, and schema SEO standards." },
+  { icon: Globe, title: "SEO & AEO Intelligence Reports", desc: "Generate comprehensive audit reports with revenue projections, technical scores, AEO readiness, and shareable client-ready PDFs." },
+  { icon: LineChart, title: "Rankings & AI Citation Tracker", desc: "Monitor your Google positions and AI citation appearances across ChatGPT, Perplexity, and Google AI Overviews." },
+  { icon: Cpu, title: "SEO & AEO Fulfilment Engine", desc: "Automated quality checks ensure every piece of content meets on-page SEO, technical SEO, schema markup, and AEO standards." },
 ];
 
 const stats = [
   { value: "10x", label: "Faster Content Production" },
-  { value: "85%", label: "Time Saved on SEO Tasks" },
+  { value: "85%", label: "Time Saved on SEO & AEO Tasks" },
   { value: "3x", label: "Organic Traffic Growth" },
-  { value: "24/7", label: "Autonomous Monitoring" },
+  { value: "24/7", label: "AI Search Monitoring" },
 ];
 
 const steps = [
   { num: "01", title: "Connect", desc: "Link your Google Search Console in seconds. We import your real performance data automatically." },
-  { num: "02", title: "Discover", desc: "Our AI identifies low-hanging fruit keywords and untapped opportunities in your search landscape." },
-  { num: "03", title: "Create & Optimize", desc: "Generate SEO-optimized content tailored to your audience, or enhance existing pages for better rankings." },
-  { num: "04", title: "Grow", desc: "Monitor results, track progress, and let autonomous agents continuously improve your search presence." },
+  { num: "02", title: "Discover", desc: "Our AI identifies low-hanging fruit keywords, untapped opportunities, and AEO gaps in your search landscape." },
+  { num: "03", title: "Create & Optimize", desc: "Generate content optimized for both Google rankings and AI answer engines like ChatGPT and Perplexity." },
+  { num: "04", title: "Grow", desc: "Monitor results across Google and AI search, track citations, and let autonomous agents improve your presence." },
 ];
 
 const testimonials = [
-  { name: "Sarah Chen", role: "Head of Marketing, TechFlow", quote: "Searchera transformed how we approach SEO. We saw a 3x increase in organic traffic within the first quarter.", stars: 5 },
-  { name: "Marcus Rivera", role: "Founder, GrowthLab", quote: "The autonomous agents are a game-changer. It's like having a dedicated SEO team working around the clock.", stars: 5 },
-  { name: "Emily Zhao", role: "Content Lead, ScaleUp", quote: "The content pipeline alone saved us 20+ hours per week. The quality is consistently high and SEO-ready.", stars: 5 },
+  { name: "Sarah Chen", role: "Head of Marketing, TechFlow", quote: "Searchera transformed how we approach SEO and AEO. We saw a 3x increase in organic traffic and started getting cited by AI search engines.", stars: 5 },
+  { name: "Marcus Rivera", role: "Founder, GrowthLab", quote: "The autonomous agents are a game-changer. It's like having a dedicated SEO & AEO team working around the clock.", stars: 5 },
+  { name: "Emily Zhao", role: "Content Lead, ScaleUp", quote: "The content pipeline saved us 20+ hours per week. Everything is optimized for both Google and AI answer engines.", stars: 5 },
 ];
 
 const Landing = () => {
@@ -62,6 +62,7 @@ const Landing = () => {
           <a href="#features" className="hover:text-gray-900 transition-colors">Features</a>
           <a href="#how-it-works" className="hover:text-gray-900 transition-colors">How It Works</a>
           <a href="#testimonials" className="hover:text-gray-900 transition-colors">Testimonials</a>
+          <Link to="/blog" className="hover:text-gray-900 transition-colors">Blog</Link>
         </nav>
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="sm" className="text-gray-700 hover:text-gray-900 font-bold" asChild>
@@ -84,17 +85,17 @@ const Landing = () => {
             <div>
               <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-4 py-1.5 text-sm font-bold text-blue-700 mb-8">
                 <Zap className="h-3.5 w-3.5" />
-                AI-Powered SEO Automation Platform
+                AI-Powered SEO & AEO Platform
               </div>
               <h1 className="text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl leading-[1.1]">
-                Dominate Search Results
+                Dominate Google
                 <br />
                 <span className="bg-gradient-to-r from-blue-600 via-blue-500 to-teal-500 bg-clip-text text-transparent">
-                  with Intelligent SEO
+                  & AI Search Engines
                 </span>
               </h1>
               <p className="mt-6 max-w-xl text-lg text-gray-600 leading-relaxed font-medium">
-                Discover keywords, generate optimized content, and climb search rankings — all on autopilot. Searchera's AI agents work 24/7 to grow your organic traffic.
+                The all-in-one SEO & AEO platform. Discover keywords, generate optimized content, rank on Google, and get cited by ChatGPT, Perplexity & AI Overviews — all on autopilot.
               </p>
               <div className="mt-10 flex flex-wrap items-start gap-4">
                 <Button size="lg" className="bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-700 hover:to-teal-600 text-white border-0 shadow-xl shadow-blue-500/30 h-12 px-8 text-base font-bold" asChild>
@@ -146,7 +147,7 @@ const Landing = () => {
         <div className="mx-auto max-w-6xl px-6">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-black tracking-tight sm:text-4xl">Everything You Need to <span className="bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent">Rank Higher</span></h2>
-            <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto font-medium">A complete AI-powered toolkit that handles every aspect of your SEO strategy, from keyword research to content creation and performance monitoring.</p>
+            <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto font-medium">A complete AI-powered toolkit for SEO & AEO — from keyword research and content creation to AI citation tracking and answer engine optimization.</p>
           </div>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {features.map((f) => (
@@ -265,8 +266,8 @@ const Landing = () => {
       {/* CTA */}
       <section className="bg-gradient-to-r from-blue-600 to-teal-500 py-20">
         <div className="mx-auto max-w-4xl px-6 text-center">
-          <h2 className="text-3xl font-black text-white sm:text-4xl">Ready to Transform Your SEO?</h2>
-          <p className="mt-4 text-lg text-blue-100 max-w-xl mx-auto font-medium">Join thousands of marketers who are growing their organic traffic with Searchera's AI-powered platform.</p>
+          <h2 className="text-3xl font-black text-white sm:text-4xl">Ready to Dominate SEO & AEO?</h2>
+          <p className="mt-4 text-lg text-blue-100 max-w-xl mx-auto font-medium">Join thousands of marketers growing organic traffic and AI search visibility with Searchera's intelligent platform.</p>
           <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
             <Button size="lg" className="bg-white text-blue-700 hover:bg-blue-50 border-0 shadow-xl h-12 px-8 text-base font-black" asChild>
               <Link to="/auth">
@@ -287,6 +288,7 @@ const Landing = () => {
             <img src={searcheraLogo} alt="Searchera" className="h-[90px] object-contain" />
           </Link>
           <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500 font-bold">
+            <Link to="/blog" className="hover:text-gray-900 transition-colors">Blog</Link>
             <Link to="/privacy" className="hover:text-gray-900 transition-colors">Privacy Policy</Link>
             <Link to="/terms" className="hover:text-gray-900 transition-colors">Terms & Conditions</Link>
             <a href="mailto:support@searchera.io" className="hover:text-gray-900 transition-colors">Contact</a>

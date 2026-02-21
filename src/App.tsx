@@ -14,6 +14,7 @@ import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
 import PublicReport from "./pages/PublicReport";
 import Guide from "./pages/Guide";
+import Blog from "./pages/Blog";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +30,7 @@ const App = () => (
               <Route path="/" element={<Landing />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/privacy" element={<Privacy />} />
+              <Route path="/blog" element={<Blog />} />
               <Route path="/terms" element={<Terms />} />
               <Route path="/dashboard" element={<ProtectedRoute><Index /></ProtectedRoute>} />
               <Route path="/report/:reportId" element={<PublicReport />} />

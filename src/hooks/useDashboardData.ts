@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import type { PerformanceMetric, KeywordOpportunity, ContentItem, AgentStatus } from "@/types/seo";
-import { mockMetrics, mockAgents } from "@/data/mockData";
+
 
 export function usePerformanceMetrics() {
   const { user } = useAuth();
@@ -17,7 +17,7 @@ export function usePerformanceMetrics() {
         .limit(4);
 
       if (error) throw error;
-      if (!data || data.length === 0) return mockMetrics; // fallback to mock
+      if (!data || data.length === 0) return [];
 
       return data.map((s) => ({
         label: s.label,
@@ -96,24 +96,6 @@ export function useAgentRuns() {
     queryKey: ["agent_runs", user?.id],
     enabled: !!user,
     queryFn: async (): Promise<AgentStatus[]> => {
-      // Get the latest run per agent name
-      const { data, error } = await supabase
-        .from("agent_runs")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      if (!data || data.length === 0) return mockAgents; // fallback
-
-      // Deduplicate: keep only the latest run per agent_name
-      const agentMap = new Map<string, typeof data[0]>();
-      for (const run of data) {
-        if (!agentMap.has(run.agent_name)) {
-          agentMap.set(run.agent_name, run);
-        }
-      }
-
-      // Merge with default agent list to always show all 6
       const defaultAgents = [
         { name: "Keyword Discovery", description: "Identifies high-value keyword opportunities from GSC data" },
         { name: "Content Strategy", description: "Turns keywords into structured content plans" },
@@ -122,6 +104,28 @@ export function useAgentRuns() {
         { name: "Publishing", description: "Ships content to CMS and triggers indexing" },
         { name: "Monitoring & Refresh", description: "Tracks performance and flags refresh opportunities" },
       ];
+
+      const { data, error } = await supabase
+        .from("agent_runs")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      if (!data || data.length === 0) return defaultAgents.map((agent, i) => ({
+        id: String(i + 1),
+        name: agent.name,
+        description: agent.description,
+        status: "idle" as const,
+        lastRun: "never",
+        itemsProcessed: 0,
+      }));
+
+      const agentMap = new Map<string, typeof data[0]>();
+      for (const run of data) {
+        if (!agentMap.has(run.agent_name)) {
+          agentMap.set(run.agent_name, run);
+        }
+      }
 
       return defaultAgents.map((agent, i) => {
         const run = agentMap.get(agent.name);

@@ -20,7 +20,7 @@ import LlmSearchLab from "@/components/LlmSearchLab";
 import { usePerformanceMetrics, useKeywords, useContentItems, useAgentRuns } from "@/hooks/useDashboardData";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { mockMetrics, mockAgents, mockKeywords, mockContent } from "@/data/mockData";
+
 import { Activity, Loader2, Zap, FileText, Search, Bot } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -35,10 +35,10 @@ const Index = () => {
   const { data: content, isLoading: contentLoading } = useContentItems();
   const { data: agents, isLoading: agentsLoading } = useAgentRuns();
 
-  const displayMetrics = metrics?.length ? metrics : mockMetrics;
-  const displayKeywords = keywords?.length ? keywords : mockKeywords;
+  const displayMetrics = metrics || [];
+  const displayKeywords = keywords || [];
   const displayContent = content || [];
-  const displayAgents = agents?.length ? agents : mockAgents;
+  const displayAgents = agents || [];
 
   const isLoading = metricsLoading || keywordsLoading || contentLoading || agentsLoading;
   const hasRealContent = (content?.length || 0) > 0;

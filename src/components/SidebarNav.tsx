@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import {
   Search,
   LayoutDashboard,
@@ -17,6 +18,7 @@ import {
   FileBarChart,
   Tag,
   Sparkles,
+  MessageCircle,
   BookOpen,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -61,6 +63,21 @@ function GuideButton() {
   );
 }
 
+function ChatbotLeadsButton() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  if (user?.email !== "pedro.acn@consultant.com") return null;
+  return (
+    <button
+      onClick={() => navigate("/daniela-leads")}
+      className="flex w-full items-center gap-2.5 rounded-md border border-amber-400/20 bg-amber-400/5 px-3 py-2 text-sm font-medium text-amber-400 hover:bg-amber-400/10 transition-colors"
+    >
+      <MessageCircle className="h-4 w-4" />
+      Chatbot Leads
+    </button>
+  );
+}
+
 function SidebarContent({ activeSection, onNavigate }: SidebarNavProps) {
   const { theme, setTheme } = useTheme();
   return (
@@ -94,6 +111,7 @@ function SidebarContent({ activeSection, onNavigate }: SidebarNavProps) {
       </nav>
       <div className="border-t border-border px-4 py-3 space-y-3">
         <GuideButton />
+        <ChatbotLeadsButton />
         <button
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"

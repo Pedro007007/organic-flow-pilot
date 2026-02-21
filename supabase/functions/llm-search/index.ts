@@ -19,7 +19,20 @@ async function fetchDataForSEOVolumes(queries: string[]): Promise<{ data: Map<st
     return { data: result, warnings };
   }
 
-  console.log(`[DataForSEO] Sending ${queries.length} queries`);
+  // Filter out keywords with more than 10 words
+  const validQueries = queries.filter(q => q.split(/\s+/).length <= 10);
+  const skipped = queries.filter(q => q.split(/\s+/).length > 10);
+  if (skipped.length > 0) {
+    console.log(`[DataForSEO] Skipping ${skipped.length} queries (too many words):`, skipped);
+    warnings.push(`Skipped ${skipped.length} queries exceeding 10-word limit`);
+  }
+
+  if (validQueries.length === 0) {
+    warnings.push("No valid queries to send to DataForSEO (all exceeded word limit)");
+    return { data: result, warnings };
+  }
+
+  console.log(`[DataForSEO] Sending ${validQueries.length} queries (filtered from ${queries.length})`);
 
   try {
     const response = await fetch(
@@ -32,7 +45,7 @@ async function fetchDataForSEOVolumes(queries: string[]): Promise<{ data: Map<st
         },
         body: JSON.stringify([
           {
-            keywords: queries.slice(0, 1000),
+            keywords: validQueries.slice(0, 1000),
             language_code: "en",
             location_code: 2840,
           },
@@ -126,7 +139,7 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `You are an expert search research assistant. Given a topic, generate the exact search queries a user or AI model would use to research this topic comprehensively. Include informational, commercial, navigational, and long-tail variants. Return structured data using the provided tool.`,
+            content: `You are an expert search research assistant. Given a topic, generate the exact search queries a user or AI model would use to research this topic comprehensively. Include informational, commercial, navigational, and long-tail variants. Each query MUST be 8 words or fewer. Return structured data using the provided tool.`,
           },
           {
             role: "user",

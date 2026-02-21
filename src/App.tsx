@@ -15,6 +15,7 @@ import NotFound from "./pages/NotFound";
 import PublicReport from "./pages/PublicReport";
 import Guide from "./pages/Guide";
 import Blog from "./pages/Blog";
+import DanielaLeads from "./pages/DanielaLeads";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ const App = () => (
               <Route path="/dashboard" element={<ProtectedRoute><Index /></ProtectedRoute>} />
               <Route path="/report/:reportId" element={<PublicReport />} />
               <Route path="/guide" element={<ProtectedRoute><Guide /></ProtectedRoute>} />
+              <Route path="/daniela-leads" element={<ProtectedRoute><DanielaLeads /></ProtectedRoute>} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

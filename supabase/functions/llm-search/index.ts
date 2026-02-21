@@ -6,6 +6,62 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+async function fetchDataForSEOVolumes(queries: string[]): Promise<Map<string, any>> {
+  const login = Deno.env.get("DATAFORSEO_LOGIN");
+  const password = Deno.env.get("DATAFORSEO_PASSWORD");
+  const result = new Map<string, any>();
+
+  if (!login || !password) return result;
+
+  try {
+    const response = await fetch(
+      "https://api.dataforseo.com/v3/keywords_data/google_ads/search_volume/live",
+      {
+        method: "POST",
+        headers: {
+          Authorization: "Basic " + btoa(`${login}:${password}`),
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify([
+          {
+            keywords: queries.slice(0, 1000),
+            language_code: "en",
+            location_code: 2840, // United States
+          },
+        ]),
+      }
+    );
+
+    if (!response.ok) {
+      console.error("DataForSEO error:", response.status, await response.text());
+      return result;
+    }
+
+    const data = await response.json();
+    const items = data?.tasks?.[0]?.result || [];
+
+    for (const item of items) {
+      if (item?.keyword) {
+        result.set(item.keyword.toLowerCase(), {
+          search_volume: item.search_volume ?? 0,
+          cpc: item.cpc ?? 0,
+          competition: item.competition ?? 0,
+          competition_level: item.competition_level ?? "UNKNOWN",
+          monthly_searches: (item.monthly_searches || []).map((m: any) => ({
+            year: m.year,
+            month: m.month,
+            search_volume: m.search_volume,
+          })),
+        });
+      }
+    }
+  } catch (e) {
+    console.error("DataForSEO fetch error:", e);
+  }
+
+  return result;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -106,13 +162,41 @@ serve(async (req) => {
       queries = parsed.queries || [];
     }
 
+    // Enrich with DataForSEO real keyword data
+    const queryStrings = queries.map((q: any) => q.query);
+    const seoData = await fetchDataForSEOVolumes(queryStrings);
+
+    const enrichedQueries = queries.map((q: any) => {
+      const metrics = seoData.get(q.query.toLowerCase());
+      if (metrics) {
+        return {
+          ...q,
+          search_volume: metrics.search_volume,
+          cpc: metrics.cpc,
+          competition: metrics.competition,
+          competition_level: metrics.competition_level,
+          monthly_searches: metrics.monthly_searches,
+          data_source: "dataforseo",
+        };
+      }
+      return {
+        ...q,
+        search_volume: null,
+        cpc: null,
+        competition: null,
+        competition_level: null,
+        monthly_searches: [],
+        data_source: "ai_estimate",
+      };
+    });
+
     // Cross-reference against user's keywords table
     const { data: userKeywords } = await supabase
       .from("keywords")
       .select("keyword, search_intent, impressions, position, clicks");
 
     const keywordList = userKeywords || [];
-    const keywordMatches = queries.map((q: any) => {
+    const keywordMatches = enrichedQueries.map((q: any) => {
       const queryLower = q.query.toLowerCase();
       let matchType = "gap";
       let matchedKeyword: any = null;
@@ -149,7 +233,7 @@ serve(async (req) => {
     await supabase.from("llm_search_sessions").insert({
       user_id: user.id,
       prompt,
-      queries,
+      queries: enrichedQueries,
       keyword_matches: keywordMatches,
     });
 

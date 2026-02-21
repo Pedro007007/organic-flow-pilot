@@ -6,12 +6,20 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-async function fetchDataForSEOVolumes(queries: string[]): Promise<Map<string, any>> {
+async function fetchDataForSEOVolumes(queries: string[]): Promise<{ data: Map<string, any>; warnings: string[] }> {
   const login = Deno.env.get("DATAFORSEO_LOGIN");
   const password = Deno.env.get("DATAFORSEO_PASSWORD");
   const result = new Map<string, any>();
+  const warnings: string[] = [];
 
-  if (!login || !password) return result;
+  console.log(`[DataForSEO] Credentials check: login=${login ? "SET" : "MISSING"}, password=${password ? "SET" : "MISSING"}`);
+
+  if (!login || !password) {
+    warnings.push("DataForSEO credentials not configured");
+    return { data: result, warnings };
+  }
+
+  console.log(`[DataForSEO] Sending ${queries.length} queries`);
 
   try {
     const response = await fetch(
@@ -26,19 +34,28 @@ async function fetchDataForSEOVolumes(queries: string[]): Promise<Map<string, an
           {
             keywords: queries.slice(0, 1000),
             language_code: "en",
-            location_code: 2840, // United States
+            location_code: 2840,
           },
         ]),
       }
     );
 
+    console.log(`[DataForSEO] Response status: ${response.status}`);
+
     if (!response.ok) {
-      console.error("DataForSEO error:", response.status, await response.text());
-      return result;
+      const errText = await response.text();
+      console.error("[DataForSEO] API error:", response.status, errText);
+      warnings.push(`DataForSEO API error: ${response.status}`);
+      return { data: result, warnings };
     }
 
     const data = await response.json();
+    console.log(`[DataForSEO] Top-level keys: ${Object.keys(data)}`);
+    console.log(`[DataForSEO] Raw response (first 1000 chars): ${JSON.stringify(data).slice(0, 1000)}`);
+    console.log(`[DataForSEO] Response structure: tasks=${data?.tasks?.length}, status=${data?.tasks?.[0]?.status_code}, message=${data?.tasks?.[0]?.status_message}`);
+
     const items = data?.tasks?.[0]?.result || [];
+    console.log(`[DataForSEO] Items returned: ${items.length}`);
 
     for (const item of items) {
       if (item?.keyword) {
@@ -55,11 +72,18 @@ async function fetchDataForSEOVolumes(queries: string[]): Promise<Map<string, an
         });
       }
     }
+
+    console.log(`[DataForSEO] Matched ${result.size} of ${queries.length} queries`);
+    if (result.size === 0 && items.length > 0) {
+      console.log(`[DataForSEO] Sample item keys:`, Object.keys(items[0]));
+      console.log(`[DataForSEO] Sample item:`, JSON.stringify(items[0]).slice(0, 500));
+    }
   } catch (e) {
-    console.error("DataForSEO fetch error:", e);
+    console.error("[DataForSEO] fetch error:", e);
+    warnings.push(`DataForSEO fetch error: ${e instanceof Error ? e.message : String(e)}`);
   }
 
-  return result;
+  return { data: result, warnings };
 }
 
 serve(async (req) => {
@@ -164,7 +188,7 @@ serve(async (req) => {
 
     // Enrich with DataForSEO real keyword data
     const queryStrings = queries.map((q: any) => q.query);
-    const seoData = await fetchDataForSEOVolumes(queryStrings);
+    const { data: seoData, warnings: dataWarnings } = await fetchDataForSEOVolumes(queryStrings);
 
     const enrichedQueries = queries.map((q: any) => {
       const metrics = seoData.get(q.query.toLowerCase());
@@ -237,7 +261,7 @@ serve(async (req) => {
       keyword_matches: keywordMatches,
     });
 
-    return new Response(JSON.stringify({ success: true, queries: keywordMatches }), {
+    return new Response(JSON.stringify({ success: true, queries: keywordMatches, data_warnings: dataWarnings }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

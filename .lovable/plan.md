@@ -1,53 +1,91 @@
 
-# Redesign Guide Page as a Visual Sitemap
+# Meet Daniela -- Your AI SEO/AEO Expert Agent
 
-Transform the current accordion-style Guide into a visual sitemap layout -- a tree/flowchart-style page where users can see the entire platform structure at a glance, with expandable nodes for each feature.
+Build a premium AI chatbot agent named **Daniela** directly on the landing page, featuring a stunning AI-generated avatar and real-time conversational SEO/AEO expertise that guides visitors and drives subscription conversions.
 
-## What Changes
+---
 
-### Layout Overhaul
-- Replace the linear collapsible list with a **visual sitemap tree** layout
-- Group the 15 sections into **4 logical categories** displayed as branches:
-  - **Getting Started** -- Sign Up, Brand Setup
-  - **Content Engine** -- Keywords, Content Pipeline, Agents, Calendar, Checklist
-  - **Intelligence** -- Rankings, LLM Search Lab, Scanner, Analytics
-  - **Business** -- Reports, Leads, Team, Settings
-- Each category is a visually distinct column/branch with connecting lines
-- Individual feature nodes are clickable cards that expand inline to show details + pro tips
+## What Gets Built
 
-### Visual Design
-- Top: Searchera logo as the "root node" with lines branching down to categories
-- Each category gets a colored header bar matching its theme
-- Feature nodes show icon + title + one-line summary; click to expand details
-- Dashed connector lines between nodes using CSS borders (no external lib needed)
-- Keep the Quick Start hero section at top, slightly simplified
-- Retain "Expand All / Collapse All" controls
-- Footer CTA stays
+### 1. Daniela's AI-Generated Avatar
+- Use **Lovable AI image generation** (google/gemini-3-pro-image-preview) to generate a 3D ultra-realistic portrait of Daniela -- a beautiful Brazilian woman with light brown hair, professional appearance, warm smile
+- Store the generated image in a Supabase storage bucket (`daniela-avatar`)
+- Display as a floating circular avatar on the landing page with a glowing pulse animation
 
-### Technical Approach
-- Same file: `src/pages/Guide.tsx` -- full rewrite of the render/layout section
-- Same data structure (`guideSections` array) with an added `category` field per section
-- Pure CSS/Tailwind for connector lines (no diagram library)
-- Responsive: on mobile, categories stack vertically as a simple tree; on desktop, 4-column grid with visual connectors
-- No new dependencies needed
+### 2. New Landing Page Section -- "Meet Daniela"
+- Placed between Testimonials and Security sections
+- Left side: Large 3D avatar image with animated glow ring and name/title card
+- Right side: Headline + description introducing Daniela as your personal SEO/AEO strategist
+- "Chat with Daniela" button opens the chat dialog
+- Premium dark gradient background (matching the "How It Works" section style)
 
-### Categories Mapping
-```text
-                    [Searchera]
-                        |
-     -----------------------------------------------
-     |              |              |                |
- [Getting       [Content       [Intelligence   [Business]
-  Started]       Engine]        & Tracking]
-     |              |              |                |
-  Sign Up       Keywords       Rankings         Reports
-  Brands        Content        LLM Search       Leads
-                Agents         Scanner          Team
-                Calendar       Analytics        Settings
-                Checklist
+### 3. Floating Chat Widget
+- A persistent floating button (bottom-right corner) showing Daniela's mini avatar with a pulse indicator
+- Clicking opens a full chat dialog overlay
+- Chat UI features:
+  - Daniela's avatar + name in header
+  - Streaming message responses (token-by-token)
+  - Markdown rendering for rich responses (lists, bold, code)
+  - Suggested quick-start questions (e.g., "What is AEO?", "How can I rank #1?", "What plan suits me?")
+  - Subscription CTA woven into responses -- Daniela naturally recommends signing up when relevant
+
+### 4. Backend Edge Function (`daniela-chat`)
+- New edge function powered by Lovable AI (google/gemini-3-flash-preview)
+- Daniela's system prompt makes her:
+  - A world-class SEO and AEO (Answer Engine Optimization) specialist from Brazil
+  - Deeply knowledgeable about keyword research, content strategy, technical SEO, schema markup, AI citations, SERP features, and link building
+  - Naturally enthusiastic about Searchera's platform capabilities
+  - Conversational closer -- guides users toward signing up when appropriate
+  - Friendly, confident, and professional with a warm personality
+- Supports streaming SSE responses
+- Handles rate limit (429) and payment (402) errors gracefully
+
+### 5. Avatar Generation Edge Function (`generate-daniela-avatar`)
+- One-time use function to generate Daniela's portrait using the image model
+- Uploads result to storage bucket
+- Falls back to a high-quality placeholder if generation isn't triggered
+
+---
+
+## Files Created / Modified
+
+| File | Action |
+|------|--------|
+| `supabase/functions/daniela-chat/index.ts` | **Create** -- Streaming AI chat edge function |
+| `supabase/functions/generate-daniela-avatar/index.ts` | **Create** -- Avatar image generation |
+| `src/components/DanielaChat.tsx` | **Create** -- Chat widget component (floating button + dialog + streaming messages) |
+| `src/components/DanielaSection.tsx` | **Create** -- Landing page "Meet Daniela" section |
+| `src/pages/Landing.tsx` | **Edit** -- Import and place DanielaSection + DanielaChat |
+| `supabase/config.toml` | **Edit** -- Register both new edge functions |
+
+---
+
+## Technical Details
+
+### System Prompt (Daniela's Personality)
+Daniela is configured as an elite SEO/AEO consultant who:
+- Explains complex SEO concepts in simple, actionable terms
+- Covers on-page SEO, technical SEO, AEO, schema markup, E-E-A-T, Core Web Vitals, backlinks, content clusters, and AI search optimization
+- Highlights how Searchera automates these tasks when relevant
+- Uses a warm, confident tone and occasionally references her Brazilian background
+- Closes toward subscription naturally ("Want me to set this up for you? Start your free trial and I'll guide you through it")
+
+### Chat Widget Architecture
+- React state manages messages array and streaming status
+- SSE streaming with token-by-token rendering using the established pattern
+- `react-markdown` for rendering AI responses
+- Quick suggestion chips for first-time users
+- Responsive -- works on mobile and desktop
+- Chat persists during page session (resets on page reload -- no database needed for landing page chat)
+
+### Avatar Strategy
+- Generate once via edge function, store in storage bucket
+- Landing page and chat widget reference the stored image URL
+- Fallback: use a gradient placeholder with "D" initial if image not yet generated
+
+### Landing Page Layout Update
 ```
-
-### Interaction
-- Each node is a small card; clicking it expands a detail panel below it (same content as before: bullet points + pro tip)
-- Hovering a node highlights the connector line from root
-- Smooth open/close animations via existing Collapsible component
+[Hero] -> [Stats] -> [Features] -> [How It Works] -> [Testimonials]
+-> [NEW: Meet Daniela] -> [Security] -> [CTA] -> [Footer]
++ Floating chat button (bottom-right, always visible)
+```

@@ -372,23 +372,51 @@ const LlmSearchLab = () => {
       {/* Session history */}
       {sessions.length > 0 && (
         <div>
-          <h3 className="text-xs font-semibold text-foreground mb-2 flex items-center gap-1.5">
+          <h3 className="text-xs font-semibold text-foreground mb-3 flex items-center gap-1.5">
             <Clock className="h-3.5 w-3.5 text-muted-foreground" />
             Recent Sessions
           </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-            {sessions.map((s) => (
-              <button
-                key={s.id}
-                onClick={() => loadSession(s)}
-                className="text-left rounded-md border border-border bg-card p-3 hover:bg-muted/50 transition-colors"
-              >
-                <p className="text-xs font-medium text-foreground truncate">{s.prompt}</p>
-                <p className="text-[10px] text-muted-foreground mt-1">
-                  {(s.keyword_matches || []).length} queries • {new Date(s.created_at).toLocaleDateString()}
-                </p>
-              </button>
-            ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {sessions.map((s, i) => {
+              const gradients = [
+                "from-purple-500/20 via-pink-400/15 to-blue-400/20",
+                "from-amber-400/20 via-orange-300/15 to-yellow-300/20",
+                "from-emerald-500/20 via-teal-400/15 to-cyan-400/20",
+                "from-blue-500/20 via-indigo-400/15 to-violet-400/20",
+                "from-rose-500/20 via-pink-400/15 to-fuchsia-400/20",
+                "from-sky-500/20 via-cyan-400/15 to-teal-400/20",
+              ];
+              const borderColors = [
+                "border-purple-400/30",
+                "border-amber-400/30",
+                "border-emerald-400/30",
+                "border-blue-400/30",
+                "border-rose-400/30",
+                "border-sky-400/30",
+              ];
+              const grad = gradients[i % gradients.length];
+              const bord = borderColors[i % borderColors.length];
+              const queryCount = (s.keyword_matches || []).length;
+              return (
+                <button
+                  key={s.id}
+                  onClick={() => loadSession(s)}
+                  className={`group text-left rounded-xl border ${bord} bg-gradient-to-r ${grad} p-4 hover:scale-[1.02] hover:shadow-lg transition-all duration-200`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-semibold text-foreground truncate">{s.prompt}</p>
+                      <p className="text-[10px] text-muted-foreground mt-1.5">
+                        {queryCount} {queryCount === 1 ? "query" : "queries"} • {new Date(s.created_at).toLocaleDateString()}
+                      </p>
+                    </div>
+                    <div className="flex-shrink-0 w-8 h-8 rounded-full bg-background/60 backdrop-blur-sm flex items-center justify-center border border-border/50 group-hover:bg-background/80 transition-colors">
+                      <Search className="h-3.5 w-3.5 text-muted-foreground" />
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
       )}

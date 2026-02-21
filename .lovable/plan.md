@@ -1,37 +1,33 @@
 
+## Add User Guide to LLM Search Lab
 
-## Fix: DataForSEO Zero Values and Improve Data Display
+### What
+Add a collapsible "How to use this tool" guide section below the search input card. It will explain every column, badge, and metric in plain language so users know exactly what they're looking at and how to act on it.
 
-### What's Happening
-1. Your screenshot (09:59) is from a run that **failed** before the word-length fix was deployed
-2. The 10:02 run **succeeded** -- DataForSEO returned matches for all 15 queries
-3. However, Google Ads often returns `search_volume: 0` for specific long-tail variations even when the API call succeeds -- this would show "0" instead of meaningful data
+### Guide Content
 
-### Changes
+The guide will be a collapsible card (collapsed by default) with a "Help" / "How to read results" toggle. It will cover:
 
-**File: `supabase/functions/llm-search/index.ts`**
-
-1. Add detailed logging of the first sample item's actual values (search_volume, cpc, competition_level) so we can see exactly what DataForSEO returns
-2. Treat `search_volume: 0` as "no data" (set to `null`) so it falls back to the AI estimate tier instead of showing a misleading "0"
-3. Same for `cpc: 0` -- treat as null so the UI shows a dash instead of "$0.00"
-
-**File: `src/components/LlmSearchLab.tsx`**
-
-4. Update `formatVolume` to show "< 10" when volume is 0 (if we keep 0 instead of nullifying)
-5. Show competition level even when it's returned as 0 (e.g., "LOW" for zero competition)
+- **Volume** -- Average monthly Google searches. Higher = more people searching. Shows "est." with a tier label (high/medium/low) when exact data isn't available.
+- **CPC (Cost Per Click)** -- How much advertisers pay per click on Google Ads. Higher CPC = more commercial value. A $5+ CPC keyword is worth targeting.
+- **Competition** -- How many advertisers bid on this keyword. LOW = easier to rank for, HIGH = very competitive.
+- **Trend** -- 12-month sparkline showing seasonal patterns. Rising bars = growing interest. Flat = steady demand.
+- **Intent** -- Why someone searches this:
+  - Informational: wants to learn
+  - Commercial: comparing options
+  - Transactional: ready to buy
+  - Navigational: looking for a specific site
+- **Match Status**:
+  - Matched: you already track this keyword
+  - Partial: similar keyword exists in your tracker
+  - Gap: nobody on your team is targeting this yet -- this is your opportunity
+- **Action (Add button)** -- Click to add a gap keyword to your keyword tracker so you can create content for it.
+- **What to look for** -- Prioritise gaps with high volume, low competition, and commercial/transactional intent. These are the easiest wins.
 
 ### Technical Details
 
-In the edge function's item mapping loop, change:
-- `search_volume: item.search_volume ?? 0` to `search_volume: item.search_volume || null` (treats 0 as no data)
-- `cpc: item.cpc ?? 0` to `cpc: item.cpc || null`
-- `competition: item.competition ?? 0` to `competition: item.competition || null`
+**File: `src/components/LlmSearchLab.tsx`**
 
-Add a log line after item parsing:
-```
-if (items.length > 0) {
-  console.log("[DataForSEO] Sample item values:", JSON.stringify(items[0]).slice(0, 300));
-}
-```
-
-This ensures that when DataForSEO returns zeros (meaning Google Ads has insufficient data for that exact phrase), the UI gracefully falls back to the AI-estimated tier label instead of showing misleading "0" values.
+1. Import `Collapsible`, `CollapsibleTrigger`, `CollapsibleContent` from the existing UI components, plus `HelpCircle` and `ChevronDown` icons from lucide-react
+2. Add a `showGuide` state (boolean, default false)
+3. Insert a collapsible Card between the search input card and the results summary, containing the guide content as a structured list with small text and subtle styling

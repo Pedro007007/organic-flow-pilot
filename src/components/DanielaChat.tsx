@@ -1,0 +1,280 @@
+import { useState, useRef, useEffect } from "react";
+import { X, Send, MessageCircle, Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import ReactMarkdown from "react-markdown";
+import danielaAvatar from "@/assets/daniela-avatar.png";
+
+type Msg = { role: "user" | "assistant"; content: string };
+
+const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/daniela-chat`;
+
+const suggestions = [
+  "What is AEO?",
+  "How can I rank #1 on Google?",
+  "What plan suits my business?",
+  "How do AI search engines work?",
+];
+
+async function streamChat({
+  messages,
+  onDelta,
+  onDone,
+  onError,
+}: {
+  messages: Msg[];
+  onDelta: (text: string) => void;
+  onDone: () => void;
+  onError: (msg: string) => void;
+}) {
+  const resp = await fetch(CHAT_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+    },
+    body: JSON.stringify({ messages }),
+  });
+
+  if (!resp.ok) {
+    const errData = await resp.json().catch(() => ({}));
+    onError(errData.error || "Something went wrong. Please try again!");
+    return;
+  }
+
+  if (!resp.body) { onError("No response body"); return; }
+
+  const reader = resp.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let streamDone = false;
+
+  while (!streamDone) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+
+    let idx: number;
+    while ((idx = buffer.indexOf("\n")) !== -1) {
+      let line = buffer.slice(0, idx);
+      buffer = buffer.slice(idx + 1);
+      if (line.endsWith("\r")) line = line.slice(0, -1);
+      if (line.startsWith(":") || line.trim() === "") continue;
+      if (!line.startsWith("data: ")) continue;
+      const json = line.slice(6).trim();
+      if (json === "[DONE]") { streamDone = true; break; }
+      try {
+        const parsed = JSON.parse(json);
+        const content = parsed.choices?.[0]?.delta?.content;
+        if (content) onDelta(content);
+      } catch {
+        buffer = line + "\n" + buffer;
+        break;
+      }
+    }
+  }
+
+  // flush remaining
+  if (buffer.trim()) {
+    for (let raw of buffer.split("\n")) {
+      if (!raw) continue;
+      if (raw.endsWith("\r")) raw = raw.slice(0, -1);
+      if (!raw.startsWith("data: ")) continue;
+      const json = raw.slice(6).trim();
+      if (json === "[DONE]") continue;
+      try {
+        const parsed = JSON.parse(json);
+        const content = parsed.choices?.[0]?.delta?.content;
+        if (content) onDelta(content);
+      } catch { /* ignore */ }
+    }
+  }
+
+  onDone();
+}
+
+interface DanielaChatProps {
+  externalOpen?: boolean;
+  onExternalOpenHandled?: () => void;
+}
+
+const DanielaChat = ({ externalOpen, onExternalOpenHandled }: DanielaChatProps) => {
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    if (externalOpen) {
+      setOpen(true);
+      onExternalOpenHandled?.();
+    }
+  }, [externalOpen, onExternalOpenHandled]);
+  const [messages, setMessages] = useState<Msg[]>([]);
+  const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  const send = async (text: string) => {
+    if (!text.trim() || isLoading) return;
+    const userMsg: Msg = { role: "user", content: text.trim() };
+    const newMessages = [...messages, userMsg];
+    setMessages(newMessages);
+    setInput("");
+    setIsLoading(true);
+
+    let assistantSoFar = "";
+    const upsertAssistant = (chunk: string) => {
+      assistantSoFar += chunk;
+      setMessages(prev => {
+        const last = prev[prev.length - 1];
+        if (last?.role === "assistant") {
+          return prev.map((m, i) => i === prev.length - 1 ? { ...m, content: assistantSoFar } : m);
+        }
+        return [...prev, { role: "assistant", content: assistantSoFar }];
+      });
+    };
+
+    try {
+      await streamChat({
+        messages: newMessages,
+        onDelta: upsertAssistant,
+        onDone: () => setIsLoading(false),
+        onError: (msg) => {
+          setMessages(prev => [...prev, { role: "assistant", content: `⚠️ ${msg}` }]);
+          setIsLoading(false);
+        },
+      });
+    } catch {
+      setMessages(prev => [...prev, { role: "assistant", content: "⚠️ Connection error. Please try again!" }]);
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <>
+      {/* Floating Button */}
+      {!open && (
+        <button
+          onClick={() => setOpen(true)}
+          className="fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-full bg-gradient-to-r from-blue-600 to-teal-500 pl-2 pr-5 py-2 text-white shadow-2xl shadow-blue-500/30 hover:shadow-blue-500/50 transition-all duration-300 hover:scale-105 group"
+        >
+          <div className="relative">
+            <img src={danielaAvatar} alt="Daniela" className="h-10 w-10 rounded-full object-cover border-2 border-white/30" />
+            <span className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-green-400 border-2 border-white animate-pulse" />
+          </div>
+          <span className="text-sm font-bold">Chat with Daniela</span>
+        </button>
+      )}
+
+      {/* Chat Dialog */}
+      {open && (
+        <div className="fixed bottom-6 right-6 z-50 flex flex-col w-[380px] max-w-[calc(100vw-2rem)] h-[560px] max-h-[calc(100vh-4rem)] rounded-2xl bg-white shadow-2xl border border-gray-200 overflow-hidden animate-scale-in">
+          {/* Header */}
+          <div className="flex items-center gap-3 bg-gradient-to-r from-blue-600 to-teal-500 px-4 py-3">
+            <div className="relative">
+              <img src={danielaAvatar} alt="Daniela" className="h-10 w-10 rounded-full object-cover border-2 border-white/40" />
+              <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-green-400 border-2 border-white" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-white font-black text-sm">Daniela</h3>
+              <p className="text-blue-100 text-xs font-medium">SEO & AEO Expert • Online</p>
+            </div>
+            <button onClick={() => setOpen(false)} className="text-white/80 hover:text-white transition-colors">
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+
+          {/* Messages */}
+          <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-4 bg-gray-50">
+            {messages.length === 0 && (
+              <div className="text-center pt-4">
+                <div className="flex justify-center mb-3">
+                  <img src={danielaAvatar} alt="Daniela" className="h-16 w-16 rounded-full object-cover border-2 border-blue-200" />
+                </div>
+                <p className="text-gray-700 font-bold text-sm mb-1">Hi! I'm Daniela 👋</p>
+                <p className="text-gray-500 text-xs mb-4">Your AI SEO & AEO strategist. Ask me anything about growing your organic traffic!</p>
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {suggestions.map((s) => (
+                    <button
+                      key={s}
+                      onClick={() => send(s)}
+                      className="text-xs bg-white border border-blue-200 text-blue-700 rounded-full px-3 py-1.5 hover:bg-blue-50 transition-colors font-semibold"
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {messages.map((msg, i) => (
+              <div key={i} className={`flex gap-2 ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
+                {msg.role === "assistant" && (
+                  <img src={danielaAvatar} alt="D" className="h-7 w-7 rounded-full object-cover border border-blue-200 flex-shrink-0 mt-1" />
+                )}
+                <div
+                  className={`max-w-[75%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${
+                    msg.role === "user"
+                      ? "bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-br-md"
+                      : "bg-white border border-gray-200 text-gray-800 rounded-bl-md shadow-sm"
+                  }`}
+                >
+                  {msg.role === "assistant" ? (
+                    <div className="prose prose-sm max-w-none prose-p:my-1 prose-ul:my-1 prose-li:my-0.5 prose-headings:my-2">
+                      <ReactMarkdown>{msg.content}</ReactMarkdown>
+                    </div>
+                  ) : (
+                    msg.content
+                  )}
+                </div>
+              </div>
+            ))}
+
+            {isLoading && messages[messages.length - 1]?.role !== "assistant" && (
+              <div className="flex gap-2 items-start">
+                <img src={danielaAvatar} alt="D" className="h-7 w-7 rounded-full object-cover border border-blue-200 flex-shrink-0 mt-1" />
+                <div className="bg-white border border-gray-200 rounded-2xl rounded-bl-md px-4 py-3 shadow-sm">
+                  <div className="flex gap-1">
+                    <span className="h-2 w-2 rounded-full bg-gray-300 animate-bounce" style={{ animationDelay: "0ms" }} />
+                    <span className="h-2 w-2 rounded-full bg-gray-300 animate-bounce" style={{ animationDelay: "150ms" }} />
+                    <span className="h-2 w-2 rounded-full bg-gray-300 animate-bounce" style={{ animationDelay: "300ms" }} />
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Input */}
+          <div className="border-t border-gray-200 bg-white px-3 py-3">
+            <form
+              onSubmit={(e) => { e.preventDefault(); send(input); }}
+              className="flex items-center gap-2"
+            >
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder="Ask Daniela anything about SEO..."
+                className="flex-1 rounded-full border border-gray-300 bg-gray-50 px-4 py-2.5 text-sm focus:outline-none focus:border-blue-400 focus:ring-1 focus:ring-blue-400 transition-colors"
+                disabled={isLoading}
+              />
+              <Button
+                type="submit"
+                size="icon"
+                disabled={isLoading || !input.trim()}
+                className="h-10 w-10 rounded-full bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-700 hover:to-teal-600 text-white shadow-md flex-shrink-0"
+              >
+                <Send className="h-4 w-4" />
+              </Button>
+            </form>
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
+
+export default DanielaChat;

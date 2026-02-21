@@ -1,8 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Search, FileText, Bot, BarChart3, ArrowRight, Play, Shield, Zap, TrendingUp, CheckCircle2, Star, Target, Globe, LineChart, Cpu } from "lucide-react";
 import searcheraLogo from "@/assets/searchera-logo.png";
+import DanielaSection from "@/components/DanielaSection";
+import DanielaChat from "@/components/DanielaChat";
 
 const features = [
   { icon: Search, title: "Keyword Discovery", desc: "Uncover high-impact keywords with AI-driven analysis of your search landscape. Target positions 8–30 for maximum growth." },
@@ -36,6 +38,9 @@ const testimonials = [
 ];
 
 const Landing = () => {
+  const [chatOpen, setChatOpen] = useState(false);
+  const handleOpenChat = useCallback(() => setChatOpen(true), []);
+  const handleChatHandled = useCallback(() => setChatOpen(false), []);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -237,6 +242,9 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* Meet Daniela */}
+      <DanielaSection onOpenChat={handleOpenChat} />
+
       {/* Security / Trust */}
       <section className="bg-slate-50 py-16">
         <div className="mx-auto max-w-4xl px-6 text-center">
@@ -289,6 +297,9 @@ const Landing = () => {
         </div>
       </div>
     </footer>
+
+    {/* Floating Chat Widget */}
+    <DanielaChat externalOpen={chatOpen} onExternalOpenHandled={handleChatHandled} />
   </div>
   );
 };

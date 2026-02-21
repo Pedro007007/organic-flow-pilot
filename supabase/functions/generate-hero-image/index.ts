@@ -62,15 +62,41 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const paletteNote = imgPalette ? ` Use a ${imgPalette} color palette.` : "";
+    const paletteNote = imgPalette ? `\nPrimary Brand Colour(s): ${imgPalette}` : "\nPrimary Brand Colour(s): dark blue, electric purple, white";
 
-    const imagePrompt = `Generate a professional, ${imgStyle} blog hero image for an article titled "${title || keyword}". 
-The image should be:
-- ${imgRatio} aspect ratio, suitable for a blog header
-- Clean, professional design with subtle gradients
-- Visually representing the concept of "${keyword}"
-- No text or words in the image
-- High contrast, vibrant but professional colors${paletteNote}
+    const imagePrompt = `You are a senior brand visual director and conversion-focused creative strategist.
+Your task is to generate a HIGH-IMPACT hero image for a landing page or article.
+This image must NOT be generic. It must visually communicate authority, positioning, and value instantly.
+
+BRAND CONTEXT
+${brand ? `Brand Name: ${brand.name}${brand.domain ? `\nWebsite: ${brand.domain}` : ""}` : "Default brand tone: modern, professional, tech-forward"}
+
+PAGE CONTEXT
+Article / Page Title: ${title || keyword}
+Primary Keyword: ${keyword}
+
+VISUAL STYLE DIRECTION
+Art Direction Style:
+- ${imgStyle}, premium, high contrast
+- Cinematic lighting or soft gradient lighting
+- Depth and layered composition (foreground / midground / background)
+- Subtle abstract elements (data, growth, digital signals, search, AI, analytics)
+Visual Metaphor: Choose a strong visual metaphor representing the benefit — growth (ascending light beams, rising graphs), clarity (spotlight, illuminated pathway), automation (AI interface, flowing data streams), or connection (network nodes, linking signals).
+
+COMPOSITION RULES
+- Hero-style wide composition (${imgRatio} ratio)
+- Leave NEGATIVE SPACE on one side for text overlay
+- Main focal point slightly off-center (rule of thirds)
+- Strong visual hierarchy (clear subject + supporting environment)
+- No clutter, no stock-photo look
+- NO text or words in the image
+
+COLOUR & BRAND IDENTITY${paletteNote}
+Background Style: dark gradient or soft light tech background
+The image MUST match the brand palette and feel consistent with a modern SaaS or AI company.
+
+SUBJECT DIRECTION
+Choose ONE: abstract conceptual scene (preferred for AI/SEO brands) or professional digital workspace environment.
 Ultra high resolution.`;
 
     console.log("Generating hero image for:", title || keyword);

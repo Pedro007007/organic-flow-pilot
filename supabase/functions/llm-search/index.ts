@@ -143,11 +143,11 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: `You are an expert search research assistant. Given a topic, generate the exact search queries a user or AI model would use to research this topic comprehensively. Include informational, commercial, navigational, and long-tail variants. Each query MUST be 8 words or fewer. Return structured data using the provided tool.`,
+            content: `You are an expert keyword research assistant. Given a topic, generate the TOP 5 most searched, highest-volume keyword queries that people actually type into Google for this topic. Focus on SHORT, popular head terms and mid-tail queries (2-5 words) that will have real search volume data in Google Ads. Do NOT generate obscure long-tail queries. Each query MUST be 5 words or fewer. Prioritise commercial and transactional intent. Return structured data using the provided tool.`,
           },
           {
             role: "user",
-            content: `Topic: ${prompt}\n\nGenerate 10-20 diverse search queries that would be used to research this topic. Include different intents and long-tail variations.`,
+            content: `Topic: ${prompt}\n\nGenerate exactly 5 high-volume search queries. Focus on the most popular, commonly searched terms that Google Ads will have volume data for. Keep queries short (2-5 words). Mix of informational, commercial and transactional intent.`,
           },
         ],
         tools: [

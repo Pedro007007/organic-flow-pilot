@@ -9,10 +9,13 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
+  Collapsible, CollapsibleContent, CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
 import {
-  TrendingUp, TrendingDown, Minus, Loader2, RefreshCw, BarChart3, Eye, ArrowRight, Search, Globe, Zap,
+  TrendingUp, TrendingDown, Minus, Loader2, RefreshCw, BarChart3, Eye, ArrowRight, Search, Globe, Zap, HelpCircle, ChevronDown,
 } from "lucide-react";
 
 const RankingsTracker = () => {
@@ -108,6 +111,55 @@ const RankingsTracker = () => {
           Refresh Rankings
         </Button>
       </div>
+
+      {/* How It Works Guide */}
+      <Collapsible>
+        <CollapsibleTrigger asChild>
+          <button className="w-full flex items-center justify-between rounded-xl border border-border bg-card p-4 hover:bg-muted/40 transition-colors group">
+            <div className="flex items-center gap-2">
+              <HelpCircle className="h-4 w-4 text-primary" />
+              <span className="text-sm font-semibold text-foreground">How does the Rankings Tracker work?</span>
+            </div>
+            <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+          </button>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="rounded-xl border border-border bg-card mt-2 p-6 space-y-5">
+          <div className="space-y-3">
+            <h3 className="text-sm font-bold text-foreground">📡 Data Flow</h3>
+            <ol className="text-xs text-muted-foreground space-y-1.5 list-decimal list-inside leading-relaxed">
+              <li>Your published content (from the Content Pipeline) gets tracked automatically — each content item with a URL and keyword becomes a tracked entry.</li>
+              <li>Clicking <strong className="text-foreground">Refresh Rankings</strong> checks your actual Google position for each keyword/URL pair and whether AI engines cite your page.</li>
+            </ol>
+          </div>
+
+          <div className="space-y-3">
+            <h3 className="text-sm font-bold text-foreground">📊 What the columns mean</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              {[
+                { label: "Position", desc: "Your Google SERP ranking for that keyword" },
+                { label: "Change", desc: "Position movement since the last check (↑ improved, ↓ dropped)" },
+                { label: "AI Cited", desc: "Whether AI answer engines (ChatGPT, Perplexity, Google AI) reference your URL" },
+                { label: "Date", desc: "When the last ranking check ran" },
+              ].map((item) => (
+                <div key={item.label} className="rounded-lg bg-muted/30 p-3">
+                  <p className="text-xs font-semibold text-foreground">{item.label}</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">{item.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <h3 className="text-sm font-bold text-foreground">🚀 Tips to get more value</h3>
+            <ul className="text-xs text-muted-foreground space-y-1.5 list-disc list-inside leading-relaxed">
+              <li><strong className="text-foreground">Publish more content</strong> — Each published article with a URL automatically gets tracked here.</li>
+              <li><strong className="text-foreground">Refresh regularly</strong> — Click "Refresh Rankings" to pull live position data from Google.</li>
+              <li><strong className="text-foreground">Use Chart View</strong> — Over time it shows position trends so you can spot content climbing or dropping.</li>
+              <li><strong className="text-foreground">Watch AI Citations</strong> — This tells you if AI search engines are citing your content, increasingly important for organic traffic.</li>
+            </ul>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
 
       {/* Score Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

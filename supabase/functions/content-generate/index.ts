@@ -99,17 +99,17 @@ serve(async (req) => {
       }
     }
 
-    // Cap candidates at maxLinks * 3 to give AI options
-    const cappedCandidates = linkCandidates.slice(0, maxLinks * 3);
-    const internalLinks = cappedCandidates
-      .map((l) => `- [${l.title}](${l.url})${l.keyword ? ` — about "${l.keyword}"` : ""}`)
-      .join("\n");
-
     // Build brand-aware system prompt
     const wp = brand?.writing_preferences || {};
     const linkConfig = brand?.internal_linking_config || {};
     const maxLinks = linkConfig.max_links_per_article || 5;
     const anchorStyle = linkConfig.anchor_text_style || "natural";
+
+    // Cap candidates at maxLinks * 3 to give AI options
+    const cappedCandidates = linkCandidates.slice(0, maxLinks * 3);
+    const internalLinks = cappedCandidates
+      .map((l) => `- [${l.title}](${l.url})${l.keyword ? ` — about "${l.keyword}"` : ""}`)
+      .join("\n");
 
     const toneInstruction = brand?.tone_of_voice ? `- Tone of voice: ${brand.tone_of_voice}` : "";
     const styleInstruction = brand?.writing_style ? `- Writing style: ${brand.writing_style}` : "";

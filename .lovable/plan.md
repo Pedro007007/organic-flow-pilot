@@ -1,33 +1,41 @@
 
-## Add User Guide to LLM Search Lab
+## Clean Up All Fake Data
 
-### What
-Add a collapsible "How to use this tool" guide section below the search input card. It will explain every column, badge, and metric in plain language so users know exactly what they're looking at and how to act on it.
+### The Problem
+The platform currently shows fabricated numbers when no real data exists. Three locations inject mock/fake data as fallbacks, making the dashboard look active when it isn't.
 
-### Guide Content
+### What's Already Real (No Changes Needed)
+- Keywords table, Content Pipeline, Rankings, Checklists, LLM Search Lab, Brands, Leads, Reports, Scanner, Analytics Dashboard, Team -- all pull from the database. These are clean.
 
-The guide will be a collapsible card (collapsed by default) with a "Help" / "How to read results" toggle. It will cover:
+### What's Fake (Needs Removing)
 
-- **Volume** -- Average monthly Google searches. Higher = more people searching. Shows "est." with a tier label (high/medium/low) when exact data isn't available.
-- **CPC (Cost Per Click)** -- How much advertisers pay per click on Google Ads. Higher CPC = more commercial value. A $5+ CPC keyword is worth targeting.
-- **Competition** -- How many advertisers bid on this keyword. LOW = easier to rank for, HIGH = very competitive.
-- **Trend** -- 12-month sparkline showing seasonal patterns. Rising bars = growing interest. Flat = steady demand.
-- **Intent** -- Why someone searches this:
-  - Informational: wants to learn
-  - Commercial: comparing options
-  - Transactional: ready to buy
-  - Navigational: looking for a specific site
-- **Match Status**:
-  - Matched: you already track this keyword
-  - Partial: similar keyword exists in your tracker
-  - Gap: nobody on your team is targeting this yet -- this is your opportunity
-- **Action (Add button)** -- Click to add a gap keyword to your keyword tracker so you can create content for it.
-- **What to look for** -- Prioritise gaps with high volume, low competition, and commercial/transactional intent. These are the easiest wins.
+**1. Mock Data File: `src/data/mockData.ts`**
+Contains invented metrics (284,391 impressions, 12,847 clicks), 6 fake keywords, 6 fake content items, and 8 fake agent statuses. This entire file will be deleted.
 
-### Technical Details
+**2. Dashboard Fallbacks: `src/pages/Index.tsx`**
+Lines 38-41 fall back to mock data when the database is empty:
+- `displayMetrics = metrics?.length ? metrics : mockMetrics` -- shows fake 284K impressions
+- `displayKeywords = keywords?.length ? keywords : mockKeywords` -- shows fake keywords
+- `displayAgents = agents?.length ? agents : mockAgents` -- shows fake agent activity
 
-**File: `src/components/LlmSearchLab.tsx`**
+These will be replaced with empty arrays so the dashboard shows real empty states.
 
-1. Import `Collapsible`, `CollapsibleTrigger`, `CollapsibleContent` from the existing UI components, plus `HelpCircle` and `ChevronDown` icons from lucide-react
-2. Add a `showGuide` state (boolean, default false)
-3. Insert a collapsible Card between the search input card and the results summary, containing the guide content as a structured list with small text and subtle styling
+**3. Hook Fallbacks: `src/hooks/useDashboardData.ts`**
+- `usePerformanceMetrics` returns `mockMetrics` when no snapshots exist
+- `useAgentRuns` returns `mockAgents` when no agent runs exist
+
+These will return empty arrays instead.
+
+### What Users Will See After Cleanup
+When there's no real data, users will see clean empty states instead of fake numbers. The dashboard will show zeros / "no data yet" messaging. Once they connect Google Search Console, run agents, or add keywords, real data populates naturally.
+
+### Technical Changes
+
+| File | Change |
+|------|--------|
+| `src/data/mockData.ts` | Delete entire file |
+| `src/pages/Index.tsx` | Remove mock import; replace fallbacks with empty arrays |
+| `src/hooks/useDashboardData.ts` | Remove mock import; return empty arrays instead of mock fallbacks |
+
+### Empty State Handling
+The agent pipeline already has a default agent list built into `useAgentRuns` (6 agents with "idle" / "never" status), so the agent cards will still render -- they'll just show real idle states rather than pretending agents ran recently. Metrics and keywords will show as empty until real data arrives.

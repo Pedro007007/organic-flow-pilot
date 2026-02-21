@@ -17,7 +17,9 @@ import {
   FileBarChart,
   Tag,
   Sparkles,
+  BookOpen,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import searcheraLogo from "@/assets/searchera-logo.png";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -45,6 +47,19 @@ const navItems = [
   { id: "team", label: "Team", icon: Users, gradient: "from-amber-400/20 via-orange-300/15 to-yellow-300/20", border: "border-amber-400/30" },
   { id: "settings", label: "Settings", icon: Settings, gradient: "from-emerald-500/20 via-teal-400/15 to-cyan-400/20", border: "border-emerald-400/30" },
 ];
+
+function GuideButton() {
+  const navigate = useNavigate();
+  return (
+    <button
+      onClick={() => navigate("/guide")}
+      className="flex w-full items-center gap-2.5 rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-sm font-medium text-primary hover:bg-primary/10 transition-colors"
+    >
+      <BookOpen className="h-4 w-4" />
+      Guide A–Z
+    </button>
+  );
+}
 
 function SidebarContent({ activeSection, onNavigate }: SidebarNavProps) {
   const { theme, setTheme } = useTheme();
@@ -78,6 +93,7 @@ function SidebarContent({ activeSection, onNavigate }: SidebarNavProps) {
         })}
       </nav>
       <div className="border-t border-border px-4 py-3 space-y-3">
+        <GuideButton />
         <button
           onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
           className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"

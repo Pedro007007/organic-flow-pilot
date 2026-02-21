@@ -1,91 +1,39 @@
 
-# Meet Daniela -- Your AI SEO/AEO Expert Agent
+# Searchera Master Prompts Reference File
 
-Build a premium AI chatbot agent named **Daniela** directly on the landing page, featuring a stunning AI-generated avatar and real-time conversational SEO/AEO expertise that guides visitors and drives subscription conversions.
+## Overview
+Create a single markdown file (`MASTER_PROMPTS.md`) in the project root that contains a copy of every AI prompt used across the platform. This file is purely a **reference document** -- it does NOT power any functionality. The actual prompts remain in their respective edge functions and are not changed.
 
----
+## What Will Be Created
 
-## What Gets Built
+**File:** `MASTER_PROMPTS.md`
 
-### 1. Daniela's AI-Generated Avatar
-- Use **Lovable AI image generation** (google/gemini-3-pro-image-preview) to generate a 3D ultra-realistic portrait of Daniela -- a beautiful Brazilian woman with light brown hair, professional appearance, warm smile
-- Store the generated image in a Supabase storage bucket (`daniela-avatar`)
-- Display as a floating circular avatar on the landing page with a glowing pulse animation
+This file will document all **15 prompts** found across the codebase, organized by feature:
 
-### 2. New Landing Page Section -- "Meet Daniela"
-- Placed between Testimonials and Security sections
-- Left side: Large 3D avatar image with animated glow ring and name/title card
-- Right side: Headline + description introducing Daniela as your personal SEO/AEO strategist
-- "Chat with Daniela" button opens the chat dialog
-- Premium dark gradient background (matching the "How It Works" section style)
-
-### 3. Floating Chat Widget
-- A persistent floating button (bottom-right corner) showing Daniela's mini avatar with a pulse indicator
-- Clicking opens a full chat dialog overlay
-- Chat UI features:
-  - Daniela's avatar + name in header
-  - Streaming message responses (token-by-token)
-  - Markdown rendering for rich responses (lists, bold, code)
-  - Suggested quick-start questions (e.g., "What is AEO?", "How can I rank #1?", "What plan suits me?")
-  - Subscription CTA woven into responses -- Daniela naturally recommends signing up when relevant
-
-### 4. Backend Edge Function (`daniela-chat`)
-- New edge function powered by Lovable AI (google/gemini-3-flash-preview)
-- Daniela's system prompt makes her:
-  - A world-class SEO and AEO (Answer Engine Optimization) specialist from Brazil
-  - Deeply knowledgeable about keyword research, content strategy, technical SEO, schema markup, AI citations, SERP features, and link building
-  - Naturally enthusiastic about Searchera's platform capabilities
-  - Conversational closer -- guides users toward signing up when appropriate
-  - Friendly, confident, and professional with a warm personality
-- Supports streaming SSE responses
-- Handles rate limit (429) and payment (402) errors gracefully
-
-### 5. Avatar Generation Edge Function (`generate-daniela-avatar`)
-- One-time use function to generate Daniela's portrait using the image model
-- Uploads result to storage bucket
-- Falls back to a high-quality placeholder if generation isn't triggered
-
----
-
-## Files Created / Modified
-
-| File | Action |
-|------|--------|
-| `supabase/functions/daniela-chat/index.ts` | **Create** -- Streaming AI chat edge function |
-| `supabase/functions/generate-daniela-avatar/index.ts` | **Create** -- Avatar image generation |
-| `src/components/DanielaChat.tsx` | **Create** -- Chat widget component (floating button + dialog + streaming messages) |
-| `src/components/DanielaSection.tsx` | **Create** -- Landing page "Meet Daniela" section |
-| `src/pages/Landing.tsx` | **Edit** -- Import and place DanielaSection + DanielaChat |
-| `supabase/config.toml` | **Edit** -- Register both new edge functions |
-
----
+1. **Daniela Chat** -- Full system prompt defining her personality, expertise, mission, and response guidelines
+2. **Keyword Discovery** -- Senior SEO Research Analyst prompt for identifying keyword opportunities from GSC data
+3. **Content Strategy** -- Senior SEO Content Strategist prompt for turning keywords into content plans
+4. **SERP Research** -- SEO Competitive Analyst prompt for analyzing top Google results
+5. **Content Generation** -- Human-level SEO Copywriter prompt with brand-aware rules, internal linking, and image placeholders
+6. **SEO Optimization** -- Technical SEO Specialist prompt for meta tags, slugs, and schema
+7. **Content Rewrite** -- Three action-based prompts (rewrite, expand, shorten) with brand voice rules
+8. **Content Repurpose** -- Three channel-specific prompts (LinkedIn, YouTube, Twitter)
+9. **AEO Score** -- AEO expert prompt for scoring AI-readiness across 5 dimensions
+10. **Generate Answer Blocks** -- AEO content optimizer prompt for TL;DR, takeaways, and FAQs
+11. **Optimization Score** -- SEO Content Scoring Expert prompt with 5-dimension scoring
+12. **Monitor & Refresh** -- Search Performance Optimisation Analyst prompt with refresh triggers
+13. **Business Scanner** -- Expert SEO analyst prompt for comprehensive domain intelligence reports
+14. **Fulfilment Scan** -- SEO auditor prompt for verifying checklist criteria against content
+15. **Checklist Verify** -- SEO auditor prompt for site-wide checklist verification
+16. **Rankings Check** -- AI citation estimation prompt
+17. **LLM Search Lab** -- Keyword research assistant prompt for generating search queries
+18. **Hero Image Generation** -- Image generation prompt template
+19. **Daniela Avatar Generation** -- 3D portrait generation prompt
+20. **Send Digest** -- (No AI prompt, data aggregation only)
 
 ## Technical Details
 
-### System Prompt (Daniela's Personality)
-Daniela is configured as an elite SEO/AEO consultant who:
-- Explains complex SEO concepts in simple, actionable terms
-- Covers on-page SEO, technical SEO, AEO, schema markup, E-E-A-T, Core Web Vitals, backlinks, content clusters, and AI search optimization
-- Highlights how Searchera automates these tasks when relevant
-- Uses a warm, confident tone and occasionally references her Brazilian background
-- Closes toward subscription naturally ("Want me to set this up for you? Start your free trial and I'll guide you through it")
-
-### Chat Widget Architecture
-- React state manages messages array and streaming status
-- SSE streaming with token-by-token rendering using the established pattern
-- `react-markdown` for rendering AI responses
-- Quick suggestion chips for first-time users
-- Responsive -- works on mobile and desktop
-- Chat persists during page session (resets on page reload -- no database needed for landing page chat)
-
-### Avatar Strategy
-- Generate once via edge function, store in storage bucket
-- Landing page and chat widget reference the stored image URL
-- Fallback: use a gradient placeholder with "D" initial if image not yet generated
-
-### Landing Page Layout Update
-```
-[Hero] -> [Stats] -> [Features] -> [How It Works] -> [Testimonials]
--> [NEW: Meet Daniela] -> [Security] -> [CTA] -> [Footer]
-+ Floating chat button (bottom-right, always visible)
-```
+- **Location:** `MASTER_PROMPTS.md` at the project root
+- **Format:** Markdown with clear headings, code blocks for each prompt, and notes about dynamic variables (e.g., `${brand.name}`, `${keyword}`)
+- **No logic changes:** Zero modifications to any edge function or component file
+- **Single new file:** Only one file created, nothing else touched

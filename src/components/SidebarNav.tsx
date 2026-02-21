@@ -29,21 +29,21 @@ interface SidebarNavProps {
 }
 
 const navItems = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { id: "keywords", label: "Keywords", icon: Search },
-  { id: "content", label: "Content", icon: FileText },
-  { id: "rankings", label: "Rankings", icon: TrendingUp },
-  { id: "llm-search", label: "LLM Search", icon: Sparkles },
-  { id: "calendar", label: "Calendar", icon: CalendarDays },
-  { id: "agents", label: "Agents", icon: Bot },
-  { id: "analytics", label: "Analytics", icon: BarChart3 },
-  { id: "scanner", label: "Scanner", icon: Globe },
-  { id: "reports", label: "Reports", icon: FileBarChart },
-  { id: "leads", label: "Leads", icon: Users },
-  { id: "checklist", label: "Checklist", icon: ListChecks },
-  { id: "brands", label: "Brands", icon: Tag },
-  { id: "team", label: "Team", icon: Users },
-  { id: "settings", label: "Settings", icon: Settings },
+  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, gradient: "from-purple-500/20 via-pink-400/15 to-blue-400/20", border: "border-purple-400/30" },
+  { id: "keywords", label: "Keywords", icon: Search, gradient: "from-amber-400/20 via-orange-300/15 to-yellow-300/20", border: "border-amber-400/30" },
+  { id: "content", label: "Content", icon: FileText, gradient: "from-emerald-500/20 via-teal-400/15 to-cyan-400/20", border: "border-emerald-400/30" },
+  { id: "rankings", label: "Rankings", icon: TrendingUp, gradient: "from-blue-500/20 via-indigo-400/15 to-violet-400/20", border: "border-blue-400/30" },
+  { id: "llm-search", label: "LLM Search", icon: Sparkles, gradient: "from-rose-500/20 via-pink-400/15 to-fuchsia-400/20", border: "border-rose-400/30" },
+  { id: "calendar", label: "Calendar", icon: CalendarDays, gradient: "from-sky-500/20 via-cyan-400/15 to-teal-400/20", border: "border-sky-400/30" },
+  { id: "agents", label: "Agents", icon: Bot, gradient: "from-purple-500/20 via-pink-400/15 to-blue-400/20", border: "border-purple-400/30" },
+  { id: "analytics", label: "Analytics", icon: BarChart3, gradient: "from-amber-400/20 via-orange-300/15 to-yellow-300/20", border: "border-amber-400/30" },
+  { id: "scanner", label: "Scanner", icon: Globe, gradient: "from-emerald-500/20 via-teal-400/15 to-cyan-400/20", border: "border-emerald-400/30" },
+  { id: "reports", label: "Reports", icon: FileBarChart, gradient: "from-blue-500/20 via-indigo-400/15 to-violet-400/20", border: "border-blue-400/30" },
+  { id: "leads", label: "Leads", icon: Users, gradient: "from-rose-500/20 via-pink-400/15 to-fuchsia-400/20", border: "border-rose-400/30" },
+  { id: "checklist", label: "Checklist", icon: ListChecks, gradient: "from-sky-500/20 via-cyan-400/15 to-teal-400/20", border: "border-sky-400/30" },
+  { id: "brands", label: "Brands", icon: Tag, gradient: "from-purple-500/20 via-pink-400/15 to-blue-400/20", border: "border-purple-400/30" },
+  { id: "team", label: "Team", icon: Users, gradient: "from-amber-400/20 via-orange-300/15 to-yellow-300/20", border: "border-amber-400/30" },
+  { id: "settings", label: "Settings", icon: Settings, gradient: "from-emerald-500/20 via-teal-400/15 to-cyan-400/20", border: "border-emerald-400/30" },
 ];
 
 function SidebarContent({ activeSection, onNavigate }: SidebarNavProps) {
@@ -57,7 +57,7 @@ function SidebarContent({ activeSection, onNavigate }: SidebarNavProps) {
           <p className="text-[10px] text-muted-foreground">AI SEO Growth Engine</p>
         </div>
       </div>
-      <nav className="flex-1 space-y-0.5 px-3 py-3">
+      <nav className="flex-1 space-y-1 px-3 py-3 overflow-y-auto">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeSection === item.id;
@@ -65,10 +65,10 @@ function SidebarContent({ activeSection, onNavigate }: SidebarNavProps) {
             <button
               key={item.id}
               onClick={() => onNavigate(item.id)}
-              className={`flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+              className={`group flex w-full items-center gap-2.5 rounded-lg border px-3 py-2 text-sm font-medium transition-all duration-200 ${
                 isActive
-                  ? "bg-primary/10 text-primary"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                  ? `bg-gradient-to-r ${item.gradient} ${item.border} text-foreground shadow-sm`
+                  : `border-transparent text-sidebar-foreground hover:border-border hover:bg-muted/40 hover:text-foreground`
               }`}
             >
               <Icon className="h-4 w-4" />

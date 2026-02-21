@@ -81,7 +81,8 @@ function MiniTrend({ data }: { data: MonthlySearch[] }) {
 }
 
 function formatVolume(vol: number | null, tier: string): string {
-  if (vol !== null && vol !== undefined) return vol.toLocaleString();
+  if (vol !== null && vol !== undefined && vol > 0) return vol.toLocaleString();
+  if (vol === 0) return "< 10";
   return tier; // fallback to AI estimate
 }
 

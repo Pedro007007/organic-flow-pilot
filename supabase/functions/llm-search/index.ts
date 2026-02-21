@@ -73,10 +73,10 @@ async function fetchDataForSEOVolumes(queries: string[]): Promise<{ data: Map<st
     for (const item of items) {
       if (item?.keyword) {
         result.set(item.keyword.toLowerCase(), {
-          search_volume: item.search_volume ?? 0,
-          cpc: item.cpc ?? 0,
-          competition: item.competition ?? 0,
-          competition_level: item.competition_level ?? "UNKNOWN",
+          search_volume: item.search_volume || null,
+          cpc: item.cpc || null,
+          competition: item.competition || null,
+          competition_level: item.competition_level || "UNKNOWN",
           monthly_searches: (item.monthly_searches || []).map((m: any) => ({
             year: m.year,
             month: m.month,
@@ -84,6 +84,10 @@ async function fetchDataForSEOVolumes(queries: string[]): Promise<{ data: Map<st
           })),
         });
       }
+    }
+
+    if (items.length > 0) {
+      console.log("[DataForSEO] Sample item values:", JSON.stringify(items[0]).slice(0, 300));
     }
 
     console.log(`[DataForSEO] Matched ${result.size} of ${queries.length} queries`);

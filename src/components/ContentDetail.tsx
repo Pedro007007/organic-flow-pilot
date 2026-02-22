@@ -576,8 +576,32 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
                   <p className="text-[10px] text-muted-foreground text-right">{metaDescription.length}/155</p>
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-xs text-muted-foreground">URL Slug</Label>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs text-muted-foreground">URL Slug</Label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const source = item.title || item.keyword || "";
+                        const stopWords = new Set(["the","a","an","and","or","but","in","on","at","to","for","of","with","by","is","are","was","were"]);
+                        const generated = source
+                          .toLowerCase()
+                          .replace(/[^a-z0-9\s-]/g, "")
+                          .split(/\s+/)
+                          .filter((w) => w && !stopWords.has(w))
+                          .join("-")
+                          .replace(/-+/g, "-")
+                          .slice(0, 100);
+                        setSlug(generated);
+                      }}
+                      className="text-[10px] text-primary hover:underline font-medium"
+                    >
+                      Auto-generate
+                    </button>
+                  </div>
                   <Input value={slug} onChange={(e) => setSlug(e.target.value)} placeholder="url-slug" maxLength={100} className="bg-background border-border text-sm font-mono" />
+                  {slug && (
+                    <p className="text-[10px] text-muted-foreground font-mono">/blog/{slug}</p>
+                  )}
                 </div>
               </div>
 

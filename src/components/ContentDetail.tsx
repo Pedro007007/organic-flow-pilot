@@ -33,6 +33,7 @@ import FulfilmentDashboard from "@/components/FulfilmentDashboard";
 import OptimizationTab from "@/components/OptimizationTab";
 import RepurposeTab from "@/components/RepurposeTab";
 import AeoTab from "@/components/AeoTab";
+import ContentDetailGuide from "@/components/ContentDetailGuide";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface ContentDetailProps {
@@ -397,6 +398,9 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
           );
         })}
       </div>
+
+      {/* Guide */}
+      <ContentDetailGuide />
 
       {/* Tabs: Content + Fulfilment */}
       <Tabs defaultValue="content" className="space-y-4">

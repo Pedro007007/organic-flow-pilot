@@ -1,0 +1,1 @@
+CREATE POLICY "Public can read published content" ON public.content_items FOR SELECT TO anon, authenticated USING (status = 'published');

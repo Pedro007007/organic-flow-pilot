@@ -611,10 +611,12 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
                   <div className="flex justify-between"><span className="text-muted-foreground">Keyword</span><span className="font-mono text-foreground">{item.keyword}</span></div>
                   <div className="flex justify-between"><span className="text-muted-foreground">Author</span><span className="text-foreground">{item.author}</span></div>
                   <div className="flex justify-between"><span className="text-muted-foreground">Schema</span><span className="text-foreground">{(item.schema_types || []).join(", ") || "—"}</span></div>
-                  {item.url && (
+                  {(item.url || slug) && (
                     <div className="flex justify-between items-center">
                       <span className="text-muted-foreground">URL</span>
-                      <span className="font-mono text-primary flex items-center gap-1">{item.url} <ExternalLink className="h-3 w-3" /></span>
+                      <a href={item.url || `/blog/${slug}`} target="_blank" rel="noopener noreferrer" className="font-mono text-primary flex items-center gap-1 hover:underline truncate max-w-[200px]">
+                        {item.url || `/blog/${slug}`} <ExternalLink className="h-3 w-3 shrink-0" />
+                      </a>
                     </div>
                   )}
                   {item.position && (

@@ -1,31 +1,32 @@
 
-# Fix: Make URL Slug Field Functional
+# Add Individual Blog Article Page
 
 ## Problem
-The URL Slug field in the SEO Metadata sidebar is just a plain text input. It doesn't auto-generate a slug when the title or keyword exists, and there's no visual indication of what URL it will produce. It feels like it "does nothing."
+When navigating to `/blog/high-efficiency-solar-installs-guide`, the app shows a 404 page. There is no route or page to display individual published articles. The app only has a `/blog` route for the static blog listing.
 
 ## Solution
-Two improvements to make the slug field useful and interactive:
-
-### 1. Auto-Generate Slug Button
-Add a small button next to the URL Slug label that auto-generates a clean slug from the article title (or keyword if no title). This converts the title to lowercase, removes special characters, replaces spaces with hyphens, and strips stop words -- following standard URL slug conventions.
-
-### 2. URL Preview
-Show a small preview below the slug input displaying the full URL path the article will be published to (e.g., `/blog/your-slug-here`), so users can see exactly what their URL will look like.
+Create a new `BlogPost` page component and add a `/blog/:slug` route so that published content items can be viewed by their URL slug.
 
 ## What Changes
 
-**File: `src/components/ContentDetail.tsx`**
+### 1. New File: `src/pages/BlogPost.tsx`
+A new page component that:
+- Reads the `:slug` parameter from the URL
+- Fetches the matching content item from the `content_items` table (where `slug = :slug` and `status = 'published'`)
+- Renders the article with its title, SEO title, meta description, hero image, and full content (using `react-markdown` which is already installed)
+- Includes JSON-LD structured data from the `structured_data` column
+- Shows a loading spinner while fetching
+- Shows a "not found" message if no matching published article exists
+- Uses the same header/footer layout as the existing Blog listing page for visual consistency
 
-- Add a helper function `generateSlug(text)` that converts a title string into a clean URL slug (lowercase, no special chars, hyphens instead of spaces, stop words removed)
-- Add a small "Auto" button next to the "URL Slug" label that calls `generateSlug` using the article title
-- Add a URL preview line below the slug input showing the resulting path (e.g., `/blog/your-url-slug`)
-- No backend changes needed -- the slug already saves correctly via the existing Save button
+### 2. File: `src/App.tsx`
+- Import the new `BlogPost` component
+- Add route: `<Route path="/blog/:slug" element={<BlogPost />} />` (above the catch-all route)
 
 ## Technical Details
 
-- The slug auto-generation will strip common stop words (the, a, an, and, or, but, in, on, at, to, for, of, with, by, is, are, was, were)
-- Special characters and extra hyphens will be cleaned
-- Max length remains 100 characters
-- The URL preview will use the revalidation prefix `/blog` (matching the publish-webhook default)
-- Manually editing the slug will still work -- the auto-generate button is optional
+- Query: `supabase.from("content_items").select("*").eq("slug", slug).eq("status", "published").maybeSingle()`
+- The `content_items` table already has `slug`, `status`, `draft_content`, `seo_title`, `meta_description`, `hero_image_url`, `structured_data`, and `schema_types` columns
+- RLS note: published articles need to be publicly readable. A new RLS policy will be added: `SELECT` on `content_items` where `status = 'published'` for anonymous users
+- Content rendered via `react-markdown` (already a project dependency)
+- Page styled with the same light theme, header, and footer as the `/blog` listing page

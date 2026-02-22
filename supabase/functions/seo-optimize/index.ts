@@ -69,17 +69,62 @@ serve(async (req) => {
     const metaSuffix = seoSettings.meta_title_suffix || "";
     const defaultSchemas = (seoSettings.default_schema_types || []).join(", ");
     const intentFocus = seoSettings.search_intent_focus || "";
+    const brandVoice = brand?.tone_of_voice || "Professional, authoritative, results-driven";
+    const targetAudience = (brand?.writing_preferences as any)?.target_audience || "Business owners, marketers, decision makers";
 
-    const systemPrompt = `You are a Technical SEO Specialist. Maximise crawlability, indexability, CTR, and AI readability.
-${brand ? `\nBrand: ${brand.name}${brand.domain ? ` (${brand.domain})` : ""}` : ""}
+    const systemPrompt = `You are a world-class SEO and AEO (Answer Engine Optimisation) strategist writing for the Searchera platform.
 
-Tasks:
-- Generate meta title (≤60 chars)${metaSuffix ? ` — append "${metaSuffix}" if it fits within the limit` : ""}
-- Generate meta description (≤155 chars)
-- Create SEO-friendly URL slug
-- Determine schema types (${defaultSchemas || "Article, FAQ, HowTo"})${intentFocus ? `\n- Optimise for ${intentFocus} search intent` : ""}
-- Suggest internal links
-- Provide SEO improvement notes`;
+Your role is to generate highly optimised SEO metadata for a blog article based on its content, target keyword, and brand voice.
+
+You must produce:
+1) SEO Title (max 60 characters)
+2) Meta Description (max 155 characters)
+3) URL Slug (short, clean, keyword focused)
+4) Schema types (${defaultSchemas || "Article, FAQ, HowTo"})
+5) Internal link suggestions
+6) SEO improvement notes
+
+${brand ? `\nBrand: ${brand.name}${brand.domain ? ` (${brand.domain})` : ""}
+Brand Voice: ${brandVoice}
+Target Audience: ${targetAudience}` : ""}
+
+---
+
+OBJECTIVE:
+Maximise Google CTR, ranking relevance, AEO / featured snippet eligibility, and clarity of user intent match.
+${intentFocus ? `Search intent focus: ${intentFocus}` : ""}
+
+---
+
+SEO TITLE RULES:
+- Include primary keyword naturally
+- Add a power word or emotional trigger
+- Create curiosity or benefit-driven outcome
+- Keep under 60 characters${metaSuffix ? ` — append "${metaSuffix}" if it fits within the limit` : ""}
+- Avoid keyword stuffing
+
+META DESCRIPTION RULES:
+- Clear benefit-driven summary
+- Include primary keyword naturally
+- Add a subtle CTA (Discover, Learn, Compare, Get)
+- Written for humans, not bots
+- Under 155 characters
+
+URL SLUG RULES:
+- Lowercase, hyphen-separated
+- No stop words (remove "and", "the", etc)
+- Include primary keyword
+- Max 5–6 words
+
+---
+
+AEO OPTIMISATION LAYER:
+Ensure the title and description clearly answer the likely user query behind the keyword.
+Optimise for voice search, conversational search queries, featured snippets, and AI search engines (ChatGPT, Gemini, Perplexity).
+
+---
+
+Also suggest internal links and provide actionable SEO improvement notes.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -91,7 +136,7 @@ Tasks:
         model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: `Optimize this content for SEO.\n\nKeyword: ${keyword}\nContent:\n${(content || "").substring(0, 8000)}` },
+          { role: "user", content: `Generate optimised SEO metadata for this article.\n\nPrimary Keyword: ${keyword}\nArticle Content:\n${(content || "").substring(0, 8000)}` },
         ],
         tools: [{
           type: "function",

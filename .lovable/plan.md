@@ -1,32 +1,37 @@
 
-# Add Individual Blog Article Page
+
+# Fix Missing URL in Content Detail Section
 
 ## Problem
-When navigating to `/blog/high-efficiency-solar-installs-guide`, the app shows a 404 page. There is no route or page to display individual published articles. The app only has a `/blog` route for the static blog listing.
+The "URL" field in the Details section only displays when `item.url` has a value stored in the database. For most content items, this field is null because it only gets set after publishing via the webhook. This means users cannot see or access the article URL even when a slug exists.
 
 ## Solution
-Create a new `BlogPost` page component and add a `/blog/:slug` route so that published content items can be viewed by their URL slug.
+Always show the URL in the Details section by falling back to a generated URL from the slug when `item.url` is not set.
 
-## What Changes
+## Changes
 
-### 1. New File: `src/pages/BlogPost.tsx`
-A new page component that:
-- Reads the `:slug` parameter from the URL
-- Fetches the matching content item from the `content_items` table (where `slug = :slug` and `status = 'published'`)
-- Renders the article with its title, SEO title, meta description, hero image, and full content (using `react-markdown` which is already installed)
-- Includes JSON-LD structured data from the `structured_data` column
-- Shows a loading spinner while fetching
-- Shows a "not found" message if no matching published article exists
-- Uses the same header/footer layout as the existing Blog listing page for visual consistency
+### File: `src/components/ContentDetail.tsx` (lines 614-619)
 
-### 2. File: `src/App.tsx`
-- Import the new `BlogPost` component
-- Add route: `<Route path="/blog/:slug" element={<BlogPost />} />` (above the catch-all route)
+Replace the conditional URL display with logic that always shows a URL when either `item.url` or `slug` exists:
 
-## Technical Details
+- If `item.url` is set, display it as before (with external link)
+- Otherwise, if a slug exists, display `/blog/{slug}` as the URL (linking to the blog post page)
+- Make the URL clickable as an anchor tag opening in a new tab
 
-- Query: `supabase.from("content_items").select("*").eq("slug", slug).eq("status", "published").maybeSingle()`
-- The `content_items` table already has `slug`, `status`, `draft_content`, `seo_title`, `meta_description`, `hero_image_url`, `structured_data`, and `schema_types` columns
-- RLS note: published articles need to be publicly readable. A new RLS policy will be added: `SELECT` on `content_items` where `status = 'published'` for anonymous users
-- Content rendered via `react-markdown` (already a project dependency)
-- Page styled with the same light theme, header, and footer as the `/blog` listing page
+### Technical Details
+
+Current code (line 614):
+```
+{item.url && (
+  <div>...</div>
+)}
+```
+
+New logic:
+```
+const displayUrl = item.url || (slug ? `/blog/${slug}` : null);
+if (displayUrl) { show URL row with clickable link }
+```
+
+This ensures the URL is visible as soon as a slug is generated, not only after the publish webhook runs.
+

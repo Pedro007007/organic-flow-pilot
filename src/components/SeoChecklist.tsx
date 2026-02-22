@@ -113,7 +113,7 @@ const SeoChecklist = () => {
   const handleAutoCheck = async () => {
     setVerifying(true);
     try {
-      const res = await supabase.functions.invoke("checklist-verify", { body: { userId: user?.id } });
+      const res = await supabase.functions.invoke("checklist-verify", { body: {} });
       if (res.error) throw res.error;
       toast({ title: "Auto-check complete", description: `${res.data?.verified || 0} items verified` });
       await fetchChecklist();

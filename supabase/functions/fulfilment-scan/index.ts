@@ -9,19 +9,38 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    const { contentItemId, userId } = await req.json();
-    if (!contentItemId || !userId) throw new Error("contentItemId and userId required");
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
+    }
+
+    const supabaseAuth = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await supabaseAuth.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
+    }
+    const userId = claimsData.claims.sub;
+
+    const { contentItemId } = await req.json();
+    if (!contentItemId) throw new Error("contentItemId required");
 
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Get the content item
+    // Get the content item - verify it belongs to the authenticated user
     const { data: content, error: cErr } = await supabase
       .from("content_items")
       .select("*")
       .eq("id", contentItemId)
+      .eq("user_id", userId)
       .maybeSingle();
 
     if (cErr || !content) throw new Error("Content item not found");
@@ -96,7 +115,7 @@ Return JSON: { "results": [{ "id": "...", "passed": true/false, "details": "brie
     });
   } catch (err) {
     console.error("fulfilment-scan error:", err);
-    return new Response(JSON.stringify({ error: err.message }), {
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

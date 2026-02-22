@@ -47,7 +47,7 @@ const RankingsTracker = () => {
   const handleCheck = async () => {
     setChecking(true);
     try {
-      const res = await supabase.functions.invoke("rankings-check", { body: { userId: user?.id } });
+      const res = await supabase.functions.invoke("rankings-check", { body: {} });
       if (res.error) throw res.error;
       toast({ title: "Rankings updated", description: `${res.data?.updated || 0} entries refreshed` });
       await fetchData();

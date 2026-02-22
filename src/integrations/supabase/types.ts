@@ -180,6 +180,7 @@ export type Database = {
           created_at: string
           domain: string
           id: string
+          is_public: boolean
           keywords_found: Json | null
           meta_patterns: Json | null
           scan_results: Json | null
@@ -190,6 +191,7 @@ export type Database = {
           created_at?: string
           domain: string
           id?: string
+          is_public?: boolean
           keywords_found?: Json | null
           meta_patterns?: Json | null
           scan_results?: Json | null
@@ -200,6 +202,7 @@ export type Database = {
           created_at?: string
           domain?: string
           id?: string
+          is_public?: boolean
           keywords_found?: Json | null
           meta_patterns?: Json | null
           scan_results?: Json | null

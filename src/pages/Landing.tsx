@@ -294,7 +294,7 @@ const Landing = () => {
           </Link>
           <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500 font-bold">
             <Link to="/blog" className="hover:text-gray-900 transition-colors">Blog</Link>
-            <Link to="/privacy" className="hover:text-gray-900 transition-colors">Privacy Policy</Link>
+            <a href="/privacy.html" className="hover:text-gray-900 transition-colors">Privacy Policy</a>
             <Link to="/terms" className="hover:text-gray-900 transition-colors">Terms & Conditions</Link>
             <a href="mailto:support@searchera.io" className="hover:text-gray-900 transition-colors">Contact</a>
           </div>

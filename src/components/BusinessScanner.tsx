@@ -41,7 +41,7 @@ const BusinessScanner = () => {
     setScanning(true);
     try {
       const res = await supabase.functions.invoke("business-scanner", {
-        body: { domain: domain.trim(), userId: user?.id },
+        body: { domain: domain.trim() },
       });
       if (res.error) throw res.error;
       toast({ title: "Scan complete", description: `Analyzed ${domain}` });

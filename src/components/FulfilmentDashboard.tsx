@@ -63,7 +63,7 @@ const FulfilmentDashboard = ({ contentItemId }: FulfilmentDashboardProps) => {
   const handleScan = async () => {
     setScanning(true);
     try {
-      const res = await supabase.functions.invoke("fulfilment-scan", { body: { contentItemId, userId: user?.id } });
+      const res = await supabase.functions.invoke("fulfilment-scan", { body: { contentItemId } });
       if (res.error) throw res.error;
       toast({ title: "Fulfilment scan complete", description: `${res.data?.passed || 0} criteria passed` });
       await fetchFulfilment();

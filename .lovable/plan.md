@@ -1,39 +1,41 @@
 
-# Searchera Master Prompts Reference File
 
-## Overview
-Create a single markdown file (`MASTER_PROMPTS.md`) in the project root that contains a copy of every AI prompt used across the platform. This file is purely a **reference document** -- it does NOT power any functionality. The actual prompts remain in their respective edge functions and are not changed.
+# Fix: Google OAuth Privacy Policy Verification
 
-## What Will Be Created
+## The Problem
 
-**File:** `MASTER_PROMPTS.md`
+Google's verification bot visits `https://organic-flow-pilot.lovable.app/privacy` and sees an empty HTML page because it does NOT execute JavaScript. Your privacy policy is rendered client-side by React, so the bot sees nothing -- hence "improperly formatted."
 
-This file will document all **15 prompts** found across the codebase, organized by feature:
+## The Solution
 
-1. **Daniela Chat** -- Full system prompt defining her personality, expertise, mission, and response guidelines
-2. **Keyword Discovery** -- Senior SEO Research Analyst prompt for identifying keyword opportunities from GSC data
-3. **Content Strategy** -- Senior SEO Content Strategist prompt for turning keywords into content plans
-4. **SERP Research** -- SEO Competitive Analyst prompt for analyzing top Google results
-5. **Content Generation** -- Human-level SEO Copywriter prompt with brand-aware rules, internal linking, and image placeholders
-6. **SEO Optimization** -- Technical SEO Specialist prompt for meta tags, slugs, and schema
-7. **Content Rewrite** -- Three action-based prompts (rewrite, expand, shorten) with brand voice rules
-8. **Content Repurpose** -- Three channel-specific prompts (LinkedIn, YouTube, Twitter)
-9. **AEO Score** -- AEO expert prompt for scoring AI-readiness across 5 dimensions
-10. **Generate Answer Blocks** -- AEO content optimizer prompt for TL;DR, takeaways, and FAQs
-11. **Optimization Score** -- SEO Content Scoring Expert prompt with 5-dimension scoring
-12. **Monitor & Refresh** -- Search Performance Optimisation Analyst prompt with refresh triggers
-13. **Business Scanner** -- Expert SEO analyst prompt for comprehensive domain intelligence reports
-14. **Fulfilment Scan** -- SEO auditor prompt for verifying checklist criteria against content
-15. **Checklist Verify** -- SEO auditor prompt for site-wide checklist verification
-16. **Rankings Check** -- AI citation estimation prompt
-17. **LLM Search Lab** -- Keyword research assistant prompt for generating search queries
-18. **Hero Image Generation** -- Image generation prompt template
-19. **Daniela Avatar Generation** -- 3D portrait generation prompt
-20. **Send Digest** -- (No AI prompt, data aggregation only)
+Create a **static HTML version** of the privacy policy that Google's bot can read without JavaScript. This means placing a plain HTML file in the `public/` folder so it's served directly by the web server.
+
+### What will be created
+
+**1. `public/privacy.html`** -- A standalone, static HTML page containing the full Privacy Policy content. It will:
+- Be accessible at `https://organic-flow-pilot.lovable.app/privacy.html`
+- Contain all the same content as the current React `/privacy` page
+- Use clean, basic HTML that any crawler can read
+- Include proper `<head>` meta tags (title, description)
+- Be styled with minimal inline CSS so it looks presentable
+- Link back to the homepage
+
+**2. No other files changed** -- The existing React `/privacy` route stays exactly as it is.
+
+### After publishing
+
+You will need to update the privacy policy URL in your Google Cloud Console from:
+`https://organic-flow-pilot.lovable.app/privacy`
+to:
+`https://organic-flow-pilot.lovable.app/privacy.html`
+
+Then select "I have fixed the issues" and click Proceed to re-verify.
 
 ## Technical Details
 
-- **Location:** `MASTER_PROMPTS.md` at the project root
-- **Format:** Markdown with clear headings, code blocks for each prompt, and notes about dynamic variables (e.g., `${brand.name}`, `${keyword}`)
-- **No logic changes:** Zero modifications to any edge function or component file
-- **Single new file:** Only one file created, nothing else touched
+- The `public/` directory in Vite serves files as-is, without JavaScript rendering
+- `public/privacy.html` will be a complete, self-contained HTML document
+- The React route at `/privacy` remains unchanged for in-app navigation
+- The homepage footer link to the privacy policy will also be updated to point to `/privacy.html` so Google can follow it from the homepage (a verification requirement)
+- The Landing page footer already links to `/privacy` -- this will be updated to link to `/privacy.html` as an `<a>` tag so Google's crawler can follow it
+

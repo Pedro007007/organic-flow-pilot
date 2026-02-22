@@ -168,9 +168,10 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
       });
       if (res.error) throw res.error;
       const d = res.data;
-      if (d.seo_title) setSeoTitle(d.seo_title);
-      if (d.meta_description) setMetaDescription(d.meta_description);
-      if (d.slug) setSlug(d.slug);
+      const seo = d.seo || d;
+      if (seo.meta_title) setSeoTitle(seo.meta_title);
+      if (seo.meta_description) setMetaDescription(seo.meta_description);
+      if (seo.slug) setSlug(seo.slug);
       setItem((prev: any) => ({ ...prev, status: "optimizing" }));
       toast({ title: "SEO optimized", description: "Meta tags and slug updated" });
       queryClient.invalidateQueries({ queryKey: ["content_items"] });
@@ -551,7 +552,19 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
             {/* Metadata sidebar */}
             <div className="space-y-4">
               <div className="rounded-lg border border-border bg-card p-5 space-y-4">
-                <h3 className="text-sm font-semibold text-foreground">SEO Metadata</h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-foreground">SEO Metadata</h3>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleOptimize}
+                    disabled={optimizing || !draftContent}
+                    className="h-7 text-xs gap-1"
+                  >
+                    {optimizing ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                    Generate
+                  </Button>
+                </div>
                 <div className="space-y-2">
                   <Label className="text-xs text-muted-foreground">SEO Title</Label>
                   <Input value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} placeholder="Meta title (≤60 chars)" maxLength={60} className="bg-background border-border text-sm" />

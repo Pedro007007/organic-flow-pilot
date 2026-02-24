@@ -19,7 +19,7 @@ const BlogPost = () => {
         .from("content_items")
         .select("*")
         .eq("slug", slug!)
-        .eq("status", "published")
+        .in("status", ["published", "monitoring"])
         .maybeSingle();
       if (error) throw error;
       return data;

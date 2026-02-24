@@ -112,9 +112,6 @@ ${bodyHtml}
             <Link to="/blog" className="inline-flex items-center gap-1 text-sm font-bold text-blue-600 hover:underline mb-8">
               <ArrowLeft className="h-4 w-4" /> Back to Blog
             </Link>
-            <Button onClick={handleExportDocx} variant="outline" size="sm" className="ml-4 mb-8 font-bold">
-              <Download className="h-4 w-4 mr-1" /> Export .docx
-            </Button>
 
             {/* Hero image */}
             {post.hero_image_url && (

@@ -1,58 +1,38 @@
 
-Goal
-- Make every live blog article open correctly from the Blog page, including items that were published and later moved to Monitoring.
+# Add Custom Image Description for Hero Image Generation
 
-What I verified
-- The blog list page currently fetches only rows where `status = "published"` (`src/pages/Blog.tsx`).
-- The blog detail page also fetches only rows where `status = "published"` (`src/pages/BlogPost.tsx`).
-- In the database, at least one article URL the app generated (`/blog/local-seo-guide-smb-growth`) now has `status = "monitoring"`, so detail lookup returns no row and shows “Article Not Found”.
-- This explains why some “published” links stop working after stage progression.
+## Overview
+Add a text input field in the Content Detail page where you can describe exactly what type of hero image you want. This description will be sent to the image generation function and incorporated into the AI prompt, giving you full creative control over the generated image.
 
-Implementation plan
+## What Changes
 
-1) Align “publicly visible blog” statuses
-- Define a single live-status rule for blog visibility: `["published", "monitoring"]`.
-- Use this same rule in both pages so list and detail never disagree.
+### 1. Content Detail Page (`src/components/ContentDetail.tsx`)
+- Add a new state variable `imagePromptDescription` to hold the custom description
+- Replace the simple "Generate Hero Image" / "Regenerate Hero Image" buttons with a small panel that includes:
+  - A text area where you can type your image description (e.g. "A futuristic city skyline with glowing data streams flowing between buildings")
+  - A placeholder hint explaining what to write
+  - The generate/regenerate button next to it
+- Pass the custom description to the `generate-hero-image` edge function call
 
-2) Update blog listing query (`src/pages/Blog.tsx`)
-- Replace:
-  - `.eq("status", "published")`
-- With:
-  - `.in("status", ["published", "monitoring"])`
-- Keep current sort (`updated_at desc`) and existing UI layout.
-- Add a safe filter for valid links:
-  - ignore rows with missing/empty slug to prevent dead cards.
+### 2. Hero Image Edge Function (`supabase/functions/generate-hero-image/index.ts`)
+- Accept an optional `customPrompt` field from the request body
+- When provided, incorporate the custom description into the image generation prompt (appended as "CLIENT CREATIVE DIRECTION" to guide the AI while keeping the brand and composition rules)
+- When not provided, behavior stays exactly as it is today (auto-generated prompt from title/keyword)
 
-3) Update blog detail query (`src/pages/BlogPost.tsx`)
-- Replace:
-  - `.eq("status", "published")`
-- With:
-  - `.in("status", ["published", "monitoring"])`
-- Keep slug filter as-is.
-- This makes old shared URLs continue to resolve even after a post moves to Monitoring.
+## Technical Details
 
-4) Add explicit error state handling (small UX hardening)
-- Both pages currently throw query errors but mostly fall back to empty/not-found messaging.
-- Add a lightweight “Couldn’t load articles”/“Couldn’t load article” state when `error` exists to distinguish:
-  - real not-found
-  - fetch or permission issue
-- This prevents confusion during debugging and support.
+### ContentDetail.tsx changes
+- New state: `const [imagePromptDescription, setImagePromptDescription] = useState("");`
+- Updated `handleGenerateImage` to include `customPrompt: imagePromptDescription` in the request body
+- The "No hero image yet" panel and "Regenerate" area both get a Textarea for the description
+- The textarea is optional -- leaving it blank generates with the existing auto-prompt
 
-5) Validation checklist
-- Open `/blog` and confirm cards include both `published` and `monitoring` posts.
-- Click a known monitoring slug (e.g. `local-seo-guide-smb-growth`) and verify article renders instead of “Article Not Found”.
-- Confirm existing published posts still render.
-- Confirm export button still works on blog detail.
-- Confirm empty state still appears only when no live posts exist.
-
-Technical notes
-- No database schema or policy changes are required for this fix.
-- No dependency changes are required.
-- Files to update:
-  - `src/pages/Blog.tsx`
-  - `src/pages/BlogPost.tsx`
-
-Acceptance criteria
-- A post that has been published and then moved to Monitoring is still accessible at `/blog/:slug`.
-- Blog list and blog detail use consistent visibility rules.
-- Users no longer hit false “Article Not Found” for live content.
+### Edge function changes
+- Extract `customPrompt` from `req.json()` alongside existing fields
+- If `customPrompt` is provided, add a section to the image prompt:
+  ```
+  CLIENT CREATIVE DIRECTION
+  {customPrompt}
+  Incorporate the above direction into the visual concept while maintaining brand consistency.
+  ```
+- No other logic changes -- upload, storage, and agent run tracking remain identical

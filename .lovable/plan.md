@@ -1,73 +1,53 @@
 
 
-# Enhanced Image Generation Controls
+# Export Feature on Content Detail Page
 
 ## What Changes
 
-Add per-image controls for **aspect ratio**, **style**, and **model selection** directly on each image card in the Image Management grid. This gives users granular control over each generated image, similar to the reference screenshot showing ratio buttons and style chips.
+Add an **Export** dropdown button to the content detail page's top bar (next to Save/Reject). When clicked, it shows a dropdown menu with multiple export format options. This lets users export their content directly from the dashboard where they create and optimize it, without needing to go to the blog post page.
 
-## Layout (per card)
+## Export Formats
+
+- **Markdown (.md)** -- raw markdown as stored in the draft
+- **HTML (.html)** -- full HTML document with SEO metadata, hero image, JSON-LD structured data
+- **DOCX (.docx)** -- Word-compatible HTML document (same approach as existing BlogPost export)
+- **Plain Text (.txt)** -- stripped markdown, no formatting
+- **PDF (.pdf)** -- uses existing jsPDF + html2canvas approach (renders preview then captures)
+
+## UI Layout
+
+The Export button sits in the top bar alongside Save and Reject:
 
 ```text
-+---------------------------+
-|  [Hero] badge    [Active] |
-|  [image thumbnail]        |
-|                           |
-|  Ratio: [16:9][4:3][1:1]  |
-|  Style: [dropdown]        |
-|  Model: [dropdown]        |
-|  [prompt textarea]        |
-|  [Generate / Regenerate]  |
-+---------------------------+
+[SERP Research] [Generate] [Optimize] [Export v] [Save] [Reject] [Move to ...]
 ```
 
-### Aspect Ratio Selector
-A row of small toggle buttons on each card:
-- **16:9** (default), **4:3**, **3:2**, **1:1**, **4:5**, **9:16**
-- Selected ratio is highlighted; passed to the edge function
+The dropdown arrow reveals:
 
-### Style Selector
-A compact dropdown (Select component) with preset styles:
-- Modern Editorial (default)
-- Cinematic
-- Flat Illustration
-- 3D Render
-- Watercolor
-- Photorealistic
-- Minimalist
-- Abstract
-
-### Model Selector
-A compact dropdown listing available image generation models:
-- **Gemini 3 Pro Image** (default) -- current model, high quality
-- **Gemini 2.5 Flash Image** -- faster, lighter alternative
-
-Both are free/included via the Lovable AI gateway; no API keys needed.
+```text
++------------------------+
+| Export as Markdown     |
+| Export as HTML         |
+| Export as DOCX         |
+| Export as Plain Text   |
++------------------------+
+```
 
 ## Technical Details
 
 ### File: `src/components/ContentDetail.tsx`
 
-1. Add new state variables:
-   - `heroAspectRatio` (string, default "16:9")
-   - `heroStyle` (string, default "")
-   - `heroModel` (string, default "google/gemini-3-pro-image-preview")
-   - `bodyImageSettings` (Record of index to `{ aspectRatio, style, model }`)
+1. Import `DropdownMenu`, `DropdownMenuContent`, `DropdownMenuItem`, `DropdownMenuTrigger` from `@/components/ui/dropdown-menu` and the `Download` icon from lucide-react
 
-2. On each image card, add three control rows between the thumbnail and the prompt textarea:
-   - **Ratio row**: small toggle buttons for each ratio option
-   - **Style dropdown**: Select component with style presets
-   - **Model dropdown**: Select component with the two available models
+2. Add export handler functions:
+   - **exportMarkdown**: Downloads `draftContent` as a `.md` file
+   - **exportHtml**: Builds a full HTML document including `<head>` with SEO title, meta description, JSON-LD structured data, hero image, and rendered markdown body. Downloads as `.html`
+   - **exportDocx**: Same HTML content as exportHtml but saved with `.docx` extension and Word MIME type (matches existing BlogPost pattern)
+   - **exportPlainText**: Strips markdown syntax from `draftContent` using regex and downloads as `.txt`
 
-3. Pass new parameters (`aspectRatio`, `style`, `model`) in the `supabase.functions.invoke("generate-hero-image", { body: ... })` calls for both hero and body images
+3. Add the Export dropdown button in the top bar actions area, visible whenever there is draft content to export (not gated by status)
 
-### File: `supabase/functions/generate-hero-image/index.ts`
+4. Each format generates a Blob, creates an object URL, triggers a download with the slug or title as filename, then revokes the URL
 
-1. Accept new optional parameters from the request body: `aspectRatio`, `style`, `model`
-2. Override `imgRatio` with the per-request `aspectRatio` if provided (falls back to brand default)
-3. Override `imgStyle` with the per-request `style` if provided (falls back to brand default)
-4. Use the per-request `model` if provided instead of the hardcoded model (falls back to `google/gemini-3-pro-image-preview`)
-5. Update the prompt composition to use these overridden values (already uses `imgRatio` and `imgStyle` variables, so this is straightforward)
-
-### No database changes required
-All new parameters are transient per-generation request; brand-level defaults remain in the existing `image_defaults` JSON field.
+### No backend changes needed
+All export logic runs client-side using the existing draft content and metadata already loaded in the component state.

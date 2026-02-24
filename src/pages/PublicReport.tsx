@@ -37,40 +37,33 @@ const PublicReport = () => {
 
   const loadReport = async () => {
     setLoading(true);
-    // Fetch the scan
-    const { data: scanData, error: scanError } = await supabase
-      .from("competitor_scans")
-      .select("*")
-      .eq("id", reportId)
-      .maybeSingle();
+    // Use secure RPC that doesn't expose user_id or sensitive fields
+    const { data: rawData, error: rpcError } = await supabase.rpc("get_public_report", {
+      report_id: reportId,
+    });
 
-    if (scanError || !scanData) {
+    const data = rawData as any;
+    if (rpcError || !data || data.error) {
       setError("Report not found.");
       setLoading(false);
       return;
     }
-    setScan(scanData);
 
-    // Fetch report settings for this user
-    const { data: settingsData } = await supabase
-      .from("report_settings")
-      .select("*")
-      .eq("user_id", scanData.user_id)
-      .maybeSingle();
+    setScan(data.scan);
 
-    if (settingsData) {
+    if (data.settings) {
       setSettings({
-        headline_text: settingsData.headline_text,
-        headline_size: settingsData.headline_size,
-        subheadline_text: settingsData.subheadline_text || "",
-        show_headline: settingsData.show_headline,
-        show_subheadline: settingsData.show_subheadline,
-        hide_blurbs: settingsData.hide_blurbs,
-        show_legal_links: settingsData.show_legal_links,
-        show_disclaimer: settingsData.show_disclaimer,
-        disclaimer_text: settingsData.disclaimer_text || "",
-        colors: (settingsData.colors as any) || defaultSettings.colors,
-        cta_blocks: (settingsData.cta_blocks as any) || [],
+        headline_text: data.settings.headline_text,
+        headline_size: data.settings.headline_size,
+        subheadline_text: data.settings.subheadline_text || "",
+        show_headline: data.settings.show_headline,
+        show_subheadline: data.settings.show_subheadline,
+        hide_blurbs: data.settings.hide_blurbs,
+        show_legal_links: data.settings.show_legal_links,
+        show_disclaimer: data.settings.show_disclaimer,
+        disclaimer_text: data.settings.disclaimer_text || "",
+        colors: data.settings.colors || defaultSettings.colors,
+        cta_blocks: data.settings.cta_blocks || [],
       });
     }
     setLoading(false);
@@ -79,10 +72,9 @@ const PublicReport = () => {
   const handleUnlock = async () => {
     if (!email.trim() || !email.includes("@")) return;
     setSubmitting(true);
-    await supabase.from("report_leads").insert({
-      user_id: scan.user_id,
-      scan_id: scan.id,
-      email: email.trim(),
+    // Use edge function to capture lead without exposing user_id client-side
+    await supabase.functions.invoke("report-lead-capture", {
+      body: { scan_id: scan.id, email: email.trim() },
     });
     setUnlocked(true);
     setSubmitting(false);

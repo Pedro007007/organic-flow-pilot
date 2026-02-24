@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -79,6 +81,34 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
   const [selectionRange, setSelectionRange] = useState<{ start: number; end: number } | null>(null);
   const [imagePromptDescription, setImagePromptDescription] = useState("");
   const [bodyImagePrompts, setBodyImagePrompts] = useState<Record<number, string>>({});
+  const [heroAspectRatio, setHeroAspectRatio] = useState("16:9");
+  const [heroStyle, setHeroStyle] = useState("_default");
+  const [heroModel, setHeroModel] = useState("google/gemini-3-pro-image-preview");
+  const [bodyImageSettings, setBodyImageSettings] = useState<Record<number, { aspectRatio: string; style: string; model: string }>>({});
+
+  const styleOptions = [
+    { value: "_default", label: "Default (Brand)" },
+    { value: "modern editorial", label: "Modern Editorial" },
+    { value: "cinematic", label: "Cinematic" },
+    { value: "flat illustration", label: "Flat Illustration" },
+    { value: "3d render", label: "3D Render" },
+    { value: "watercolor", label: "Watercolor" },
+    { value: "photorealistic", label: "Photorealistic" },
+    { value: "minimalist", label: "Minimalist" },
+    { value: "abstract", label: "Abstract" },
+  ];
+
+  const modelOptions = [
+    { value: "google/gemini-3-pro-image-preview", label: "Gemini 3 Pro (HQ)" },
+    { value: "google/gemini-2.5-flash", label: "Gemini 2.5 Flash (Fast)" },
+  ];
+
+  const aspectRatios = ["16:9", "4:3", "3:2", "1:1", "4:5", "9:16"];
+
+  const getBodySettings = (i: number) => bodyImageSettings[i] || { aspectRatio: "16:9", style: "_default", model: "google/gemini-3-pro-image-preview" };
+  const updateBodySettings = (i: number, patch: Partial<{ aspectRatio: string; style: string; model: string }>) => {
+    setBodyImageSettings((prev) => ({ ...prev, [i]: { ...getBodySettings(i), ...patch } }));
+  };
   
 
   // Fetch on mount
@@ -289,7 +319,7 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
     setGeneratingImage(true);
     try {
       const res = await supabase.functions.invoke("generate-hero-image", {
-        body: { contentItemId: item.id, keyword: item.keyword, title: item.title, customPrompt: imagePromptDescription || undefined },
+        body: { contentItemId: item.id, keyword: item.keyword, title: item.title, customPrompt: imagePromptDescription || undefined, aspectRatio: heroAspectRatio, style: heroStyle === "_default" ? undefined : heroStyle, model: heroModel },
       });
       if (res.error) throw res.error;
       setItem((prev: any) => ({ ...prev, hero_image_url: res.data?.hero_image_url }));
@@ -315,8 +345,9 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
     setRegeneratingImageIndex(imageIndex);
     try {
       const prompt = bodyImagePrompts[imageIndex] || undefined;
+      const bs = getBodySettings(imageIndex);
       const res = await supabase.functions.invoke("generate-hero-image", {
-        body: { contentItemId: item.id, keyword: item.keyword, title: item.title, customPrompt: prompt, imageType: "body" },
+        body: { contentItemId: item.id, keyword: item.keyword, title: item.title, customPrompt: prompt, imageType: "body", aspectRatio: bs.aspectRatio, style: bs.style === "_default" ? undefined : bs.style, model: bs.model },
       });
       if (res.error) throw res.error;
       const newUrl = res.data?.image_url;
@@ -470,6 +501,30 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
                     <ImageIcon className="h-6 w-6 text-muted-foreground" />
                   </div>
                 )}
+                <div className="space-y-1.5">
+                  <Label className="text-[10px] text-muted-foreground">Ratio</Label>
+                  <ToggleGroup type="single" value={heroAspectRatio} onValueChange={(v) => v && setHeroAspectRatio(v)} className="flex flex-wrap gap-0.5">
+                    {aspectRatios.map((r) => (
+                      <ToggleGroupItem key={r} value={r} size="sm" className="h-6 px-1.5 text-[10px] data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">{r}</ToggleGroupItem>
+                    ))}
+                  </ToggleGroup>
+                </div>
+                <div className="grid grid-cols-2 gap-1.5">
+                  <div className="space-y-1">
+                    <Label className="text-[10px] text-muted-foreground">Style</Label>
+                    <Select value={heroStyle} onValueChange={setHeroStyle}>
+                      <SelectTrigger className="h-7 text-[11px]"><SelectValue placeholder="Default" /></SelectTrigger>
+                      <SelectContent>{styleOptions.map((s) => <SelectItem key={s.value} value={s.value || "_default"} className="text-xs">{s.label}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <Label className="text-[10px] text-muted-foreground">Model</Label>
+                    <Select value={heroModel} onValueChange={setHeroModel}>
+                      <SelectTrigger className="h-7 text-[11px]"><SelectValue /></SelectTrigger>
+                      <SelectContent>{modelOptions.map((m) => <SelectItem key={m.value} value={m.value} className="text-xs">{m.label}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                </div>
                 <Textarea
                   placeholder="Describe the hero image you want (leave blank for auto)"
                   value={imagePromptDescription}
@@ -484,31 +539,58 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
               </div>
 
               {/* Body Image Cards */}
-              {bodyImages.map((img, i) => (
-                <div key={i} className="rounded-md border border-border p-3 space-y-2 flex flex-col">
-                  <Badge variant="secondary" className="text-[10px]">Body {i + 1}</Badge>
-                  <div className="aspect-video w-full overflow-hidden rounded-md border border-border">
-                    <img src={img.url} alt={img.alt} className="w-full h-full object-cover" />
+              {bodyImages.map((img, i) => {
+                const bs = getBodySettings(i);
+                return (
+                  <div key={i} className="rounded-md border border-border p-3 space-y-2 flex flex-col">
+                    <Badge variant="secondary" className="text-[10px]">Body {i + 1}</Badge>
+                    <div className="aspect-video w-full overflow-hidden rounded-md border border-border">
+                      <img src={img.url} alt={img.alt} className="w-full h-full object-cover" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-[10px] text-muted-foreground">Ratio</Label>
+                      <ToggleGroup type="single" value={bs.aspectRatio} onValueChange={(v) => v && updateBodySettings(i, { aspectRatio: v })} className="flex flex-wrap gap-0.5">
+                        {aspectRatios.map((r) => (
+                          <ToggleGroupItem key={r} value={r} size="sm" className="h-6 px-1.5 text-[10px] data-[state=on]:bg-primary data-[state=on]:text-primary-foreground">{r}</ToggleGroupItem>
+                        ))}
+                      </ToggleGroup>
+                    </div>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      <div className="space-y-1">
+                        <Label className="text-[10px] text-muted-foreground">Style</Label>
+                        <Select value={bs.style} onValueChange={(v) => updateBodySettings(i, { style: v })}>
+                          <SelectTrigger className="h-7 text-[11px]"><SelectValue placeholder="Default" /></SelectTrigger>
+                          <SelectContent>{styleOptions.map((s) => <SelectItem key={s.value} value={s.value || "_default"} className="text-xs">{s.label}</SelectItem>)}</SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-[10px] text-muted-foreground">Model</Label>
+                        <Select value={bs.model} onValueChange={(v) => updateBodySettings(i, { model: v })}>
+                          <SelectTrigger className="h-7 text-[11px]"><SelectValue /></SelectTrigger>
+                          <SelectContent>{modelOptions.map((m) => <SelectItem key={m.value} value={m.value} className="text-xs">{m.label}</SelectItem>)}</SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <Textarea
+                      placeholder={`Describe replacement (leave blank for auto)`}
+                      value={bodyImagePrompts[i] || ""}
+                      onChange={(e) => setBodyImagePrompts((prev) => ({ ...prev, [i]: e.target.value }))}
+                      className="min-h-[40px] text-xs flex-grow"
+                      rows={2}
+                    />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleRegenerateBodyImage(i, img.fullMatch)}
+                      disabled={isBusy}
+                      className="h-7 text-xs gap-1.5 w-full mt-auto"
+                    >
+                      {regeneratingImageIndex === i ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
+                      Regenerate
+                    </Button>
                   </div>
-                  <Textarea
-                    placeholder={`Describe replacement (leave blank for auto)`}
-                    value={bodyImagePrompts[i] || ""}
-                    onChange={(e) => setBodyImagePrompts((prev) => ({ ...prev, [i]: e.target.value }))}
-                    className="min-h-[40px] text-xs flex-grow"
-                    rows={2}
-                  />
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleRegenerateBodyImage(i, img.fullMatch)}
-                    disabled={isBusy}
-                    className="h-7 text-xs gap-1.5 w-full mt-auto"
-                  >
-                    {regeneratingImageIndex === i ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
-                    Regenerate
-                  </Button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 

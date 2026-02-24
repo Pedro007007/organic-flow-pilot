@@ -415,24 +415,44 @@ ${body}
     bodyImages.push({ alt: match[1], url: match[2], fullMatch: match[0], index: imgIdx++ });
   }
 
-  const handleRegenerateBodyImage = async (imageIndex: number, oldMatch: string) => {
-    setRegeneratingImageIndex(imageIndex);
+  // Build fixed 2-slot body images array
+  const displayBodyImages: { alt: string; url: string; fullMatch: string; exists: boolean }[] = Array.from({ length: 2 }, (_, i) => {
+    const existing = bodyImages[i];
+    return existing
+      ? { alt: existing.alt, url: existing.url, fullMatch: existing.fullMatch, exists: true }
+      : { alt: "", url: "", fullMatch: "", exists: false };
+  });
+
+  const handleRegenerateBodyImage = async (slotIndex: number, oldMatch: string | null) => {
+    setRegeneratingImageIndex(slotIndex);
     try {
-      const prompt = bodyImagePrompts[imageIndex] || undefined;
-      const bs = getBodySettings(imageIndex);
+      const prompt = bodyImagePrompts[slotIndex] || undefined;
+      const bs = getBodySettings(slotIndex);
       const res = await supabase.functions.invoke("generate-hero-image", {
         body: { contentItemId: item.id, keyword: item.keyword, title: item.title, customPrompt: prompt, imageType: "body", aspectRatio: bs.aspectRatio, style: bs.style === "_default" ? undefined : bs.style, model: bs.model },
       });
       if (res.error) throw res.error;
       const newUrl = res.data?.image_url;
       if (newUrl) {
-        const altText = bodyImages[imageIndex]?.alt || item.keyword;
+        const altText = item.keyword;
         const newMarkdown = `![${altText}](${newUrl})`;
-        setDraftContent((prev) => prev.replace(oldMatch, newMarkdown));
-        toast({ title: `Body image ${imageIndex + 1} regenerated` });
+        if (oldMatch) {
+          // Replace existing image
+          setDraftContent((prev) => prev.replace(oldMatch, newMarkdown));
+        } else {
+          // Insert new image into content
+          setDraftContent((prev) => {
+            const lines = prev.split("\n");
+            // Insert after roughly 1/3 of content for Body 1, 2/3 for Body 2
+            const insertPoint = Math.min(Math.floor(lines.length * ((slotIndex + 1) / 3)), lines.length);
+            lines.splice(insertPoint, 0, "", newMarkdown, "");
+            return lines.join("\n");
+          });
+        }
+        toast({ title: `Body image ${slotIndex + 1} ${oldMatch ? "regenerated" : "generated"}` });
       }
     } catch (err: any) {
-      toast({ title: "Image regeneration failed", description: err.message, variant: "destructive" });
+      toast({ title: "Image generation failed", description: err.message, variant: "destructive" });
     } finally {
       setRegeneratingImageIndex(null);
     }
@@ -629,14 +649,18 @@ ${body}
                 </Button>
               </div>
 
-              {/* Body Image Cards */}
-              {bodyImages.map((img, i) => {
+              {/* Body Image Cards – always 2 slots */}
+              {displayBodyImages.map((img, i) => {
                 const bs = getBodySettings(i);
                 return (
                   <div key={i} className="rounded-md border border-border p-3 space-y-2 flex flex-col">
                     <Badge variant="secondary" className="text-[10px]">Body {i + 1}</Badge>
-                    <div className="aspect-video w-full overflow-hidden rounded-md border border-border">
-                      <img src={img.url} alt={img.alt} className="w-full h-full object-cover" />
+                    <div className="aspect-video w-full overflow-hidden rounded-md border border-border flex items-center justify-center bg-muted/30">
+                      {img.exists ? (
+                        <img src={img.url} alt={img.alt} className="w-full h-full object-cover" />
+                      ) : (
+                        <ImageIcon className="h-8 w-8 text-muted-foreground/40" />
+                      )}
                     </div>
                     <div className="space-y-1.5">
                       <Label className="text-[10px] text-muted-foreground">Ratio</Label>
@@ -663,7 +687,7 @@ ${body}
                       </div>
                     </div>
                     <Textarea
-                      placeholder={`Describe replacement (leave blank for auto)`}
+                      placeholder={`Describe ${img.exists ? "replacement" : "body image"} (leave blank for auto)`}
                       value={bodyImagePrompts[i] || ""}
                       onChange={(e) => setBodyImagePrompts((prev) => ({ ...prev, [i]: e.target.value }))}
                       className="min-h-[40px] text-xs flex-grow"
@@ -672,12 +696,12 @@ ${body}
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => handleRegenerateBodyImage(i, img.fullMatch)}
+                      onClick={() => handleRegenerateBodyImage(i, img.exists ? img.fullMatch : null)}
                       disabled={isBusy}
                       className="h-7 text-xs gap-1.5 w-full mt-auto"
                     >
-                      {regeneratingImageIndex === i ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
-                      Regenerate
+                      {regeneratingImageIndex === i ? <Loader2 className="h-3 w-3 animate-spin" /> : img.exists ? <RefreshCw className="h-3 w-3" /> : <ImageIcon className="h-3 w-3" />}
+                      {img.exists ? "Regenerate" : "Generate"}
                     </Button>
                   </div>
                 );

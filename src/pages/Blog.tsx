@@ -13,7 +13,8 @@ const Blog = () => {
       const { data, error } = await supabase
         .from("content_items")
         .select("slug, title, seo_title, meta_description, updated_at, hero_image_url, keyword")
-        .eq("status", "published")
+        .in("status", ["published", "monitoring"])
+        .not("slug", "is", null)
         .order("updated_at", { ascending: false });
       if (error) throw error;
       return data;

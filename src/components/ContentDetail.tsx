@@ -103,7 +103,7 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
     { value: "google/gemini-2.5-flash", label: "Gemini 2.5 Flash (Fast)" },
   ];
 
-  const aspectRatios = ["16:9", "4:3", "3:2", "1:1", "4:5", "9:16"];
+  const aspectRatios = ["16:9", "4:3", "4:2", "3:2", "1:1", "4:5", "9:16"];
 
   const getBodySettings = (i: number) => bodyImageSettings[i] || { aspectRatio: "16:9", style: "_default", model: "google/gemini-3-pro-image-preview" };
   const updateBodySettings = (i: number, patch: Partial<{ aspectRatio: string; style: string; model: string }>) => {

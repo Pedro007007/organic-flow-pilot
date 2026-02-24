@@ -1,37 +1,30 @@
 
+# Export Blog Posts to .docx
 
-# Fix Missing URL in Content Detail Section
+## Overview
+Add an "Export" button to the `BlogPost` page that downloads the article as a `.docx` file containing the full HTML (headings, lists, links, images, schema markup, meta tags, etc.) so it can be dropped directly into a CMS or website.
 
-## Problem
-The "URL" field in the Details section only displays when `item.url` has a value stored in the database. For most content items, this field is null because it only gets set after publishing via the webhook. This means users cannot see or access the article URL even when a slug exists.
+## Approach
+Use a simple, dependency-free method: render the markdown content as a complete HTML document, then save it as a `.docx` file via a Blob download. Microsoft Word (and Google Docs) natively open HTML files saved with a `.docx` extension, preserving all formatting, tags, and structure.
 
-## Solution
-Always show the URL in the Details section by falling back to a generated URL from the slug when `item.url` is not set.
+No new libraries are needed.
 
 ## Changes
 
-### File: `src/components/ContentDetail.tsx` (lines 614-619)
+### 1. `src/pages/BlogPost.tsx`
+- Add a `Download` icon import from lucide-react
+- Add an `Export .docx` button next to the "Back to Blog" link (top of the article)
+- Implement an `handleExportDocx` function that:
+  - Builds a full HTML string including:
+    - SEO meta tags (`<title>`, `<meta name="description">`)
+    - Hero image as `<img>` tag
+    - Article title as `<h1>`
+    - Author and date metadata
+    - The article body (markdown converted to HTML using a hidden rendered element or a lightweight markdown-to-HTML conversion)
+    - JSON-LD structured data `<script>` block
+  - Wraps it in a proper `<!DOCTYPE html>` document
+  - Creates a Blob with MIME type `application/vnd.openxmlformats-officedocument.wordprocessingml.document`
+  - Triggers a file download named after the article slug
 
-Replace the conditional URL display with logic that always shows a URL when either `item.url` or `slug` exists:
-
-- If `item.url` is set, display it as before (with external link)
-- Otherwise, if a slug exists, display `/blog/{slug}` as the URL (linking to the blog post page)
-- Make the URL clickable as an anchor tag opening in a new tab
-
-### Technical Details
-
-Current code (line 614):
-```
-{item.url && (
-  <div>...</div>
-)}
-```
-
-New logic:
-```
-const displayUrl = item.url || (slug ? `/blog/${slug}` : null);
-if (displayUrl) { show URL row with clickable link }
-```
-
-This ensures the URL is visible as soon as a slug is generated, not only after the publish webhook runs.
-
+### Technical Detail
+To convert the markdown to HTML without adding a dependency, the function will grab the `innerHTML` from the already-rendered prose container using a React `useRef`. This ensures the exported HTML matches exactly what is displayed, including all tags and formatting.

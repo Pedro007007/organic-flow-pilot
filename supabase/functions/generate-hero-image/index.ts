@@ -30,7 +30,7 @@ serve(async (req) => {
 
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { keyword, title, contentItemId, brandId } = await req.json();
+    const { keyword, title, contentItemId, brandId, customPrompt } = await req.json();
     if (!keyword && !title) {
       return new Response(JSON.stringify({ error: "keyword or title required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
@@ -97,7 +97,7 @@ The image MUST match the brand palette and feel consistent with a modern SaaS or
 
 SUBJECT DIRECTION
 Choose ONE: abstract conceptual scene (preferred for AI/SEO brands) or professional digital workspace environment.
-Ultra high resolution.`;
+Ultra high resolution.${customPrompt ? `\n\nCLIENT CREATIVE DIRECTION\n${customPrompt}\nIncorporate the above direction into the visual concept while maintaining brand consistency.` : ""}`;
 
     console.log("Generating hero image for:", title || keyword);
 

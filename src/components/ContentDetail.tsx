@@ -76,6 +76,7 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
   const [sectionRewriting, setSectionRewriting] = useState(false);
   const [selectedText, setSelectedText] = useState("");
   const [selectionRange, setSelectionRange] = useState<{ start: number; end: number } | null>(null);
+  const [imagePromptDescription, setImagePromptDescription] = useState("");
   
 
   // Fetch on mount
@@ -286,7 +287,7 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
     setGeneratingImage(true);
     try {
       const res = await supabase.functions.invoke("generate-hero-image", {
-        body: { contentItemId: item.id, keyword: item.keyword, title: item.title },
+        body: { contentItemId: item.id, keyword: item.keyword, title: item.title, customPrompt: imagePromptDescription || undefined },
       });
       if (res.error) throw res.error;
       setItem((prev: any) => ({ ...prev, hero_image_url: res.data?.hero_image_url }));
@@ -414,26 +415,25 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
 
         <TabsContent value="content">
           {/* Hero image generate button (image shown in preview) */}
-          {!item.hero_image_url && (
-            <div className="rounded-lg border border-border bg-card mb-6 p-5 flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <ImageIcon className="h-4 w-4" />
-                <span>No hero image yet</span>
-              </div>
+          <div className="rounded-lg border border-border bg-card mb-6 p-4 space-y-3">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <ImageIcon className="h-4 w-4" />
+              <span>{item.hero_image_url ? "Hero Image" : "No hero image yet"}</span>
+            </div>
+            <Textarea
+              placeholder="Describe the image you want (e.g. 'A futuristic city skyline with glowing data streams'). Leave blank for auto-generated."
+              value={imagePromptDescription}
+              onChange={(e) => setImagePromptDescription(e.target.value)}
+              className="min-h-[60px] text-xs"
+              rows={2}
+            />
+            <div className="flex justify-end">
               <Button size="sm" variant="outline" onClick={handleGenerateImage} disabled={isBusy} className="h-7 text-xs gap-1.5">
                 {generatingImage ? <Loader2 className="h-3 w-3 animate-spin" /> : <ImageIcon className="h-3 w-3" />}
-                Generate Hero Image
+                {item.hero_image_url ? "Regenerate Hero Image" : "Generate Hero Image"}
               </Button>
             </div>
-          )}
-          {item.hero_image_url && (
-            <div className="flex justify-end mb-4">
-              <Button size="sm" variant="outline" onClick={handleGenerateImage} disabled={isBusy} className="h-7 text-xs gap-1.5">
-                {generatingImage ? <Loader2 className="h-3 w-3 animate-spin" /> : <ImageIcon className="h-3 w-3" />}
-                Regenerate Hero Image
-              </Button>
-            </div>
-          )}
+          </div>
 
           {/* SERP Research Summary */}
           {item.serp_research && (

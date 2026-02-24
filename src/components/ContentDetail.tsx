@@ -28,7 +28,14 @@ import {
   ImageIcon,
   Search,
   PenLine,
+  Download,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import ContentPerformanceChart from "@/components/ContentPerformanceChart";
 import ContentPreview from "@/components/ContentPreview";
 import FulfilmentDashboard from "@/components/FulfilmentDashboard";
@@ -296,6 +303,73 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
     }
   };
 
+  const downloadBlob = (blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const fileBaseName = slug || item?.title?.toLowerCase().replace(/\s+/g, "-") || "content";
+
+  const exportMarkdown = () => {
+    downloadBlob(new Blob([draftContent], { type: "text/markdown" }), `${fileBaseName}.md`);
+  };
+
+  const buildHtmlDoc = () => {
+    const displayTitle = seoTitle || item?.title || "";
+    const jsonLd = item?.structured_data ? `<script type="application/ld+json">${JSON.stringify(item.structured_data)}</script>` : "";
+    // Simple markdown→HTML conversion for export
+    let body = draftContent
+      .replace(/^### (.+)$/gm, "<h3>$1</h3>")
+      .replace(/^## (.+)$/gm, "<h2>$1</h2>")
+      .replace(/^# (.+)$/gm, "<h1>$1</h1>")
+      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+      .replace(/\*(.+?)\*/g, "<em>$1</em>")
+      .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width:100%;"/>')
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
+      .replace(/\n{2,}/g, "</p><p>")
+      .replace(/\n/g, "<br/>");
+    body = `<p>${body}</p>`;
+    return `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>${displayTitle}</title>
+${metaDescription ? `<meta name="description" content="${metaDescription.replace(/"/g, '&quot;')}"/>` : ""}
+${jsonLd}
+</head>
+<body>
+${item?.hero_image_url ? `<img src="${item.hero_image_url}" alt="${displayTitle.replace(/"/g, '&quot;')}" style="max-width:100%;"/>` : ""}
+<h1>${displayTitle}</h1>
+${body}
+</body>
+</html>`;
+  };
+
+  const exportHtml = () => {
+    downloadBlob(new Blob([buildHtmlDoc()], { type: "text/html" }), `${fileBaseName}.html`);
+  };
+
+  const exportDocx = () => {
+    downloadBlob(new Blob([buildHtmlDoc()], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" }), `${fileBaseName}.docx`);
+  };
+
+  const exportPlainText = () => {
+    const plain = draftContent
+      .replace(/#{1,6}\s/g, "")
+      .replace(/\*\*(.+?)\*\*/g, "$1")
+      .replace(/\*(.+?)\*/g, "$1")
+      .replace(/!\[([^\]]*)\]\([^)]+\)/g, "")
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+      .replace(/`{1,3}[^`]*`{1,3}/g, "")
+      .replace(/^[-*+]\s/gm, "• ")
+      .replace(/^>\s?/gm, "");
+    downloadBlob(new Blob([plain], { type: "text/plain" }), `${fileBaseName}.txt`);
+  };
+
   const isBusy = saving || generating || optimizing || publishing || generatingImage || researchingSERP || sectionRewriting || regeneratingImageIndex !== null;
 
   const handleSERPResearch = async () => {
@@ -418,6 +492,23 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
               {publishing ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Send className="mr-1.5 h-3.5 w-3.5" />}
               Publish
             </Button>
+          )}
+
+          {draftContent && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" variant="outline" disabled={isBusy}>
+                  <Download className="mr-1.5 h-3.5 w-3.5" />
+                  Export
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="bg-popover border border-border shadow-lg z-50">
+                <DropdownMenuItem onClick={exportMarkdown}>Export as Markdown</DropdownMenuItem>
+                <DropdownMenuItem onClick={exportHtml}>Export as HTML</DropdownMenuItem>
+                <DropdownMenuItem onClick={exportDocx}>Export as DOCX</DropdownMenuItem>
+                <DropdownMenuItem onClick={exportPlainText}>Export as Plain Text</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
 
           <Button size="sm" variant="outline" onClick={handleSave} disabled={isBusy}>

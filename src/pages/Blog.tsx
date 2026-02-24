@@ -104,7 +104,7 @@ const Blog = () => {
           <div className="mx-auto max-w-6xl px-6">
             <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
               {blogPosts.map((post) => (
-                <article key={post.slug} className="group rounded-2xl border border-gray-200 bg-white overflow-hidden hover:border-blue-200 hover:shadow-lg hover:shadow-blue-500/5 transition-all duration-300">
+                <Link to={`/blog/${post.slug}`} key={post.slug} className="group rounded-2xl border border-gray-200 bg-white overflow-hidden hover:border-blue-200 hover:shadow-lg hover:shadow-blue-500/5 transition-all duration-300 block">
                   {/* Colored header bar */}
                   <div className="h-48 bg-gradient-to-br from-slate-900 via-blue-950 to-slate-800 flex items-center justify-center relative overflow-hidden">
                     <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_50%,rgba(59,130,246,0.2),transparent_70%)]" />
@@ -137,7 +137,7 @@ const Blog = () => {
                       </span>
                     </div>
                   </div>
-                </article>
+                </Link>
               ))}
             </div>
           </div>

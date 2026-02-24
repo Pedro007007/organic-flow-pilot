@@ -66,9 +66,30 @@ serve(async (req) => {
 
     const paletteNote = imgPalette ? `\nPrimary Brand Colour(s): ${imgPalette}` : "\nPrimary Brand Colour(s): dark blue, electric purple, white";
 
+    // Map aspect ratios to approximate pixel dimensions for better AI compliance
+    const ratioDimensions: Record<string, string> = {
+      "16:9": "1920x1080 pixels (wide landscape)",
+      "4:3": "1600x1200 pixels (standard landscape)",
+      "4:2": "1600x800 pixels (ultra-wide banner)",
+      "3:2": "1800x1200 pixels (photo landscape)",
+      "1:1": "1200x1200 pixels (perfect square)",
+      "4:5": "1080x1350 pixels (tall portrait)",
+      "9:16": "1080x1920 pixels (vertical/mobile)",
+    };
+    const dimensionHint = ratioDimensions[imgRatio] || `${imgRatio} ratio`;
+
     const imagePrompt = `You are a senior brand visual director and conversion-focused creative strategist.
 Your task is to generate a HIGH-IMPACT hero image for a landing page or article.
 This image must NOT be generic. It must visually communicate authority, positioning, and value instantly.
+
+CRITICAL IMAGE DIMENSIONS — YOU MUST FOLLOW THIS EXACTLY:
+- Aspect ratio: ${imgRatio}
+- Target dimensions: ${dimensionHint}
+- The output image MUST be exactly ${imgRatio} aspect ratio. This is non-negotiable.
+- If the ratio is 16:9, the image must be significantly wider than it is tall.
+- If the ratio is 1:1, the image must be a perfect square.
+- If the ratio is 9:16, the image must be significantly taller than it is wide.
+- If the ratio is 4:5, the image must be slightly taller than it is wide (portrait).
 
 BRAND CONTEXT
 ${brand ? `Brand Name: ${brand.name}${brand.domain ? `\nWebsite: ${brand.domain}` : ""}` : "Default brand tone: modern, professional, tech-forward"}
@@ -86,7 +107,7 @@ Art Direction Style:
 Visual Metaphor: Choose a strong visual metaphor representing the benefit — growth (ascending light beams, rising graphs), clarity (spotlight, illuminated pathway), automation (AI interface, flowing data streams), or connection (network nodes, linking signals).
 
 COMPOSITION RULES
-- Hero-style wide composition (${imgRatio} ratio)
+- The canvas MUST be ${imgRatio} (${dimensionHint})
 - Leave NEGATIVE SPACE on one side for text overlay
 - Main focal point slightly off-center (rule of thirds)
 - Strong visual hierarchy (clear subject + supporting environment)
@@ -99,7 +120,7 @@ The image MUST match the brand palette and feel consistent with a modern SaaS or
 
 SUBJECT DIRECTION
 Choose ONE: abstract conceptual scene (preferred for AI/SEO brands) or professional digital workspace environment.
-Ultra high resolution.${customPrompt ? `\n\nCLIENT CREATIVE DIRECTION\n${customPrompt}\nIncorporate the above direction into the visual concept while maintaining brand consistency.` : ""}`;
+Ultra high resolution, ${dimensionHint}.${customPrompt ? `\n\nCLIENT CREATIVE DIRECTION\n${customPrompt}\nIncorporate the above direction into the visual concept while maintaining brand consistency.` : ""}`;
 
     console.log("Generating hero image for:", title || keyword);
 

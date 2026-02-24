@@ -1,14 +1,16 @@
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import ReactMarkdown from "react-markdown";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Calendar, Clock, User } from "lucide-react";
+import { ArrowLeft, Calendar, Download, User } from "lucide-react";
 import searcheraLogo from "@/assets/searchera-logo.png";
 
 const BlogPost = () => {
   const { slug } = useParams<{ slug: string }>();
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const { data: post, isLoading, error } = useQuery({
     queryKey: ["blog-post", slug],
@@ -29,6 +31,35 @@ const BlogPost = () => {
   const date = post?.updated_at
     ? new Date(post.updated_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
     : "";
+
+  const handleExportDocx = () => {
+    if (!post || !contentRef.current) return;
+    const bodyHtml = contentRef.current.innerHTML;
+    const jsonLd = post.structured_data ? `<script type="application/ld+json">${JSON.stringify(post.structured_data)}</script>` : "";
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>${displayTitle}</title>
+${post.meta_description ? `<meta name="description" content="${post.meta_description.replace(/"/g, '&quot;')}"/>` : ""}
+${jsonLd}
+</head>
+<body>
+${post.hero_image_url ? `<img src="${post.hero_image_url}" alt="${displayTitle.replace(/"/g, '&quot;')}" style="max-width:100%;"/>` : ""}
+<h1>${displayTitle}</h1>
+<p><strong>Author:</strong> ${post.author} | <strong>Date:</strong> ${date}</p>
+<hr/>
+${bodyHtml}
+</body>
+</html>`;
+    const blob = new Blob([html], { type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${post.slug || "article"}.docx`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
     <div className="light min-h-screen flex flex-col bg-white text-gray-900">
@@ -81,6 +112,9 @@ const BlogPost = () => {
             <Link to="/blog" className="inline-flex items-center gap-1 text-sm font-bold text-blue-600 hover:underline mb-8">
               <ArrowLeft className="h-4 w-4" /> Back to Blog
             </Link>
+            <Button onClick={handleExportDocx} variant="outline" size="sm" className="ml-4 mb-8 font-bold">
+              <Download className="h-4 w-4 mr-1" /> Export .docx
+            </Button>
 
             {/* Hero image */}
             {post.hero_image_url && (
@@ -112,7 +146,7 @@ const BlogPost = () => {
             <hr className="border-gray-200 mb-8" />
 
             {/* Content */}
-            <div className="prose prose-lg max-w-none
+            <div ref={contentRef} className="prose prose-lg max-w-none
               prose-headings:text-gray-900 prose-headings:font-bold
               prose-h2:text-2xl prose-h2:border-b prose-h2:border-gray-200 prose-h2:pb-2 prose-h2:mt-10
               prose-h3:text-xl

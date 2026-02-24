@@ -1,66 +1,25 @@
 import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Calendar, Clock, User, Tag, Search, Bot, TrendingUp, FileText } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ArrowRight, Calendar, Clock, Tag, FileText } from "lucide-react";
 import searcheraLogo from "@/assets/searchera-logo.png";
 
-const blogPosts = [
-  {
-    slug: "what-is-aeo",
-    title: "What Is AEO? The Complete Guide to Answer Engine Optimization in 2026",
-    excerpt: "Answer Engine Optimization (AEO) is the practice of optimizing your content to be cited and surfaced by AI-powered search engines like ChatGPT, Perplexity, and Google AI Overviews. Learn how it differs from traditional SEO and why you need both.",
-    category: "AEO",
-    readTime: "8 min read",
-    date: "Feb 18, 2026",
-    icon: Bot,
-  },
-  {
-    slug: "seo-vs-aeo",
-    title: "SEO vs AEO: What's the Difference and Why You Need Both",
-    excerpt: "Traditional SEO focuses on ranking in search results, while AEO focuses on being the answer AI engines cite. Discover how to build a strategy that dominates both Google and AI search.",
-    category: "Strategy",
-    readTime: "6 min read",
-    date: "Feb 15, 2026",
-    icon: Search,
-  },
-  {
-    slug: "ai-citations-guide",
-    title: "How to Get Cited by ChatGPT, Perplexity & Google AI Overviews",
-    excerpt: "AI search engines cite authoritative, well-structured content. Here's the exact framework we use at Searchera to help brands get cited by every major AI answer engine.",
-    category: "AEO",
-    readTime: "10 min read",
-    date: "Feb 12, 2026",
-    icon: TrendingUp,
-  },
-  {
-    slug: "content-optimization-seo-aeo",
-    title: "How to Optimize Content for Both SEO and AEO Simultaneously",
-    excerpt: "You don't need two separate content strategies. Learn how to write content that ranks on Google AND gets surfaced by AI search — using structured data, FAQ schemas, and direct-answer formatting.",
-    category: "Content",
-    readTime: "7 min read",
-    date: "Feb 9, 2026",
-    icon: FileText,
-  },
-  {
-    slug: "schema-markup-aeo",
-    title: "Schema Markup for AEO: The Structured Data That AI Engines Love",
-    excerpt: "JSON-LD structured data isn't just for Google rich results anymore. AI search engines heavily rely on schema markup to understand and cite your content. Here's what to implement.",
-    category: "Technical",
-    readTime: "9 min read",
-    date: "Feb 5, 2026",
-    icon: Bot,
-  },
-  {
-    slug: "keyword-research-ai-era",
-    title: "Keyword Research in the AI Era: Finding Queries That Trigger AI Answers",
-    excerpt: "Traditional keyword research misses a massive opportunity: queries that trigger AI-generated answers. Learn how to find and target these high-value AEO keywords.",
-    category: "Keywords",
-    readTime: "7 min read",
-    date: "Feb 1, 2026",
-    icon: Search,
-  },
-];
-
 const Blog = () => {
+  const { data: posts, isLoading } = useQuery({
+    queryKey: ["blog-posts"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("content_items")
+        .select("slug, title, seo_title, meta_description, updated_at, hero_image_url, keyword")
+        .eq("status", "published")
+        .order("updated_at", { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+
   return (
     <div className="light min-h-screen flex flex-col bg-white text-gray-900">
       {/* Nav */}
@@ -102,44 +61,78 @@ const Blog = () => {
         {/* Articles Grid */}
         <section className="py-16">
           <div className="mx-auto max-w-6xl px-6">
-            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-              {blogPosts.map((post) => (
-                <Link to={`/blog/${post.slug}`} key={post.slug} className="group rounded-2xl border border-gray-200 bg-white overflow-hidden hover:border-blue-200 hover:shadow-lg hover:shadow-blue-500/5 transition-all duration-300 block">
-                  {/* Colored header bar */}
-                  <div className="h-48 bg-gradient-to-br from-slate-900 via-blue-950 to-slate-800 flex items-center justify-center relative overflow-hidden">
-                    <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_50%,rgba(59,130,246,0.2),transparent_70%)]" />
-                    <post.icon className="h-16 w-16 text-teal-400/60" />
-                  </div>
-                  <div className="p-6">
-                    <div className="flex items-center gap-3 mb-3">
-                      <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 border border-blue-200 px-2.5 py-0.5 text-xs font-bold text-blue-700">
-                        <Tag className="h-3 w-3" />
-                        {post.category}
-                      </span>
-                      <span className="flex items-center gap-1 text-xs text-gray-400 font-semibold">
-                        <Clock className="h-3 w-3" />
-                        {post.readTime}
-                      </span>
-                    </div>
-                    <h2 className="text-lg font-black text-gray-900 leading-snug group-hover:text-blue-600 transition-colors">
-                      {post.title}
-                    </h2>
-                    <p className="mt-2 text-sm text-gray-600 leading-relaxed line-clamp-3">
-                      {post.excerpt}
-                    </p>
-                    <div className="mt-4 flex items-center justify-between">
-                      <span className="flex items-center gap-1 text-xs text-gray-400 font-semibold">
-                        <Calendar className="h-3 w-3" />
-                        {post.date}
-                      </span>
-                      <span className="text-sm font-bold text-blue-600 group-hover:underline flex items-center gap-1">
-                        Read More <ArrowRight className="h-3 w-3" />
-                      </span>
+            {isLoading && (
+              <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="rounded-2xl border border-gray-200 overflow-hidden">
+                    <Skeleton className="h-48 w-full bg-gray-200" />
+                    <div className="p-6 space-y-3">
+                      <Skeleton className="h-4 w-20 bg-gray-200" />
+                      <Skeleton className="h-6 w-full bg-gray-200" />
+                      <Skeleton className="h-4 w-full bg-gray-200" />
+                      <Skeleton className="h-4 w-2/3 bg-gray-200" />
                     </div>
                   </div>
-                </Link>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
+
+            {!isLoading && (!posts || posts.length === 0) && (
+              <div className="text-center py-20">
+                <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                <h2 className="text-xl font-bold text-gray-700">No articles published yet</h2>
+                <p className="mt-2 text-gray-500">Check back soon for new content.</p>
+              </div>
+            )}
+
+            {!isLoading && posts && posts.length > 0 && (
+              <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                {posts.map((post) => (
+                  <Link
+                    to={`/blog/${post.slug}`}
+                    key={post.slug}
+                    className="group rounded-2xl border border-gray-200 bg-white overflow-hidden hover:border-blue-200 hover:shadow-lg hover:shadow-blue-500/5 transition-all duration-300 block"
+                  >
+                    {/* Header image or fallback */}
+                    <div className="h-48 bg-gradient-to-br from-slate-900 via-blue-950 to-slate-800 flex items-center justify-center relative overflow-hidden">
+                      {post.hero_image_url ? (
+                        <img src={post.hero_image_url} alt={post.seo_title || post.title} className="w-full h-full object-cover" />
+                      ) : (
+                        <>
+                          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_50%,rgba(59,130,246,0.2),transparent_70%)]" />
+                          <FileText className="h-16 w-16 text-teal-400/60" />
+                        </>
+                      )}
+                    </div>
+                    <div className="p-6">
+                      <div className="flex items-center gap-3 mb-3">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 border border-blue-200 px-2.5 py-0.5 text-xs font-bold text-blue-700">
+                          <Tag className="h-3 w-3" />
+                          {post.keyword}
+                        </span>
+                      </div>
+                      <h2 className="text-lg font-black text-gray-900 leading-snug group-hover:text-blue-600 transition-colors">
+                        {post.seo_title || post.title}
+                      </h2>
+                      {post.meta_description && (
+                        <p className="mt-2 text-sm text-gray-600 leading-relaxed line-clamp-3">
+                          {post.meta_description}
+                        </p>
+                      )}
+                      <div className="mt-4 flex items-center justify-between">
+                        <span className="flex items-center gap-1 text-xs text-gray-400 font-semibold">
+                          <Calendar className="h-3 w-3" />
+                          {new Date(post.updated_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
+                        </span>
+                        <span className="text-sm font-bold text-blue-600 group-hover:underline flex items-center gap-1">
+                          Read More <ArrowRight className="h-3 w-3" />
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
           </div>
         </section>
 

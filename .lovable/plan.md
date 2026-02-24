@@ -1,38 +1,32 @@
 
-# Add Custom Image Description for Hero Image Generation
-
-## Overview
-Add a text input field in the Content Detail page where you can describe exactly what type of hero image you want. This description will be sent to the image generation function and incorporated into the AI prompt, giving you full creative control over the generated image.
+# Compact Card Grid for Image Management
 
 ## What Changes
 
-### 1. Content Detail Page (`src/components/ContentDetail.tsx`)
-- Add a new state variable `imagePromptDescription` to hold the custom description
-- Replace the simple "Generate Hero Image" / "Regenerate Hero Image" buttons with a small panel that includes:
-  - A text area where you can type your image description (e.g. "A futuristic city skyline with glowing data streams flowing between buildings")
-  - A placeholder hint explaining what to write
-  - The generate/regenerate button next to it
-- Pass the custom description to the `generate-hero-image` edge function call
+The current Image Management section displays images as full-width vertical stripes stacked on top of each other. This will be changed to a responsive card grid where each image (hero + body images) appears as a compact card side by side.
 
-### 2. Hero Image Edge Function (`supabase/functions/generate-hero-image/index.ts`)
-- Accept an optional `customPrompt` field from the request body
-- When provided, incorporate the custom description into the image generation prompt (appended as "CLIENT CREATIVE DIRECTION" to guide the AI while keeping the brand and composition rules)
-- When not provided, behavior stays exactly as it is today (auto-generated prompt from title/keyword)
+## Layout
+
+```text
++-------------------+-------------------+-------------------+
+|   Hero Image      |   Body Image 1    |   Body Image 2    |
+|   [thumbnail]     |   [thumbnail]     |   [thumbnail]     |
+|   [prompt input]  |   [prompt input]  |   [prompt input]  |
+|   [Regenerate]    |   [Regenerate]    |   [Regenerate]    |
++-------------------+-------------------+-------------------+
+```
+
+- Uses a responsive grid: 1 column on mobile, 2 on medium screens, 3 on larger screens
+- Each card is a compact, equal-height bordered card with the image thumbnail, a small prompt textarea, and a regenerate button
+- Hero image card gets a small "Hero" badge; body images get numbered labels
+- Image thumbnails use a fixed aspect ratio for visual consistency
 
 ## Technical Details
 
-### ContentDetail.tsx changes
-- New state: `const [imagePromptDescription, setImagePromptDescription] = useState("");`
-- Updated `handleGenerateImage` to include `customPrompt: imagePromptDescription` in the request body
-- The "No hero image yet" panel and "Regenerate" area both get a Textarea for the description
-- The textarea is optional -- leaving it blank generates with the existing auto-prompt
+### File: `src/components/ContentDetail.tsx` (lines 451-510)
 
-### Edge function changes
-- Extract `customPrompt` from `req.json()` alongside existing fields
-- If `customPrompt` is provided, add a section to the image prompt:
-  ```
-  CLIENT CREATIVE DIRECTION
-  {customPrompt}
-  Incorporate the above direction into the visual concept while maintaining brand consistency.
-  ```
-- No other logic changes -- upload, storage, and agent run tracking remain identical
+- Wrap all image cards (hero + body) in a single `grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3` container
+- Each card becomes a compact bordered div with consistent sizing
+- Remove the separate "Body Images" wrapper -- hero and body cards sit in the same grid
+- Reduce thumbnail max height and textarea rows for compactness
+- Keep all existing functionality (prompt input, regenerate buttons, loading states) unchanged

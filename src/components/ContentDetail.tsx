@@ -62,6 +62,7 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
   const [publishing, setPublishing] = useState(false);
   const [optimizing, setOptimizing] = useState(false);
   const [generatingImage, setGeneratingImage] = useState(false);
+  const [regeneratingImageIndex, setRegeneratingImageIndex] = useState<number | null>(null);
   const [researchingSERP, setResearchingSERP] = useState(false);
 
   // Local editable state
@@ -77,6 +78,7 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
   const [selectedText, setSelectedText] = useState("");
   const [selectionRange, setSelectionRange] = useState<{ start: number; end: number } | null>(null);
   const [imagePromptDescription, setImagePromptDescription] = useState("");
+  const [bodyImagePrompts, setBodyImagePrompts] = useState<Record<number, string>>({});
   
 
   // Fetch on mount
@@ -264,7 +266,7 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
     }
   };
 
-  const isBusy = saving || generating || optimizing || publishing || generatingImage || researchingSERP || sectionRewriting;
+  const isBusy = saving || generating || optimizing || publishing || generatingImage || researchingSERP || sectionRewriting || regeneratingImageIndex !== null;
 
   const handleSERPResearch = async () => {
     setResearchingSERP(true);
@@ -297,6 +299,37 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
       toast({ title: "Image generation failed", description: err.message, variant: "destructive" });
     } finally {
       setGeneratingImage(false);
+    }
+  };
+
+  // Extract body images from markdown
+  const bodyImageRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
+  const bodyImages: { alt: string; url: string; fullMatch: string; index: number }[] = [];
+  let match: RegExpExecArray | null;
+  let imgIdx = 0;
+  while ((match = bodyImageRegex.exec(draftContent)) !== null) {
+    bodyImages.push({ alt: match[1], url: match[2], fullMatch: match[0], index: imgIdx++ });
+  }
+
+  const handleRegenerateBodyImage = async (imageIndex: number, oldMatch: string) => {
+    setRegeneratingImageIndex(imageIndex);
+    try {
+      const prompt = bodyImagePrompts[imageIndex] || undefined;
+      const res = await supabase.functions.invoke("generate-hero-image", {
+        body: { contentItemId: item.id, keyword: item.keyword, title: item.title, customPrompt: prompt, imageType: "body" },
+      });
+      if (res.error) throw res.error;
+      const newUrl = res.data?.image_url;
+      if (newUrl) {
+        const altText = bodyImages[imageIndex]?.alt || item.keyword;
+        const newMarkdown = `![${altText}](${newUrl})`;
+        setDraftContent((prev) => prev.replace(oldMatch, newMarkdown));
+        toast({ title: `Body image ${imageIndex + 1} regenerated` });
+      }
+    } catch (err: any) {
+      toast({ title: "Image regeneration failed", description: err.message, variant: "destructive" });
+    } finally {
+      setRegeneratingImageIndex(null);
     }
   };
 
@@ -415,24 +448,65 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
 
         <TabsContent value="content">
           {/* Hero image generate button (image shown in preview) */}
-          <div className="rounded-lg border border-border bg-card mb-6 p-4 space-y-3">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <ImageIcon className="h-4 w-4" />
-              <span>{item.hero_image_url ? "Hero Image" : "No hero image yet"}</span>
+          <div className="rounded-lg border border-border bg-card mb-6 p-4 space-y-4">
+            <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+              <ImageIcon className="h-4 w-4 text-primary" />
+              <span>Image Management</span>
             </div>
-            <Textarea
-              placeholder="Describe the image you want (e.g. 'A futuristic city skyline with glowing data streams'). Leave blank for auto-generated."
-              value={imagePromptDescription}
-              onChange={(e) => setImagePromptDescription(e.target.value)}
-              className="min-h-[60px] text-xs"
-              rows={2}
-            />
-            <div className="flex justify-end">
-              <Button size="sm" variant="outline" onClick={handleGenerateImage} disabled={isBusy} className="h-7 text-xs gap-1.5">
+
+            {/* Hero Image */}
+            <div className="rounded-md border border-border p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-medium text-muted-foreground">Hero Image</span>
+                {item.hero_image_url && <Badge variant="outline" className="text-[10px]">Active</Badge>}
+              </div>
+              {item.hero_image_url && (
+                <img src={item.hero_image_url} alt="Hero" className="w-full max-h-32 object-cover rounded-md border border-border" />
+              )}
+              <Textarea
+                placeholder="Describe the hero image you want (leave blank for auto-generated)"
+                value={imagePromptDescription}
+                onChange={(e) => setImagePromptDescription(e.target.value)}
+                className="min-h-[50px] text-xs"
+                rows={2}
+              />
+              <Button size="sm" variant="outline" onClick={handleGenerateImage} disabled={isBusy} className="h-7 text-xs gap-1.5 w-full">
                 {generatingImage ? <Loader2 className="h-3 w-3 animate-spin" /> : <ImageIcon className="h-3 w-3" />}
-                {item.hero_image_url ? "Regenerate Hero Image" : "Generate Hero Image"}
+                {item.hero_image_url ? "Regenerate Hero" : "Generate Hero"}
               </Button>
             </div>
+
+            {/* Body Images */}
+            {bodyImages.length > 0 && (
+              <div className="space-y-2">
+                <span className="text-xs font-medium text-muted-foreground">Body Images ({bodyImages.length})</span>
+                {bodyImages.map((img, i) => (
+                  <div key={i} className="rounded-md border border-border p-3 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-medium text-muted-foreground">Image {i + 1}</span>
+                    </div>
+                    <img src={img.url} alt={img.alt} className="w-full max-h-28 object-cover rounded-md border border-border" />
+                    <Textarea
+                      placeholder={`Describe replacement for image ${i + 1} (leave blank for auto)`}
+                      value={bodyImagePrompts[i] || ""}
+                      onChange={(e) => setBodyImagePrompts((prev) => ({ ...prev, [i]: e.target.value }))}
+                      className="min-h-[40px] text-xs"
+                      rows={1}
+                    />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleRegenerateBodyImage(i, img.fullMatch)}
+                      disabled={isBusy}
+                      className="h-7 text-xs gap-1.5 w-full"
+                    >
+                      {regeneratingImageIndex === i ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
+                      Regenerate Image {i + 1}
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* SERP Research Summary */}

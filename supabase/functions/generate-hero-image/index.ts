@@ -30,10 +30,11 @@ serve(async (req) => {
 
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { keyword, title, contentItemId, brandId, customPrompt } = await req.json();
+    const { keyword, title, contentItemId, brandId, customPrompt, imageType } = await req.json();
     if (!keyword && !title) {
       return new Response(JSON.stringify({ error: "keyword or title required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
+    const isBodyImage = imageType === "body";
 
     // Fetch brand settings for image defaults
     let brand: any = null;
@@ -138,7 +139,8 @@ Ultra high resolution.${customPrompt ? `\n\nCLIENT CREATIVE DIRECTION\n${customP
     const base64Data = base64Match[2];
     const binaryData = Uint8Array.from(atob(base64Data), (c) => c.charCodeAt(0));
 
-    const fileName = `${userId}/${contentItemId || crypto.randomUUID()}-hero.${imageFormat}`;
+    const imageSuffix = isBodyImage ? `body-${Date.now()}` : "hero";
+    const fileName = `${userId}/${contentItemId || crypto.randomUUID()}-${imageSuffix}.${imageFormat}`;
 
     const { error: uploadError } = await supabaseAdmin.storage
       .from("content-images")
@@ -159,7 +161,7 @@ Ultra high resolution.${customPrompt ? `\n\nCLIENT CREATIVE DIRECTION\n${customP
     const heroImageUrl = publicUrlData.publicUrl;
     console.log("Hero image uploaded:", heroImageUrl);
 
-    if (contentItemId) {
+    if (contentItemId && !isBodyImage) {
       await supabaseAuth.from("content_items").update({
         hero_image_url: heroImageUrl,
         brand_id: brandId || brand?.id || null,
@@ -173,7 +175,7 @@ Ultra high resolution.${customPrompt ? `\n\nCLIENT CREATIVE DIRECTION\n${customP
       result: { hero_image_url: heroImageUrl, content_item_id: contentItemId, brand: brand?.name || null },
     }).eq("id", run?.id);
 
-    return new Response(JSON.stringify({ success: true, hero_image_url: heroImageUrl }), {
+    return new Response(JSON.stringify({ success: true, hero_image_url: heroImageUrl, image_url: heroImageUrl }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

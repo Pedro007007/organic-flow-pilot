@@ -30,7 +30,7 @@ serve(async (req) => {
 
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { keyword, title, contentItemId, brandId, customPrompt, imageType } = await req.json();
+    const { keyword, title, contentItemId, brandId, customPrompt, imageType, aspectRatio, style, model } = await req.json();
     if (!keyword && !title) {
       return new Response(JSON.stringify({ error: "keyword or title required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
@@ -48,9 +48,10 @@ serve(async (req) => {
     }
 
     const imgDefaults = brand?.image_defaults || {};
-    const imgStyle = imgDefaults.style || "modern editorial";
+    const imgStyle = style || imgDefaults.style || "modern editorial";
     const imgPalette = imgDefaults.color_palette || "";
-    const imgRatio = imgDefaults.aspect_ratio || "16:9";
+    const imgRatio = aspectRatio || imgDefaults.aspect_ratio || "16:9";
+    const imgModel = model || "google/gemini-3-pro-image-preview";
 
     const { data: run } = await supabaseAuth.from("agent_runs").insert({
       user_id: userId,
@@ -109,7 +110,7 @@ Ultra high resolution.${customPrompt ? `\n\nCLIENT CREATIVE DIRECTION\n${customP
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-3-pro-image-preview",
+        model: imgModel,
         messages: [{ role: "user", content: imagePrompt }],
         modalities: ["image", "text"],
       }),

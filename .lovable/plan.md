@@ -1,53 +1,33 @@
 
 
-# Export Feature on Content Detail Page
+# Always Show 3 Image Cards (Hero + Body 1 + Body 2)
 
-## What Changes
+## Problem
+Currently, body image cards only appear when the article's markdown already contains image placeholders (`![alt](url)`). New or simple articles without those placeholders only show the Hero card, leading to an inconsistent experience.
 
-Add an **Export** dropdown button to the content detail page's top bar (next to Save/Reject). When clicked, it shows a dropdown menu with multiple export format options. This lets users export their content directly from the dashboard where they create and optimize it, without needing to go to the blog post page.
-
-## Export Formats
-
-- **Markdown (.md)** -- raw markdown as stored in the draft
-- **HTML (.html)** -- full HTML document with SEO metadata, hero image, JSON-LD structured data
-- **DOCX (.docx)** -- Word-compatible HTML document (same approach as existing BlogPost export)
-- **Plain Text (.txt)** -- stripped markdown, no formatting
-- **PDF (.pdf)** -- uses existing jsPDF + html2canvas approach (renders preview then captures)
-
-## UI Layout
-
-The Export button sits in the top bar alongside Save and Reject:
-
-```text
-[SERP Research] [Generate] [Optimize] [Export v] [Save] [Reject] [Move to ...]
-```
-
-The dropdown arrow reveals:
-
-```text
-+------------------------+
-| Export as Markdown     |
-| Export as HTML         |
-| Export as DOCX         |
-| Export as Plain Text   |
-+------------------------+
-```
+## Solution
+Always render exactly 3 image cards -- **Hero**, **Body 1**, and **Body 2** -- regardless of whether the markdown contains image placeholders. When a body image slot has no existing placeholder in the markdown, clicking "Generate" will create the image and insert it into the content automatically.
 
 ## Technical Details
 
 ### File: `src/components/ContentDetail.tsx`
 
-1. Import `DropdownMenu`, `DropdownMenuContent`, `DropdownMenuItem`, `DropdownMenuTrigger` from `@/components/ui/dropdown-menu` and the `Download` icon from lucide-react
+1. **Build a fixed 2-slot body images array** instead of relying solely on regex-extracted images:
+   - Still parse existing markdown images with the regex
+   - Create a `displayBodyImages` array of exactly 2 slots
+   - Slot 0 and 1 map to the first and second markdown images if they exist, otherwise they are empty placeholders
 
-2. Add export handler functions:
-   - **exportMarkdown**: Downloads `draftContent` as a `.md` file
-   - **exportHtml**: Builds a full HTML document including `<head>` with SEO title, meta description, JSON-LD structured data, hero image, and rendered markdown body. Downloads as `.html`
-   - **exportDocx**: Same HTML content as exportHtml but saved with `.docx` extension and Word MIME type (matches existing BlogPost pattern)
-   - **exportPlainText**: Strips markdown syntax from `draftContent` using regex and downloads as `.txt`
+2. **Update the Body Image Cards rendering** (around line 632-684):
+   - Loop over the fixed 2 slots instead of `bodyImages.map(...)`
+   - If a slot has an existing image URL, show the thumbnail and "Regenerate" button (current behavior)
+   - If a slot is empty (no placeholder in markdown), show the empty image icon placeholder and a "Generate" button
 
-3. Add the Export dropdown button in the top bar actions area, visible whenever there is draft content to export (not gated by status)
+3. **Update `handleRegenerateBodyImage`** to handle new image insertion:
+   - When generating for an empty slot (no `oldMatch`), call the edge function the same way
+   - On success, append the new `![keyword](url)` markdown at the end of the draft content (or insert it at a sensible position like after the first few paragraphs for Body 1, and later for Body 2)
+   - When regenerating an existing slot, keep the current replace behavior
 
-4. Each format generates a Blob, creates an object URL, triggers a download with the slug or title as filename, then revokes the URL
+4. **Track regenerating state per slot** -- the existing `regeneratingImageIndex` already handles this, no change needed
 
-### No backend changes needed
-All export logic runs client-side using the existing draft content and metadata already loaded in the component state.
+### No backend or database changes required
+The edge function already supports generating body images. The only change is ensuring the frontend always presents all 3 slots.

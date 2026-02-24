@@ -454,59 +454,62 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
               <span>Image Management</span>
             </div>
 
-            {/* Hero Image */}
-            <div className="rounded-md border border-border p-3 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-muted-foreground">Hero Image</span>
-                {item.hero_image_url && <Badge variant="outline" className="text-[10px]">Active</Badge>}
-              </div>
-              {item.hero_image_url && (
-                <img src={item.hero_image_url} alt="Hero" className="w-full max-h-32 object-cover rounded-md border border-border" />
-              )}
-              <Textarea
-                placeholder="Describe the hero image you want (leave blank for auto-generated)"
-                value={imagePromptDescription}
-                onChange={(e) => setImagePromptDescription(e.target.value)}
-                className="min-h-[50px] text-xs"
-                rows={2}
-              />
-              <Button size="sm" variant="outline" onClick={handleGenerateImage} disabled={isBusy} className="h-7 text-xs gap-1.5 w-full">
-                {generatingImage ? <Loader2 className="h-3 w-3 animate-spin" /> : <ImageIcon className="h-3 w-3" />}
-                {item.hero_image_url ? "Regenerate Hero" : "Generate Hero"}
-              </Button>
-            </div>
-
-            {/* Body Images */}
-            {bodyImages.length > 0 && (
-              <div className="space-y-2">
-                <span className="text-xs font-medium text-muted-foreground">Body Images ({bodyImages.length})</span>
-                {bodyImages.map((img, i) => (
-                  <div key={i} className="rounded-md border border-border p-3 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-medium text-muted-foreground">Image {i + 1}</span>
-                    </div>
-                    <img src={img.url} alt={img.alt} className="w-full max-h-28 object-cover rounded-md border border-border" />
-                    <Textarea
-                      placeholder={`Describe replacement for image ${i + 1} (leave blank for auto)`}
-                      value={bodyImagePrompts[i] || ""}
-                      onChange={(e) => setBodyImagePrompts((prev) => ({ ...prev, [i]: e.target.value }))}
-                      className="min-h-[40px] text-xs"
-                      rows={1}
-                    />
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleRegenerateBodyImage(i, img.fullMatch)}
-                      disabled={isBusy}
-                      className="h-7 text-xs gap-1.5 w-full"
-                    >
-                      {regeneratingImageIndex === i ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
-                      Regenerate Image {i + 1}
-                    </Button>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {/* Hero Image Card */}
+              <div className="rounded-md border border-border p-3 space-y-2 flex flex-col">
+                <div className="flex items-center justify-between">
+                  <Badge variant="secondary" className="text-[10px]">Hero</Badge>
+                  {item.hero_image_url && <Badge variant="outline" className="text-[10px]">Active</Badge>}
+                </div>
+                {item.hero_image_url ? (
+                  <div className="aspect-video w-full overflow-hidden rounded-md border border-border">
+                    <img src={item.hero_image_url} alt="Hero" className="w-full h-full object-cover" />
                   </div>
-                ))}
+                ) : (
+                  <div className="aspect-video w-full rounded-md border border-border bg-muted flex items-center justify-center">
+                    <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                )}
+                <Textarea
+                  placeholder="Describe the hero image you want (leave blank for auto)"
+                  value={imagePromptDescription}
+                  onChange={(e) => setImagePromptDescription(e.target.value)}
+                  className="min-h-[40px] text-xs flex-grow"
+                  rows={2}
+                />
+                <Button size="sm" variant="outline" onClick={handleGenerateImage} disabled={isBusy} className="h-7 text-xs gap-1.5 w-full mt-auto">
+                  {generatingImage ? <Loader2 className="h-3 w-3 animate-spin" /> : <ImageIcon className="h-3 w-3" />}
+                  {item.hero_image_url ? "Regenerate" : "Generate"}
+                </Button>
               </div>
-            )}
+
+              {/* Body Image Cards */}
+              {bodyImages.map((img, i) => (
+                <div key={i} className="rounded-md border border-border p-3 space-y-2 flex flex-col">
+                  <Badge variant="secondary" className="text-[10px]">Body {i + 1}</Badge>
+                  <div className="aspect-video w-full overflow-hidden rounded-md border border-border">
+                    <img src={img.url} alt={img.alt} className="w-full h-full object-cover" />
+                  </div>
+                  <Textarea
+                    placeholder={`Describe replacement (leave blank for auto)`}
+                    value={bodyImagePrompts[i] || ""}
+                    onChange={(e) => setBodyImagePrompts((prev) => ({ ...prev, [i]: e.target.value }))}
+                    className="min-h-[40px] text-xs flex-grow"
+                    rows={2}
+                  />
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleRegenerateBodyImage(i, img.fullMatch)}
+                    disabled={isBusy}
+                    className="h-7 text-xs gap-1.5 w-full mt-auto"
+                  >
+                    {regeneratingImageIndex === i ? <Loader2 className="h-3 w-3 animate-spin" /> : <RefreshCw className="h-3 w-3" />}
+                    Regenerate
+                  </Button>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* SERP Research Summary */}

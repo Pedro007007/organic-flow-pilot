@@ -101,6 +101,7 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
     { value: "3d render", label: "3D Render" },
     { value: "watercolor", label: "Watercolor" },
     { value: "photorealistic", label: "Photorealistic" },
+    { value: "ultrarealistic", label: "Ultra Realistic" },
     { value: "minimalist", label: "Minimalist" },
     { value: "abstract", label: "Abstract" },
   ];

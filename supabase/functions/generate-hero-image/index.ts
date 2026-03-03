@@ -78,6 +78,75 @@ serve(async (req) => {
     };
     const dimensionHint = ratioDimensions[imgRatio] || `${imgRatio} ratio`;
 
+    // Style-specific visual directions
+    const styleDirections: Record<string, { lighting: string; texture: string; subject: string; mood: string; background: string }> = {
+      "modern editorial": {
+        lighting: "Cinematic lighting or soft gradient lighting",
+        texture: "Clean surfaces, subtle gradients, layered transparencies",
+        subject: "Abstract conceptual scene or professional digital workspace",
+        mood: "Premium, sophisticated, high contrast",
+        background: "Dark gradient or soft light tech background",
+      },
+      "cinematic": {
+        lighting: "Dramatic cinematic lighting with deep shadows and golden/cool highlights, volumetric light rays",
+        texture: "Film grain, anamorphic lens flare, shallow depth of field with bokeh",
+        subject: "A dramatic scene with strong narrative tension, as if captured from a blockbuster film",
+        mood: "Epic, dramatic, emotionally charged, moody atmosphere",
+        background: "Rich atmospheric environment with fog, haze, or dramatic sky",
+      },
+      "photorealistic": {
+        lighting: "Natural daylight or studio photography lighting, realistic light falloff and reflections",
+        texture: "True-to-life materials and surfaces, visible micro-details, realistic skin/fabric/metal textures",
+        subject: "A real-world scene or object photographed with a professional DSLR camera, 85mm lens, f/1.8",
+        mood: "Authentic, tangible, believable — indistinguishable from a real photograph",
+        background: "Real-world environment with natural depth of field blur",
+      },
+      "ultrarealistic": {
+        lighting: "Hyper-realistic global illumination, subsurface scattering on organic materials, physically accurate caustics",
+        texture: "Extreme micro-detail: pores, fiber weave, dust particles, water droplets, fingerprints on glass",
+        subject: "An ultra-detailed real-world scene rendered at 8K resolution, macro-level detail visible everywhere",
+        mood: "Jaw-droppingly lifelike, almost tactile — viewers should question if it is a photo or render",
+        background: "Photographic environment with tilt-shift bokeh and atmospheric haze",
+      },
+      "flat illustration": {
+        lighting: "Flat, even lighting with no dramatic shadows — clean and uniform",
+        texture: "Smooth flat colors, geometric shapes, vector-style edges, no gradients or textures",
+        subject: "Simplified conceptual illustration using iconic shapes and symbols",
+        mood: "Friendly, approachable, clear, modern startup aesthetic",
+        background: "Solid color or simple two-tone flat background",
+      },
+      "3d render": {
+        lighting: "Studio three-point lighting with soft ambient occlusion and global illumination",
+        texture: "Glossy/matte 3D materials, smooth plastic or glass surfaces, subsurface scattering",
+        subject: "A stylized 3D scene with clean geometry, floating elements, and isometric or perspective composition",
+        mood: "Playful yet professional, modern tech product aesthetic",
+        background: "Clean gradient or abstract 3D environment with soft reflections",
+      },
+      "watercolor": {
+        lighting: "Soft diffused natural light, as if painted en plein air",
+        texture: "Visible brush strokes, wet-on-wet paint bleeding, paper grain texture, organic color mixing",
+        subject: "An artistic, hand-painted interpretation of the concept with flowing organic forms",
+        mood: "Artistic, organic, warm, handcrafted elegance",
+        background: "Textured watercolor paper with soft color washes and paint splatter edges",
+      },
+      "minimalist": {
+        lighting: "Clean, even, high-key lighting with minimal shadows",
+        texture: "Ultra-smooth surfaces, generous whitespace, single accent color pops",
+        subject: "One single iconic element or symbol centered with maximum negative space",
+        mood: "Calm, refined, intentional — every element earns its place",
+        background: "Pure white, off-white, or single muted tone",
+      },
+      "abstract": {
+        lighting: "Ethereal glowing light sources, neon accents, bioluminescent effects",
+        texture: "Fluid forms, particle systems, fractal patterns, organic data visualizations",
+        subject: "Non-representational composition of flowing shapes, energy fields, and dynamic color interactions",
+        mood: "Futuristic, imaginative, visually striking, thought-provoking",
+        background: "Deep dark canvas with vibrant color explosions or flowing gradients",
+      },
+    };
+
+    const dir = styleDirections[imgStyle] || styleDirections["modern editorial"];
+
     const imagePrompt = `You are a senior brand visual director and conversion-focused creative strategist.
 Your task is to generate a HIGH-IMPACT hero image for a landing page or article.
 This image must NOT be generic. It must visually communicate authority, positioning, and value instantly.
@@ -98,13 +167,15 @@ PAGE CONTEXT
 Article / Page Title: ${title || keyword}
 Primary Keyword: ${keyword}
 
-VISUAL STYLE DIRECTION
-Art Direction Style:
-- ${imgStyle}, premium, high contrast
-- Cinematic lighting or soft gradient lighting
+VISUAL STYLE DIRECTION — "${imgStyle.toUpperCase()}"
+THIS IS THE MOST IMPORTANT SECTION. You MUST faithfully produce a "${imgStyle}" style image. Do NOT default to generic tech/SaaS imagery.
+
+Art Direction:
+- Overall mood: ${dir.mood}
+- Lighting: ${dir.lighting}
+- Texture & Surface: ${dir.texture}
+- Subject matter: ${dir.subject}
 - Depth and layered composition (foreground / midground / background)
-- Subtle abstract elements (data, growth, digital signals, search, AI, analytics)
-Visual Metaphor: Choose a strong visual metaphor representing the benefit — growth (ascending light beams, rising graphs), clarity (spotlight, illuminated pathway), automation (AI interface, flowing data streams), or connection (network nodes, linking signals).
 
 COMPOSITION RULES
 - The canvas MUST be ${imgRatio} (${dimensionHint})
@@ -115,12 +186,12 @@ COMPOSITION RULES
 - NO text or words in the image
 
 COLOUR & BRAND IDENTITY${paletteNote}
-Background Style: dark gradient or soft light tech background
-The image MUST match the brand palette and feel consistent with a modern SaaS or AI company.
+Background Style: ${dir.background}
+The image MUST match the brand palette while staying true to the "${imgStyle}" visual style.
 
 SUBJECT DIRECTION
-Choose ONE: abstract conceptual scene (preferred for AI/SEO brands) or professional digital workspace environment.
-Ultra high resolution, ${dimensionHint}.${customPrompt ? `\n\nCLIENT CREATIVE DIRECTION\n${customPrompt}\nIncorporate the above direction into the visual concept while maintaining brand consistency.` : ""}`;
+${dir.subject}
+Ultra high resolution, ${dimensionHint}.${customPrompt ? `\n\nCLIENT CREATIVE DIRECTION\n${customPrompt}\nIncorporate the above direction into the visual concept while maintaining brand consistency and the "${imgStyle}" style.` : ""}`;
 
     console.log("Generating hero image for:", title || keyword);
 

@@ -32,7 +32,7 @@ serve(async (req) => {
     }
     const userId = user.id;
 
-    const { contentItemId, outline, keyword, title, serpResearch, strategy, brandId } = await req.json();
+    const { contentItemId, outline, keyword, title, serpResearch, strategy, brandId, context, referenceLinks, extraKeywords } = await req.json();
     if (!outline && !keyword) {
       return new Response(JSON.stringify({ error: "outline or keyword required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
@@ -160,7 +160,7 @@ Output format: Markdown with proper H1, H2, H3 headings.`;
         model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: `Write a complete SEO article.\n\nTitle: ${title || keyword}\nKeyword: ${keyword}\nOutline: ${JSON.stringify(outline || "Create your own outline based on the keyword")}${serpResearch ? `\n\nCOMPETITOR INTELLIGENCE:\n- Content gaps to exploit: ${(serpResearch.content_gaps || []).join(", ")}\n- Competitor weaknesses: ${(serpResearch.competitor_weaknesses || []).join(", ")}\n- FAQ questions to answer: ${(serpResearch.faq_questions || []).join(", ")}\n- Unique angles: ${(serpResearch.unique_angles || []).join(", ")}\n- Target word count: ${serpResearch.recommended_word_count || 2500}+\n- Common headings competitors use: ${(serpResearch.common_headings || []).join(", ")}\n\nCRITICAL: Your article MUST cover everything competitors cover PLUS the content gaps. Be more comprehensive, more actionable, and more expert than all competitors.` : ""}${strategy ? `\n\nCONTENT STRATEGY:\n${JSON.stringify(strategy)}` : ""}\n\nIMPORTANT: Include exactly two image placeholders {{IMAGE_1}} and {{IMAGE_2}} placed at natural visual break points within the article body. Write in Markdown format.` },
+          { role: "user", content: `Write a complete SEO article.\n\nTitle: ${title || keyword}\nKeyword: ${keyword}\nOutline: ${JSON.stringify(outline || "Create your own outline based on the keyword")}${context ? `\n\nCONTEXT & INSTRUCTIONS:\n${context}` : ""}${referenceLinks && referenceLinks.length > 0 ? `\n\nREFERENCE SOURCES (use these as inspiration and factual reference):\n${referenceLinks.map((l: string) => `- ${l}`).join("\n")}` : ""}${extraKeywords && extraKeywords.length > 0 ? `\n\nSECONDARY KEYWORDS (weave these naturally throughout the article):\n${extraKeywords.join(", ")}` : ""}${serpResearch ? `\n\nCOMPETITOR INTELLIGENCE:\n- Content gaps to exploit: ${(serpResearch.content_gaps || []).join(", ")}\n- Competitor weaknesses: ${(serpResearch.competitor_weaknesses || []).join(", ")}\n- FAQ questions to answer: ${(serpResearch.faq_questions || []).join(", ")}\n- Unique angles: ${(serpResearch.unique_angles || []).join(", ")}\n- Target word count: ${serpResearch.recommended_word_count || 2500}+\n- Common headings competitors use: ${(serpResearch.common_headings || []).join(", ")}\n\nCRITICAL: Your article MUST cover everything competitors cover PLUS the content gaps. Be more comprehensive, more actionable, and more expert than all competitors.` : ""}${strategy ? `\n\nCONTENT STRATEGY:\n${JSON.stringify(strategy)}` : ""}\n\nIMPORTANT: Include exactly two image placeholders {{IMAGE_1}} and {{IMAGE_2}} placed at natural visual break points within the article body. Write in Markdown format.` },
         ],
       }),
     });

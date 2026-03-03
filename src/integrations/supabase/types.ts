@@ -216,14 +216,17 @@ export type Database = {
           author: string
           brand_id: string | null
           clicks: number | null
+          context: string | null
           created_at: string
           draft_content: string | null
+          extra_keywords: string[] | null
           hero_image_url: string | null
           id: string
           impressions: number | null
           keyword: string
           meta_description: string | null
           position: number | null
+          reference_links: string[] | null
           schema_types: string[] | null
           seo_score: number | null
           seo_title: string | null
@@ -240,14 +243,17 @@ export type Database = {
           author?: string
           brand_id?: string | null
           clicks?: number | null
+          context?: string | null
           created_at?: string
           draft_content?: string | null
+          extra_keywords?: string[] | null
           hero_image_url?: string | null
           id?: string
           impressions?: number | null
           keyword: string
           meta_description?: string | null
           position?: number | null
+          reference_links?: string[] | null
           schema_types?: string[] | null
           seo_score?: number | null
           seo_title?: string | null
@@ -264,14 +270,17 @@ export type Database = {
           author?: string
           brand_id?: string | null
           clicks?: number | null
+          context?: string | null
           created_at?: string
           draft_content?: string | null
+          extra_keywords?: string[] | null
           hero_image_url?: string | null
           id?: string
           impressions?: number | null
           keyword?: string
           meta_description?: string | null
           position?: number | null
+          reference_links?: string[] | null
           schema_types?: string[] | null
           seo_score?: number | null
           seo_title?: string | null

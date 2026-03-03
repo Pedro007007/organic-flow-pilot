@@ -1,8 +1,9 @@
 import { useState, useMemo, useEffect } from "react";
-import { FileText, Plus, Rocket, Loader2, Search, Filter, CheckSquare, Square, Download, Tag } from "lucide-react";
+import { FileText, Plus, Rocket, Loader2, Search, Filter, CheckSquare, Square, Download, Tag, X, Link } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -48,6 +49,10 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
   const [autopilot, setAutopilot] = useState(false);
   const [brandId, setBrandId] = useState<string>("");
   const [brands, setBrands] = useState<{ id: string; name: string }[]>([]);
+  const [context, setContext] = useState("");
+  const [referenceLinks, setReferenceLinks] = useState<string[]>([]);
+  const [refLinkInput, setRefLinkInput] = useState("");
+  const [extraKeywords, setExtraKeywords] = useState("");
 
   useEffect(() => {
     if (!user) return;
@@ -121,6 +126,7 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
     setCreating(true);
 
     try {
+      const parsedExtraKw = extraKeywords.trim() ? extraKeywords.split(",").map(k => k.trim()).filter(Boolean) : null;
       const { data, error } = await supabase
         .from("content_items")
         .insert({
@@ -130,7 +136,10 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
           status: "discovery",
           author: "Agent",
           brand_id: brandId || null,
-        })
+          context: context.trim() || null,
+          reference_links: referenceLinks.length > 0 ? referenceLinks : null,
+          extra_keywords: parsedExtraKw,
+        } as any)
         .select("id")
         .single();
 
@@ -138,13 +147,13 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
 
       toast({ title: "Content created" });
       queryClient.invalidateQueries({ queryKey: ["content_items"] });
-      setTitle("");
-      setKeyword("");
+      setTitle(""); setKeyword(""); setContext(""); setReferenceLinks([]); setRefLinkInput(""); setExtraKeywords("");
       setOpen(false);
 
       if (runAutopilot && data?.id) {
         setAutopilot(true);
-        await runFullPipeline(data.id, keyword.trim(), title.trim(), brandId || undefined);
+        const parsedKw = extraKeywords.trim() ? extraKeywords.split(",").map(k => k.trim()).filter(Boolean) : undefined;
+        await runFullPipeline(data.id, keyword.trim(), title.trim(), brandId || undefined, context.trim() || undefined, referenceLinks.length > 0 ? referenceLinks : undefined, parsedKw);
         setAutopilot(false);
       }
     } catch (err: any) {
@@ -154,7 +163,7 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
     }
   };
 
-  const runFullPipeline = async (contentItemId: string, kw: string, ttl: string, pipelineBrandId?: string) => {
+  const runFullPipeline = async (contentItemId: string, kw: string, ttl: string, pipelineBrandId?: string, pipelineContext?: string, pipelineRefLinks?: string[], pipelineExtraKw?: string[]) => {
     try {
       // Step 1: SERP Research
       toast({ title: "🔍 Autopilot: Researching competitors..." });
@@ -187,7 +196,7 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
       // Step 3: Content Generation (with SERP + strategy)
       toast({ title: "✍️ Autopilot: Writing content..." });
       const genRes = await supabase.functions.invoke("content-generate", {
-        body: { contentItemId, keyword: kw, title: ttl, serpResearch, strategy, brandId: pipelineBrandId },
+        body: { contentItemId, keyword: kw, title: ttl, serpResearch, strategy, brandId: pipelineBrandId, context: pipelineContext, referenceLinks: pipelineRefLinks, extraKeywords: pipelineExtraKw },
       });
       if (genRes.error) throw genRes.error;
 
@@ -266,6 +275,31 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
                   </Select>
                 </div>
               )}
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Context & Instructions</Label>
+                <Textarea value={context} onChange={(e) => setContext(e.target.value)} placeholder="Add background context, specific instructions, or notes for the AI..." className="bg-background border-border text-sm min-h-[60px]" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground flex items-center gap-1"><Link className="h-3 w-3" /> Reference Links</Label>
+                <div className="flex gap-2">
+                  <Input value={refLinkInput} onChange={(e) => setRefLinkInput(e.target.value)} placeholder="https://example.com/article" className="bg-background border-border text-sm flex-1" onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); const url = refLinkInput.trim(); if (url && !referenceLinks.includes(url)) { setReferenceLinks([...referenceLinks, url]); setRefLinkInput(""); } } }} />
+                  <Button type="button" size="sm" variant="outline" onClick={() => { const url = refLinkInput.trim(); if (url && !referenceLinks.includes(url)) { setReferenceLinks([...referenceLinks, url]); setRefLinkInput(""); } }}>Add</Button>
+                </div>
+                {referenceLinks.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {referenceLinks.map((link, i) => (
+                      <span key={i} className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-0.5 text-[11px] text-muted-foreground max-w-[220px]">
+                        <span className="truncate">{link.replace(/^https?:\/\//, "")}</span>
+                        <button onClick={() => setReferenceLinks(referenceLinks.filter((_, j) => j !== i))} className="hover:text-foreground"><X className="h-3 w-3" /></button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs text-muted-foreground">Extra Keywords</Label>
+                <Input value={extraKeywords} onChange={(e) => setExtraKeywords(e.target.value)} placeholder="e.g. local seo, google ranking, organic traffic" className="bg-background border-border text-sm" />
+              </div>
               <div className="flex gap-2">
                 <Button onClick={() => handleCreate(false)} disabled={creating || !title.trim() || !keyword.trim()} className="flex-1">
                   {creating ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Plus className="mr-1.5 h-3.5 w-3.5" />}

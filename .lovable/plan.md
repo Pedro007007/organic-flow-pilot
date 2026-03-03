@@ -1,33 +1,70 @@
 
 
-# Always Show 3 Image Cards (Hero + Body 1 + Body 2)
+# Add Context, Reference Links & Extra Keywords to Create Content Dialog
 
-## Problem
-Currently, body image cards only appear when the article's markdown already contains image placeholders (`![alt](url)`). New or simple articles without those placeholders only show the Hero card, leading to an inconsistent experience.
+## What Changes
 
-## Solution
-Always render exactly 3 image cards -- **Hero**, **Body 1**, and **Body 2** -- regardless of whether the markdown contains image placeholders. When a body image slot has no existing placeholder in the markdown, clicking "Generate" will create the image and insert it into the content automatically.
+Enhance the "Create Content Item" dialog in ContentPipeline with three new fields:
 
-## Technical Details
+1. **Context** -- a textarea for adding background information or specific instructions the AI should follow when generating the article
+2. **Reference Links** -- a multi-link input where users can paste URLs that the AI will use as source material/inspiration
+3. **Extra Keywords** -- a comma-separated input for additional secondary/LSI keywords to weave into the content
 
-### File: `src/components/ContentDetail.tsx`
+These fields will be stored on the `content_items` table and passed through to the content generation edge function so the AI produces articles grounded in the user's provided context and references.
 
-1. **Build a fixed 2-slot body images array** instead of relying solely on regex-extracted images:
-   - Still parse existing markdown images with the regex
-   - Create a `displayBodyImages` array of exactly 2 slots
-   - Slot 0 and 1 map to the first and second markdown images if they exist, otherwise they are empty placeholders
+## Database Changes
 
-2. **Update the Body Image Cards rendering** (around line 632-684):
-   - Loop over the fixed 2 slots instead of `bodyImages.map(...)`
-   - If a slot has an existing image URL, show the thumbnail and "Regenerate" button (current behavior)
-   - If a slot is empty (no placeholder in markdown), show the empty image icon placeholder and a "Generate" button
+Add 3 new nullable columns to `content_items`:
 
-3. **Update `handleRegenerateBodyImage`** to handle new image insertion:
-   - When generating for an empty slot (no `oldMatch`), call the edge function the same way
-   - On success, append the new `![keyword](url)` markdown at the end of the draft content (or insert it at a sensible position like after the first few paragraphs for Body 1, and later for Body 2)
-   - When regenerating an existing slot, keep the current replace behavior
+```sql
+ALTER TABLE public.content_items
+  ADD COLUMN context text,
+  ADD COLUMN reference_links text[],
+  ADD COLUMN extra_keywords text[];
+```
 
-4. **Track regenerating state per slot** -- the existing `regeneratingImageIndex` already handles this, no change needed
+No RLS changes needed -- existing policies cover these columns.
 
-### No backend or database changes required
-The edge function already supports generating body images. The only change is ensuring the frontend always presents all 3 slots.
+## UI Changes
+
+### File: `src/components/ContentPipeline.tsx`
+
+Add three new fields inside the Create Content Item dialog, between the Brand selector and the action buttons:
+
+```text
++-------------------------------+
+| Title           [input]       |
+| Target Keyword  [input]       |
+| Brand           [select]      |
+| Context         [textarea]    |  <-- NEW
+| Reference Links [link input]  |  <-- NEW (paste URL + Add button, shows chips)
+| Extra Keywords  [input]       |  <-- NEW (comma-separated)
+|                               |
+| [+ Create]  [🚀 Autopilot]   |
++-------------------------------+
+```
+
+- **Context**: A `<Textarea>` with placeholder "Add background context, specific instructions, or notes for the AI..."
+- **Reference Links**: An `<Input>` with an "Add" button. Each pasted URL becomes a removable chip/tag below the input. Stored as `string[]`.
+- **Extra Keywords**: A simple `<Input>` with placeholder "e.g. local seo, google ranking, organic traffic" -- parsed into array on save.
+
+New state variables: `context`, `referenceLinks` (array), `extraKeywords`.
+
+Update `handleCreate` to include these in the insert: `context`, `reference_links`, `extra_keywords`.
+
+Update `runFullPipeline` to pass `context`, `referenceLinks`, and `extraKeywords` to the `content-generate` function call.
+
+Reset all new fields when dialog closes.
+
+## Backend Changes
+
+### File: `supabase/functions/content-generate/index.ts`
+
+1. Destructure `context`, `referenceLinks`, `extraKeywords` from the request body
+2. Append to the user prompt:
+   - If `context`: add a "CONTEXT & INSTRUCTIONS" section
+   - If `referenceLinks`: add a "REFERENCE SOURCES" section listing the URLs for the AI to consider
+   - If `extraKeywords`: add a "SECONDARY KEYWORDS" section instructing natural inclusion
+
+This ensures the AI uses the provided context, draws from the reference material conceptually, and weaves in extra keywords naturally alongside the primary keyword.
+

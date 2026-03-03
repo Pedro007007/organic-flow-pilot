@@ -182,8 +182,8 @@ Output format: Markdown with proper H1, H2, H3 headings.`;
     const paletteNote = imgPalette ? ` Use a ${imgPalette} color palette.` : "";
 
     const imagePrompts = [
-      `Generate a professional, clean blog illustration for an article about "${title || keyword}". The image should visually explain a key concept related to "${keyword}". ${imgStyle} style, no text in the image, 16:9 aspect ratio.${paletteNote} Ultra high resolution.`,
-      `Generate a different professional blog illustration for "${title || keyword}". Show a practical example, diagram, or scenario related to "${keyword}". Clean, ${imgStyle} style, no text, 16:9 aspect ratio.${paletteNote} Ultra high resolution.`,
+      `Generate a professional blog illustration for an article about "${title || keyword}". The image should visually explain a key concept related to "${keyword}". Style: ${imgStyle}. No text in the image, 16:9 aspect ratio.${paletteNote} Ultra high resolution.`,
+      `Generate a different professional blog illustration for "${title || keyword}". Show a practical example, diagram, or scenario related to "${keyword}". Style: ${imgStyle}. No text, 16:9 aspect ratio.${paletteNote} Ultra high resolution.`,
     ];
 
     const imageUrls: string[] = [];

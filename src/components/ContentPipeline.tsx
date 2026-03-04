@@ -280,7 +280,13 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
                 <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="How to Improve Your SEO Rankings" className="bg-background border-border text-sm" />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">Target Keyword</Label>
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs text-muted-foreground">Target Keyword</Label>
+                  <Button type="button" size="sm" variant="ghost" className="h-6 text-[10px] gap-1 text-accent hover:text-accent" onClick={handleAiSuggest} disabled={suggesting || !title.trim()}>
+                    {suggesting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                    AI Suggest
+                  </Button>
+                </div>
                 <Input value={keyword} onChange={(e) => setKeyword(e.target.value)} placeholder="seo rankings" className="bg-background border-border text-sm font-mono" />
               </div>
               {brands.length > 0 && (

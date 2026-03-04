@@ -53,6 +53,7 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
   const [referenceLinks, setReferenceLinks] = useState<string[]>([]);
   const [refLinkInput, setRefLinkInput] = useState("");
   const [extraKeywords, setExtraKeywords] = useState("");
+  const [suggesting, setSuggesting] = useState(false);
 
   useEffect(() => {
     if (!user) return;

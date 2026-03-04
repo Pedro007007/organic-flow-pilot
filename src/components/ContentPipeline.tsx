@@ -55,6 +55,29 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
   const [extraKeywords, setExtraKeywords] = useState("");
   const [suggesting, setSuggesting] = useState(false);
 
+  const handleAiSuggest = async () => {
+    if (!title.trim()) {
+      toast({ title: "Enter a title first", variant: "destructive" });
+      return;
+    }
+    setSuggesting(true);
+    try {
+      const brandName = brands.find(b => b.id === brandId)?.name;
+      const { data, error } = await supabase.functions.invoke("content-suggest", {
+        body: { title: title.trim(), brandName },
+      });
+      if (error) throw error;
+      if (data?.keyword) setKeyword(data.keyword);
+      if (data?.extraKeywords) setExtraKeywords(data.extraKeywords);
+      if (data?.context) setContext(data.context);
+      toast({ title: "✨ AI suggestions applied" });
+    } catch (err: any) {
+      toast({ title: "AI suggest failed", description: err.message, variant: "destructive" });
+    } finally {
+      setSuggesting(false);
+    }
+  };
+
   useEffect(() => {
     if (!user) return;
     supabase.from("brands").select("id, name, is_default").order("created_at").then(({ data }) => {

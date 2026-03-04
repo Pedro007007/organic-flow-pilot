@@ -127,6 +127,10 @@ const LeadCaptureForm = ({ onSubmit }: { onSubmit: (lead: LeadInfo) => void }) =
         phone: form.phone.trim(),
       } as any);
       if (dbError) throw dbError;
+      // Fire-and-forget email notifications
+      supabase.functions.invoke("daniela-lead-email", {
+        body: { name: form.name.trim(), email: form.email.trim(), phone: form.phone.trim() },
+      }).catch(() => {});
       onSubmit(form);
     } catch {
       setError("Something went wrong. Please try again.");

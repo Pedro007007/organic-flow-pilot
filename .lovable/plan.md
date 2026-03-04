@@ -1,70 +1,53 @@
 
 
-# Add Context, Reference Links & Extra Keywords to Create Content Dialog
+# Daniela Chatbot Email Notifications
 
-## What Changes
+## Overview
 
-Enhance the "Create Content Item" dialog in ContentPipeline with three new fields:
+Add two automated emails triggered when someone completes the Daniela lead form and starts chatting:
 
-1. **Context** -- a textarea for adding background information or specific instructions the AI should follow when generating the article
-2. **Reference Links** -- a multi-link input where users can paste URLs that the AI will use as source material/inspiration
-3. **Extra Keywords** -- a comma-separated input for additional secondary/LSI keywords to weave into the content
+1. **Admin notification** -- instant email to you (pedro.acn@consultant.com) with the lead's name, email, phone, and timestamp
+2. **Lead follow-up** -- a branded "Thanks for chatting!" email to the person who chatted, with a warm message and CTA to explore Searchera
 
-These fields will be stored on the `content_items` table and passed through to the content generation edge function so the AI produces articles grounded in the user's provided context and references.
+## Prerequisite: Email Domain Setup
 
-## Database Changes
+Your project has the custom domain **searcheraa.com** but no email domain is configured yet. We need to set this up first so emails can be sent from something like `hello@searcheraa.com`.
 
-Add 3 new nullable columns to `content_items`:
+<lov-actions>
+<lov-open-email-setup>Set up email domain</lov-open-email-setup>
+</lov-actions>
 
-```sql
-ALTER TABLE public.content_items
-  ADD COLUMN context text,
-  ADD COLUMN reference_links text[],
-  ADD COLUMN extra_keywords text[];
+Once the domain is configured and DNS verified, we proceed with implementation.
+
+## Implementation
+
+### 1. New Edge Function: `daniela-lead-email`
+
+A single edge function that sends both emails when invoked:
+
+- **Admin email**: Simple notification with lead details (name, email, phone, time)
+- **Lead follow-up**: Branded HTML email thanking them for chatting, with a soft CTA to explore Searchera
+
+Uses the Lovable transactional email API (no external API key needed).
+
+### 2. Frontend Change: `DanielaChat.tsx`
+
+After the lead form is successfully saved to `daniela_leads`, invoke the new edge function:
+
+```
+supabase.functions.invoke("daniela-lead-email", {
+  body: { name, email, phone }
+})
 ```
 
-No RLS changes needed -- existing policies cover these columns.
+This is fire-and-forget -- it won't block the chat from starting even if the email fails.
 
-## UI Changes
+### Files Changed
 
-### File: `src/components/ContentPipeline.tsx`
+- `supabase/functions/daniela-lead-email/index.ts` -- new edge function
+- `src/components/DanielaChat.tsx` -- add function invoke after lead insert
 
-Add three new fields inside the Create Content Item dialog, between the Brand selector and the action buttons:
+### No Database Changes
 
-```text
-+-------------------------------+
-| Title           [input]       |
-| Target Keyword  [input]       |
-| Brand           [select]      |
-| Context         [textarea]    |  <-- NEW
-| Reference Links [link input]  |  <-- NEW (paste URL + Add button, shows chips)
-| Extra Keywords  [input]       |  <-- NEW (comma-separated)
-|                               |
-| [+ Create]  [🚀 Autopilot]   |
-+-------------------------------+
-```
-
-- **Context**: A `<Textarea>` with placeholder "Add background context, specific instructions, or notes for the AI..."
-- **Reference Links**: An `<Input>` with an "Add" button. Each pasted URL becomes a removable chip/tag below the input. Stored as `string[]`.
-- **Extra Keywords**: A simple `<Input>` with placeholder "e.g. local seo, google ranking, organic traffic" -- parsed into array on save.
-
-New state variables: `context`, `referenceLinks` (array), `extraKeywords`.
-
-Update `handleCreate` to include these in the insert: `context`, `reference_links`, `extra_keywords`.
-
-Update `runFullPipeline` to pass `context`, `referenceLinks`, and `extraKeywords` to the `content-generate` function call.
-
-Reset all new fields when dialog closes.
-
-## Backend Changes
-
-### File: `supabase/functions/content-generate/index.ts`
-
-1. Destructure `context`, `referenceLinks`, `extraKeywords` from the request body
-2. Append to the user prompt:
-   - If `context`: add a "CONTEXT & INSTRUCTIONS" section
-   - If `referenceLinks`: add a "REFERENCE SOURCES" section listing the URLs for the AI to consider
-   - If `extraKeywords`: add a "SECONDARY KEYWORDS" section instructing natural inclusion
-
-This ensures the AI uses the provided context, draws from the reference material conceptually, and weaves in extra keywords naturally alongside the primary keyword.
+No new tables or columns needed.
 

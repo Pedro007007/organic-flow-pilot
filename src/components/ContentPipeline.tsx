@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { FileText, Plus, Rocket, Loader2, Search, Filter, CheckSquare, Square, Download, Tag, X, Link } from "lucide-react";
+import { FileText, Plus, Rocket, Loader2, Search, Filter, CheckSquare, Square, Download, Tag, X, Link, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -53,6 +53,30 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
   const [referenceLinks, setReferenceLinks] = useState<string[]>([]);
   const [refLinkInput, setRefLinkInput] = useState("");
   const [extraKeywords, setExtraKeywords] = useState("");
+  const [suggesting, setSuggesting] = useState(false);
+
+  const handleAiSuggest = async () => {
+    if (!title.trim()) {
+      toast({ title: "Enter a title first", variant: "destructive" });
+      return;
+    }
+    setSuggesting(true);
+    try {
+      const brandName = brands.find(b => b.id === brandId)?.name;
+      const { data, error } = await supabase.functions.invoke("content-suggest", {
+        body: { title: title.trim(), brandName },
+      });
+      if (error) throw error;
+      if (data?.keyword) setKeyword(data.keyword);
+      if (data?.extraKeywords) setExtraKeywords(data.extraKeywords);
+      if (data?.context) setContext(data.context);
+      toast({ title: "✨ AI suggestions applied" });
+    } catch (err: any) {
+      toast({ title: "AI suggest failed", description: err.message, variant: "destructive" });
+    } finally {
+      setSuggesting(false);
+    }
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -256,7 +280,13 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
                 <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="How to Improve Your SEO Rankings" className="bg-background border-border text-sm" />
               </div>
               <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">Target Keyword</Label>
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs text-muted-foreground">Target Keyword</Label>
+                  <Button type="button" size="sm" variant="ghost" className="h-6 text-[10px] gap-1 text-accent hover:text-accent" onClick={handleAiSuggest} disabled={suggesting || !title.trim()}>
+                    {suggesting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                    AI Suggest
+                  </Button>
+                </div>
                 <Input value={keyword} onChange={(e) => setKeyword(e.target.value)} placeholder="seo rankings" className="bg-background border-border text-sm font-mono" />
               </div>
               {brands.length > 0 && (

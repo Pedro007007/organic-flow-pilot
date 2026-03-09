@@ -98,7 +98,7 @@ const Landing = () => {
                 The all-in-one SEO & AEO platform. Discover keywords, generate optimized content, rank on Google, and get cited by ChatGPT, Perplexity & AI Overviews — all on autopilot.
               </p>
               <div className="mt-10 flex flex-wrap items-start gap-4">
-                <Button size="lg" className="bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-700 hover:to-teal-600 text-white border-0 shadow-xl shadow-blue-500/30 h-12 px-8 text-base font-bold" asChild>
+                <Button size="lg" className="bg-[length:200%_auto] animate-gradient bg-gradient-to-r from-blue-600 via-green-400 to-blue-600 text-white border-0 shadow-xl shadow-green-500/30 h-12 px-8 text-base font-bold hover:opacity-90" asChild>
                   <Link to="/auth">
                     Start Free Trial <ArrowRight className="ml-1 h-4 w-4" />
                   </Link>

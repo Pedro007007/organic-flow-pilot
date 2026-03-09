@@ -98,11 +98,14 @@ const Landing = () => {
                 The all-in-one SEO & AEO platform. Discover keywords, generate optimized content, rank on Google, and get cited by ChatGPT, Perplexity & AI Overviews — all on autopilot.
               </p>
               <div className="mt-10 flex flex-wrap items-start gap-4">
-                <Button size="lg" className="bg-[length:200%_auto] animate-gradient bg-gradient-to-r from-blue-600 via-green-400 to-blue-600 text-white border-0 shadow-xl shadow-green-500/30 h-12 px-8 text-base font-bold hover:opacity-90" asChild>
-                  <Link to="/auth">
-                    Start Free Trial <ArrowRight className="ml-1 h-4 w-4" />
-                  </Link>
-                </Button>
+                <div className="relative inline-flex overflow-hidden rounded-lg p-[2px] shadow-xl shadow-green-500/30">
+                  <span className="absolute inset-[-1000%] animate-[spin_2s_linear_infinite] bg-[conic-gradient(from_90deg_at_50%_50%,#2563eb_0%,#4ade80_50%,#2563eb_100%)]" />
+                  <Button size="lg" className="relative h-12 w-full items-center justify-center rounded-md bg-blue-600 px-8 text-base font-bold text-white hover:bg-blue-700 border-0 transition-colors" asChild>
+                    <Link to="/auth">
+                      Start Free Trial <ArrowRight className="ml-1 h-4 w-4" />
+                    </Link>
+                  </Button>
+                </div>
                 <Button variant="outline" size="lg" className="border-gray-300 text-gray-700 hover:bg-gray-50 h-12 px-8 text-base font-bold" asChild>
                   <a href="#how-it-works">
                     Learn More

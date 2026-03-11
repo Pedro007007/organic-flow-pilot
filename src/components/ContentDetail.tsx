@@ -437,20 +437,24 @@ ${body}
       if (newUrl) {
         const altText = item.keyword;
         const newMarkdown = `![${altText}](${newUrl})`;
+        let newContent: string;
         if (oldMatch) {
-          // Replace existing image
-          setDraftContent((prev) => prev.replace(oldMatch, newMarkdown));
+          newContent = draftContent.replace(oldMatch, newMarkdown);
         } else {
-          // Insert new image into content
-          setDraftContent((prev) => {
-            const lines = prev.split("\n");
-            // Insert after roughly 1/3 of content for Body 1, 2/3 for Body 2
-            const insertPoint = Math.min(Math.floor(lines.length * ((slotIndex + 1) / 3)), lines.length);
-            lines.splice(insertPoint, 0, "", newMarkdown, "");
-            return lines.join("\n");
-          });
+          const lines = draftContent.split("\n");
+          const insertPoint = Math.min(Math.floor(lines.length * ((slotIndex + 1) / 3)), lines.length);
+          lines.splice(insertPoint, 0, "", newMarkdown, "");
+          newContent = lines.join("\n");
         }
-        toast({ title: `Body image ${slotIndex + 1} ${oldMatch ? "regenerated" : "generated"}` });
+        setDraftContent(newContent);
+        // Auto-save to database
+        const { error: saveError } = await supabase.from("content_items").update({ draft_content: newContent }).eq("id", item.id);
+        if (saveError) {
+          console.error("Failed to auto-save body image:", saveError);
+          toast({ title: `Body image ${slotIndex + 1} ${oldMatch ? "regenerated" : "generated"}`, description: "Warning: image not saved to database", variant: "destructive" });
+        } else {
+          toast({ title: `Body image ${slotIndex + 1} ${oldMatch ? "regenerated" : "generated"} & saved` });
+        }
       }
     } catch (err: any) {
       toast({ title: "Image generation failed", description: err.message, variant: "destructive" });

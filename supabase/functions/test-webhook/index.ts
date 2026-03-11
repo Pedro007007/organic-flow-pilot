@@ -33,7 +33,10 @@ serve(async (req) => {
       .eq("user_id", user.id)
       .maybeSingle();
 
-    const webhookUrl = settings?.webhook_url;
+    let webhookUrl = settings?.webhook_url || "";
+    if (webhookUrl && !webhookUrl.startsWith("http")) {
+      webhookUrl = "https://" + webhookUrl;
+    }
     if (!webhookUrl) {
       return new Response(JSON.stringify({ error: "No webhook URL configured" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }

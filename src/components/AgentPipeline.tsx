@@ -48,6 +48,20 @@ const AgentPipeline = ({ agents }: AgentPipelineProps) => {
         body = { gscData: [] }; // Will use existing data
       } else if (fnName === "monitor-refresh") {
         body = {};
+      } else if (fnName === "content-strategy" || fnName === "serp-research") {
+        // These need a keyword — fetch from the most recent keyword
+        const { data: latestKw } = await supabase
+          .from("keywords")
+          .select("keyword, search_intent, supporting_keywords")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (!latestKw) {
+          toast({ title: "No keywords found", description: "Run Keyword Discovery first", variant: "destructive" });
+          setRunningAgents((prev) => { const next = new Set(prev); next.delete(agent.name); return next; });
+          return;
+        }
+        body = { keyword: latestKw.keyword, searchIntent: latestKw.search_intent, supportingKeywords: latestKw.supporting_keywords || [] };
       } else if (fnName === "seo-optimize" || fnName === "content-generate" || fnName === "generate-hero-image" || fnName === "publish-webhook") {
         // These agents require a contentItemId — fetch the most recent content item
         const { data: latestContent } = await supabase

@@ -1,53 +1,32 @@
 
 
-# Daniela Chatbot Email Notifications
+## Problem
 
-## Overview
+The `publish-webhook` edge function has a bug: it reads `webhookUrl` from the **request body** (line 30), but the AgentPipeline only sends `{ contentItemId, keyword }` — no `webhookUrl`. The function also reads `webhook_secret` and `revalidation_prefix` from `user_settings`, but **never reads `webhook_url` from settings** as a fallback.
 
-Add two automated emails triggered when someone completes the Daniela lead form and starts chatting:
+This means the webhook URL is always empty when triggered from the pipeline, so the function skips the actual webhook call and returns `{ status: "no_webhook_configured" }`. The content gets marked as "published" in the database, but **no request is ever sent to your Vercel endpoint**.
 
-1. **Admin notification** -- instant email to you (pedro.acn@consultant.com) with the lead's name, email, phone, and timestamp
-2. **Lead follow-up** -- a branded "Thanks for chatting!" email to the person who chatted, with a warm message and CTA to explore Searchera
+Meanwhile, `test-webhook` works correctly because it reads `webhook_url` from `user_settings`.
 
-## Prerequisite: Email Domain Setup
+## Fix
 
-Your project has the custom domain **searcheraa.com** but no email domain is configured yet. We need to set this up first so emails can be sent from something like `hello@searcheraa.com`.
+**1 file change: `supabase/functions/publish-webhook/index.ts`**
 
-<lov-actions>
-<lov-open-email-setup>Set up email domain</lov-open-email-setup>
-</lov-actions>
-
-Once the domain is configured and DNS verified, we proceed with implementation.
-
-## Implementation
-
-### 1. New Edge Function: `daniela-lead-email`
-
-A single edge function that sends both emails when invoked:
-
-- **Admin email**: Simple notification with lead details (name, email, phone, time)
-- **Lead follow-up**: Branded HTML email thanking them for chatting, with a soft CTA to explore Searchera
-
-Uses the Lovable transactional email API (no external API key needed).
-
-### 2. Frontend Change: `DanielaChat.tsx`
-
-After the lead form is successfully saved to `daniela_leads`, invoke the new edge function:
-
-```
-supabase.functions.invoke("daniela-lead-email", {
-  body: { name, email, phone }
-})
+Update the settings query on line 37 to also select `webhook_url`:
+```sql
+.select("webhook_url, webhook_secret, revalidation_prefix")
 ```
 
-This is fire-and-forget -- it won't block the chat from starting even if the email fails.
+Then update line 140 to fall back to the saved URL:
+```typescript
+const targetUrl = webhookUrl || settings?.webhook_url || "";
+```
 
-### Files Changed
+This way, when triggered from the AgentPipeline (no `webhookUrl` in body), it uses the saved setting. When called with an explicit URL in the body, that takes priority.
 
-- `supabase/functions/daniela-lead-email/index.ts` -- new edge function
-- `src/components/DanielaChat.tsx` -- add function invoke after lead insert
+## Summary
 
-### No Database Changes
-
-No new tables or columns needed.
+- **Root cause**: `publish-webhook` never reads the saved `webhook_url` from `user_settings`
+- **Impact**: Publishing agent marks content as published but never actually calls your Vercel API route
+- **Fix**: One line to add `webhook_url` to the select query, one line to use it as fallback
 

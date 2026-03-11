@@ -215,12 +215,28 @@ Ultra high resolution, ${dimensionHint}.${customPrompt ? `\n\nCLIENT CREATIVE DI
       return new Response(JSON.stringify({ error: aiRes.status === 429 ? "Rate limited" : aiRes.status === 402 ? "Payment required" : "Image generation failed" }), { status: aiRes.status === 429 ? 429 : aiRes.status === 402 ? 402 : 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const aiResult = await aiRes.json();
+    const aiText = await aiRes.text();
+    if (!aiText || aiText.trim().length === 0) {
+      console.error("AI gateway returned empty response body");
+      await supabaseAuth.from("agent_runs").update({ status: "error", error_message: "AI returned empty response", completed_at: new Date().toISOString() }).eq("id", run?.id);
+      return new Response(JSON.stringify({ error: "AI returned empty response — please retry" }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    let aiResult: any;
+    try {
+      aiResult = JSON.parse(aiText);
+    } catch (parseErr) {
+      console.error("Failed to parse AI response:", aiText.substring(0, 500));
+      await supabaseAuth.from("agent_runs").update({ status: "error", error_message: "Invalid AI response", completed_at: new Date().toISOString() }).eq("id", run?.id);
+      return new Response(JSON.stringify({ error: "AI returned invalid response — please retry" }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
     const imageData = aiResult.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
     if (!imageData) {
+      console.error("No image in AI result:", JSON.stringify(aiResult).substring(0, 500));
       await supabaseAuth.from("agent_runs").update({ status: "error", error_message: "No image returned from AI", completed_at: new Date().toISOString() }).eq("id", run?.id);
-      return new Response(JSON.stringify({ error: "No image generated" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ error: "No image generated — please retry" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     const base64Match = imageData.match(/^data:image\/(\w+);base64,(.+)$/);

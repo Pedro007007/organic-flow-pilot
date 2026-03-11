@@ -35,7 +35,7 @@ serve(async (req) => {
     // Fetch user settings for webhook secret and revalidation prefix
     const { data: settings } = await supabase
       .from("user_settings")
-      .select("webhook_secret, revalidation_prefix")
+      .select("webhook_url, webhook_secret, revalidation_prefix")
       .eq("user_id", userId)
       .maybeSingle();
 
@@ -137,7 +137,7 @@ serve(async (req) => {
     let webhookResult: any = { status: "no_webhook_configured" };
 
     // If webhook URL is provided, POST to it with ISR headers
-    const targetUrl = webhookUrl || "";
+    const targetUrl = webhookUrl || settings?.webhook_url || "";
     if (targetUrl) {
       try {
         const webhookHeaders: Record<string, string> = {

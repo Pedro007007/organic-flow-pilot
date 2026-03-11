@@ -176,7 +176,7 @@ const SettingsPage = () => {
             className="bg-background border-border text-sm font-mono"
           />
           {webhookUrl && !webhookUrl.includes("/api/") && (
-            <p className="text-xs text-yellow-500">
+            <p className="text-xs text-destructive">
               ⚠ URL doesn't contain an <code>/api/</code> path — make sure this points to your Next.js API route (e.g. <code>/api/publish</code>).
             </p>
           )}

@@ -48,7 +48,7 @@ const AgentPipeline = ({ agents }: AgentPipelineProps) => {
         body = { gscData: [] }; // Will use existing data
       } else if (fnName === "monitor-refresh") {
         body = {};
-      } else if (fnName === "seo-optimize" || fnName === "content-generate" || fnName === "generate-hero-image") {
+      } else if (fnName === "seo-optimize" || fnName === "content-generate" || fnName === "generate-hero-image" || fnName === "publish-webhook") {
         // These agents require a contentItemId — fetch the most recent content item
         const { data: latestContent } = await supabase
           .from("content_items")

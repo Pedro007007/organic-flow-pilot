@@ -165,10 +165,21 @@ const SettingsPage = () => {
           <Label className="text-xs text-muted-foreground">Webhook URL</Label>
           <Input
             value={webhookUrl}
-            onChange={(e) => setWebhookUrl(e.target.value)}
+            onChange={(e) => {
+              let val = e.target.value.trim();
+              if (val && !val.startsWith("http://") && !val.startsWith("https://") && val.includes(".")) {
+                val = "https://" + val;
+              }
+              setWebhookUrl(val);
+            }}
             placeholder="https://your-site.com/api/publish"
             className="bg-background border-border text-sm font-mono"
           />
+          {webhookUrl && !webhookUrl.includes("/api/") && (
+            <p className="text-xs text-destructive">
+              ⚠ URL doesn't contain an <code>/api/</code> path — make sure this points to your Next.js API route (e.g. <code>/api/publish</code>).
+            </p>
+          )}
         </div>
         <div className="space-y-2">
           <Label className="text-xs text-muted-foreground flex items-center gap-1.5">

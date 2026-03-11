@@ -1,53 +1,28 @@
 
 
-# Daniela Chatbot Email Notifications
+## Problem
 
-## Overview
+**Vercel Authentication** (not Password Protection) is enabled on the deployment. This intercepts all external requests with a 401 before they reach the Next.js API routes. The screenshot confirms "Enabled for Standard Protection" is toggled on.
 
-Add two automated emails triggered when someone completes the Daniela lead form and starts chatting:
+## Two Options
 
-1. **Admin notification** -- instant email to you (pedro.acn@consultant.com) with the lead's name, email, phone, and timestamp
-2. **Lead follow-up** -- a branded "Thanks for chatting!" email to the person who chatted, with a warm message and CTA to explore Searchera
+**Option A — Disable Vercel Authentication** (simplest)
+Toggle off "Vercel Authentication" in the Vercel dashboard screenshot. This lets all external requests through (your webhook secret still authenticates them).
 
-## Prerequisite: Email Domain Setup
+**Option B — Use Protection Bypass for Automation** (keeps Vercel Auth on)
+1. In Vercel: Click "+ Add" under "Protection Bypass for Automation" to generate a bypass secret
+2. Store that secret in Lovable Cloud as `VERCEL_BYPASS_SECRET`
+3. Update both `test-webhook` and `publish-webhook` edge functions to include the header `x-vercel-protection-bypass` with that secret value on every outgoing webhook request
 
-Your project has the custom domain **searcheraa.com** but no email domain is configured yet. We need to set this up first so emails can be sent from something like `hello@searcheraa.com`.
+### Code changes for Option B
 
-<lov-actions>
-<lov-open-email-setup>Set up email domain</lov-open-email-setup>
-</lov-actions>
+**`supabase/functions/test-webhook/index.ts`** and **`supabase/functions/publish-webhook/index.ts`**:
+- Read `Deno.env.get("VERCEL_BYPASS_SECRET")`
+- Add `"x-vercel-protection-bypass": bypassSecret` to the webhook headers object (alongside existing `x-webhook-secret`, `x-revalidate-path`, etc.)
 
-Once the domain is configured and DNS verified, we proceed with implementation.
+**`src/components/SettingsPage.tsx`**: No changes needed — bypass is infrastructure-level, not user-configurable.
 
-## Implementation
+## Recommendation
 
-### 1. New Edge Function: `daniela-lead-email`
-
-A single edge function that sends both emails when invoked:
-
-- **Admin email**: Simple notification with lead details (name, email, phone, time)
-- **Lead follow-up**: Branded HTML email thanking them for chatting, with a soft CTA to explore Searchera
-
-Uses the Lovable transactional email API (no external API key needed).
-
-### 2. Frontend Change: `DanielaChat.tsx`
-
-After the lead form is successfully saved to `daniela_leads`, invoke the new edge function:
-
-```
-supabase.functions.invoke("daniela-lead-email", {
-  body: { name, email, phone }
-})
-```
-
-This is fire-and-forget -- it won't block the chat from starting even if the email fails.
-
-### Files Changed
-
-- `supabase/functions/daniela-lead-email/index.ts` -- new edge function
-- `src/components/DanielaChat.tsx` -- add function invoke after lead insert
-
-### No Database Changes
-
-No new tables or columns needed.
+**Option A** is simplest if you don't need Vercel Auth protecting your preview deployments. Option B keeps the protection but adds a bypass for automation. Which would you prefer?
 

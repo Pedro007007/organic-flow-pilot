@@ -137,7 +137,7 @@ serve(async (req) => {
     let webhookResult: any = { status: "no_webhook_configured" };
 
     // If webhook URL is provided, POST to it with ISR headers
-    const targetUrl = webhookUrl || "";
+    const targetUrl = webhookUrl || settings?.webhook_url || "";
     if (targetUrl) {
       try {
         const webhookHeaders: Record<string, string> = {

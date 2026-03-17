@@ -227,7 +227,7 @@ const Landing = () => {
         <div className="mx-auto max-w-6xl px-6">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-black tracking-tight sm:text-4xl">Trusted by <span className="bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent">Growth Teams</span></h2>
-            <p className="mt-4 text-lg text-gray-600 font-medium">See what our users have to say about Searchera.</p>
+            <p className="mt-4 text-lg text-gray-700 font-semibold">See what our users have to say about Searchera.</p>
           </div>
           <div className="grid gap-8 md:grid-cols-3">
             {testimonials.map((t) => (

@@ -174,7 +174,7 @@ const Landing = () => {
         <div className="relative mx-auto max-w-6xl px-6">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-black tracking-tight sm:text-4xl text-white">How <span className="bg-gradient-to-r from-blue-400 to-teal-400 bg-clip-text text-transparent">Searchera</span> Works</h2>
-            <p className="mt-4 text-lg text-blue-200/80 max-w-2xl mx-auto font-medium">Get started in minutes. Our streamlined process takes you from setup to growth with minimal effort.</p>
+            <p className="mt-4 text-lg text-blue-100 max-w-2xl mx-auto font-semibold">Get started in minutes. Our streamlined process takes you from setup to growth with minimal effort.</p>
           </div>
           {/* Desktop timeline */}
           <div className="hidden lg:block">

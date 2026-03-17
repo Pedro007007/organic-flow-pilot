@@ -94,7 +94,7 @@ const Landing = () => {
                   & AI Search Engines
                 </span>
               </h1>
-              <p className="mt-6 max-w-xl text-lg text-gray-600 leading-relaxed font-medium">
+              <p className="mt-6 max-w-xl text-lg text-gray-700 leading-relaxed font-semibold">
                 The all-in-one SEO & AEO platform. Discover keywords, generate optimized content, rank on Google, and get cited by ChatGPT, Perplexity & AI Overviews — all on autopilot.
               </p>
               <div className="mt-10 flex flex-wrap items-start gap-4">

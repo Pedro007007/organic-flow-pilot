@@ -1,18 +1,53 @@
 
 
-## Enhance Text Visibility on SEO Checklist
+# Daniela Chatbot Email Notifications
 
-The screenshot shows the hero section text is hard to read against the dark background. The title uses `text-xl` and the description uses `text-sm text-muted-foreground`, which is too small and low-contrast.
+## Overview
 
-### Changes in `src/components/SeoChecklist.tsx`
+Add two automated emails triggered when someone completes the Daniela lead form and starts chatting:
 
-**Hero section (lines 147-158):**
-- Title: bump from `text-xl` to `text-2xl` and add `text-white` for stronger contrast
-- Description: bump from `text-sm text-muted-foreground` to `text-base text-gray-300` for better readability
-- Icon: increase from `h-6 w-6` to `h-7 w-7`
+1. **Admin notification** -- instant email to you (pedro.acn@consultant.com) with the lead's name, email, phone, and timestamp
+2. **Lead follow-up** -- a branded "Thanks for chatting!" email to the person who chatted, with a warm message and CTA to explore Searchera
 
-**Overall Score section (line 165):**
-- Ensure labels use `text-foreground` or `text-white` for visibility
+## Prerequisite: Email Domain Setup
 
-These are small class changes — no structural or logic modifications needed.
+Your project has the custom domain **searcheraa.com** but no email domain is configured yet. We need to set this up first so emails can be sent from something like `hello@searcheraa.com`.
+
+<lov-actions>
+<lov-open-email-setup>Set up email domain</lov-open-email-setup>
+</lov-actions>
+
+Once the domain is configured and DNS verified, we proceed with implementation.
+
+## Implementation
+
+### 1. New Edge Function: `daniela-lead-email`
+
+A single edge function that sends both emails when invoked:
+
+- **Admin email**: Simple notification with lead details (name, email, phone, time)
+- **Lead follow-up**: Branded HTML email thanking them for chatting, with a soft CTA to explore Searchera
+
+Uses the Lovable transactional email API (no external API key needed).
+
+### 2. Frontend Change: `DanielaChat.tsx`
+
+After the lead form is successfully saved to `daniela_leads`, invoke the new edge function:
+
+```
+supabase.functions.invoke("daniela-lead-email", {
+  body: { name, email, phone }
+})
+```
+
+This is fire-and-forget -- it won't block the chat from starting even if the email fails.
+
+### Files Changed
+
+- `supabase/functions/daniela-lead-email/index.ts` -- new edge function
+- `src/components/DanielaChat.tsx` -- add function invoke after lead insert
+
+### No Database Changes
+
+No new tables or columns needed.
 

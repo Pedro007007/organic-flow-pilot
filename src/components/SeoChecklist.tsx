@@ -146,10 +146,10 @@ const SeoChecklist = () => {
       {/* Hero Header */}
       <div className="rounded-xl border border-border bg-card p-8 text-center space-y-4">
         <div className="flex items-center justify-center gap-2">
-          <ListChecks className="h-6 w-6 text-primary" />
-          <h1 className="text-xl font-bold text-foreground">AI-Powered SEO Checklist</h1>
+          <ListChecks className="h-7 w-7 text-primary" />
+          <h1 className="text-2xl font-bold text-foreground">AI-Powered SEO Checklist</h1>
         </div>
-        <p className="text-sm text-muted-foreground max-w-lg mx-auto">
+        <p className="text-base text-foreground/70 max-w-lg mx-auto">
           Generate a personalized, step-by-step SEO checklist powered by AI. Identify missing optimizations, track progress, and receive smart suggestions tailored to your website's goals.
         </p>
         <Button onClick={handleAutoCheck} disabled={verifying} className="mx-auto">

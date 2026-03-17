@@ -83,7 +83,7 @@ const Index = () => {
             <div>
               <div className="flex items-center gap-2">
                 <Activity className="h-4 w-4 text-primary" />
-                <h1 className="text-lg font-bold text-foreground tracking-tight">
+                <h1 className="text-xl font-bold text-foreground tracking-tight">
                   {sectionTitles[activeSection] || ""}
                 </h1>
                 {isLoading && <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />}

@@ -202,7 +202,7 @@ const Landing = () => {
               {steps.map((s) => (
                 <div key={s.num} className="text-center px-4">
                   <h3 className="text-lg font-black text-white">{s.title}</h3>
-                  <p className="mt-2 text-sm text-blue-200/70 leading-relaxed">{s.desc}</p>
+                  <p className="mt-2 text-sm text-blue-100/90 leading-relaxed font-medium">{s.desc}</p>
                 </div>
               ))}
             </div>

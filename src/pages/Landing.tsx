@@ -237,7 +237,7 @@ const Landing = () => {
                     <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
                   ))}
                 </div>
-                <p className="text-gray-700 leading-relaxed mb-6 font-medium">"{t.quote}"</p>
+                <p className="text-gray-800 leading-relaxed mb-6 font-semibold">"{t.quote}"</p>
                 <div>
                   <p className="font-black text-gray-900">{t.name}</p>
                   <p className="text-sm text-gray-500 font-semibold">{t.role}</p>

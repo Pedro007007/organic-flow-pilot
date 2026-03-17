@@ -135,7 +135,7 @@ const Landing = () => {
             {stats.map((s) => (
               <div key={s.label} className="text-center">
                 <div className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent">{s.value}</div>
-                <p className="mt-2 text-sm text-gray-600 font-bold">{s.label}</p>
+                <p className="mt-2 text-sm text-gray-700 font-bold">{s.label}</p>
               </div>
             ))}
           </div>

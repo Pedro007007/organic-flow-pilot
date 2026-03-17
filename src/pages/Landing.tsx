@@ -215,7 +215,7 @@ const Landing = () => {
                   <span className="text-base font-black text-teal-400">{s.num}</span>
                 </div>
                 <h3 className="text-lg font-black text-white">{s.title}</h3>
-                <p className="mt-2 text-sm text-blue-200/70 leading-relaxed">{s.desc}</p>
+                <p className="mt-2 text-sm text-blue-100/90 leading-relaxed font-medium">{s.desc}</p>
               </div>
             ))}
           </div>

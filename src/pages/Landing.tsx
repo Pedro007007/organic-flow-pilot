@@ -259,7 +259,7 @@ const Landing = () => {
             <h3 className="text-xl font-black text-gray-900">Enterprise-Grade Security</h3>
           </div>
           <p className="text-gray-700 max-w-xl mx-auto font-semibold">Your data is encrypted at rest and in transit. We follow industry best practices and comply with GDPR. Google Search Console access uses secure OAuth 2.0 authentication.</p>
-          <div className="flex flex-wrap items-center justify-center gap-6 mt-8 text-sm text-gray-500 font-bold">
+          <div className="flex flex-wrap items-center justify-center gap-6 mt-8 text-sm text-gray-700 font-bold">
             <span className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-teal-500" /> SOC 2 Compliant</span>
             <span className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-teal-500" /> GDPR Ready</span>
             <span className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-teal-500" /> OAuth 2.0 Secured</span>

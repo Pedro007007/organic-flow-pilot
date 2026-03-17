@@ -147,7 +147,7 @@ const Landing = () => {
         <div className="mx-auto max-w-6xl px-6">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-black tracking-tight sm:text-4xl">Everything You Need to <span className="bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent">Rank Higher</span></h2>
-            <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto font-medium">A complete AI-powered toolkit for SEO & AEO — from keyword research and content creation to AI citation tracking and answer engine optimization.</p>
+            <p className="mt-4 text-lg text-gray-700 max-w-2xl mx-auto font-semibold">A complete AI-powered toolkit for SEO & AEO — from keyword research and content creation to AI citation tracking and answer engine optimization.</p>
           </div>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {features.map((f) => (

@@ -94,7 +94,7 @@ const Landing = () => {
                   & AI Search Engines
                 </span>
               </h1>
-              <p className="mt-6 max-w-xl text-lg text-gray-600 leading-relaxed font-medium">
+              <p className="mt-6 max-w-xl text-lg text-gray-700 leading-relaxed font-semibold">
                 The all-in-one SEO & AEO platform. Discover keywords, generate optimized content, rank on Google, and get cited by ChatGPT, Perplexity & AI Overviews — all on autopilot.
               </p>
               <div className="mt-10 flex flex-wrap items-start gap-4">
@@ -109,7 +109,7 @@ const Landing = () => {
                   </a>
                 </Button>
               </div>
-              <p className="mt-4 text-sm text-gray-500 font-semibold">No credit card required · Free to start · Cancel anytime</p>
+              <p className="mt-4 text-sm text-gray-600 font-bold">No credit card required · Free to start · Cancel anytime</p>
             </div>
 
             {/* Right: Video */}
@@ -135,7 +135,7 @@ const Landing = () => {
             {stats.map((s) => (
               <div key={s.label} className="text-center">
                 <div className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent">{s.value}</div>
-                <p className="mt-2 text-sm text-gray-600 font-bold">{s.label}</p>
+                <p className="mt-2 text-sm text-gray-700 font-bold">{s.label}</p>
               </div>
             ))}
           </div>
@@ -147,7 +147,7 @@ const Landing = () => {
         <div className="mx-auto max-w-6xl px-6">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-black tracking-tight sm:text-4xl">Everything You Need to <span className="bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent">Rank Higher</span></h2>
-            <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto font-medium">A complete AI-powered toolkit for SEO & AEO — from keyword research and content creation to AI citation tracking and answer engine optimization.</p>
+            <p className="mt-4 text-lg text-gray-700 max-w-2xl mx-auto font-semibold">A complete AI-powered toolkit for SEO & AEO — from keyword research and content creation to AI citation tracking and answer engine optimization.</p>
           </div>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {features.map((f) => (
@@ -161,7 +161,7 @@ const Landing = () => {
                   </span>
                 </div>
                 <h3 className="text-lg font-black text-gray-900">{f.title}</h3>
-                <p className="mt-2 text-sm text-gray-500 leading-relaxed">{f.desc}</p>
+                <p className="mt-2 text-sm text-gray-600 leading-relaxed font-medium">{f.desc}</p>
               </div>
             ))}
           </div>
@@ -174,7 +174,7 @@ const Landing = () => {
         <div className="relative mx-auto max-w-6xl px-6">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-black tracking-tight sm:text-4xl text-white">How <span className="bg-gradient-to-r from-blue-400 to-teal-400 bg-clip-text text-transparent">Searchera</span> Works</h2>
-            <p className="mt-4 text-lg text-blue-200/80 max-w-2xl mx-auto font-medium">Get started in minutes. Our streamlined process takes you from setup to growth with minimal effort.</p>
+            <p className="mt-4 text-lg text-blue-100 max-w-2xl mx-auto font-semibold">Get started in minutes. Our streamlined process takes you from setup to growth with minimal effort.</p>
           </div>
           {/* Desktop timeline */}
           <div className="hidden lg:block">
@@ -202,7 +202,7 @@ const Landing = () => {
               {steps.map((s) => (
                 <div key={s.num} className="text-center px-4">
                   <h3 className="text-lg font-black text-white">{s.title}</h3>
-                  <p className="mt-2 text-sm text-blue-200/70 leading-relaxed">{s.desc}</p>
+                  <p className="mt-2 text-sm text-blue-100/90 leading-relaxed font-medium">{s.desc}</p>
                 </div>
               ))}
             </div>
@@ -215,7 +215,7 @@ const Landing = () => {
                   <span className="text-base font-black text-teal-400">{s.num}</span>
                 </div>
                 <h3 className="text-lg font-black text-white">{s.title}</h3>
-                <p className="mt-2 text-sm text-blue-200/70 leading-relaxed">{s.desc}</p>
+                <p className="mt-2 text-sm text-blue-100/90 leading-relaxed font-medium">{s.desc}</p>
               </div>
             ))}
           </div>
@@ -227,7 +227,7 @@ const Landing = () => {
         <div className="mx-auto max-w-6xl px-6">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-black tracking-tight sm:text-4xl">Trusted by <span className="bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent">Growth Teams</span></h2>
-            <p className="mt-4 text-lg text-gray-600 font-medium">See what our users have to say about Searchera.</p>
+            <p className="mt-4 text-lg text-gray-700 font-semibold">See what our users have to say about Searchera.</p>
           </div>
           <div className="grid gap-8 md:grid-cols-3">
             {testimonials.map((t) => (
@@ -237,7 +237,7 @@ const Landing = () => {
                     <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
                   ))}
                 </div>
-                <p className="text-gray-700 leading-relaxed mb-6 font-medium">"{t.quote}"</p>
+                <p className="text-gray-800 leading-relaxed mb-6 font-semibold">"{t.quote}"</p>
                 <div>
                   <p className="font-black text-gray-900">{t.name}</p>
                   <p className="text-sm text-gray-500 font-semibold">{t.role}</p>
@@ -258,8 +258,8 @@ const Landing = () => {
             <Shield className="h-6 w-6 text-blue-600" />
             <h3 className="text-xl font-black text-gray-900">Enterprise-Grade Security</h3>
           </div>
-          <p className="text-gray-600 max-w-xl mx-auto font-medium">Your data is encrypted at rest and in transit. We follow industry best practices and comply with GDPR. Google Search Console access uses secure OAuth 2.0 authentication.</p>
-          <div className="flex flex-wrap items-center justify-center gap-6 mt-8 text-sm text-gray-500 font-bold">
+          <p className="text-gray-700 max-w-xl mx-auto font-semibold">Your data is encrypted at rest and in transit. We follow industry best practices and comply with GDPR. Google Search Console access uses secure OAuth 2.0 authentication.</p>
+          <div className="flex flex-wrap items-center justify-center gap-6 mt-8 text-sm text-gray-700 font-bold">
             <span className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-teal-500" /> SOC 2 Compliant</span>
             <span className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-teal-500" /> GDPR Ready</span>
             <span className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-teal-500" /> OAuth 2.0 Secured</span>

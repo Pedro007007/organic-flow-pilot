@@ -14,7 +14,7 @@ const MetricCard = ({ metric, index }: MetricCardProps) => {
       className="rounded-lg border border-border bg-card p-5 animate-slide-in"
       style={{ animationDelay: `${index * 80}ms` }}
     >
-      <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
         {metric.label}
       </p>
       <p className="mt-2 text-3xl font-bold tracking-tight text-foreground font-mono">
@@ -29,7 +29,7 @@ const MetricCard = ({ metric, index }: MetricCardProps) => {
         <span className="text-xs font-medium text-success">
           {isPositive ? "+" : ""}{metric.change}%
         </span>
-        <span className="text-xs text-foreground/70">{metric.changeLabel}</span>
+        <span className="text-xs text-foreground/80">{metric.changeLabel}</span>
       </div>
     </div>
   );

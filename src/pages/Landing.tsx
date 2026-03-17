@@ -161,7 +161,7 @@ const Landing = () => {
                   </span>
                 </div>
                 <h3 className="text-lg font-black text-gray-900">{f.title}</h3>
-                <p className="mt-2 text-sm text-gray-500 leading-relaxed">{f.desc}</p>
+                <p className="mt-2 text-sm text-gray-600 leading-relaxed font-medium">{f.desc}</p>
               </div>
             ))}
           </div>

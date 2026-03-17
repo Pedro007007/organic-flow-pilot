@@ -220,7 +220,7 @@ function SummaryCard({ icon: Icon, label, value }: { icon: any; label: string; v
     <div className="rounded-lg border border-border bg-card p-4">
       <div className="flex items-center gap-2">
         <Icon className="h-4 w-4 text-primary" />
-        <span className="text-xs text-muted-foreground">{label}</span>
+        <span className="text-xs font-medium text-muted-foreground">{label}</span>
       </div>
       <p className="mt-1 text-2xl font-bold text-foreground font-mono">{value}</p>
     </div>

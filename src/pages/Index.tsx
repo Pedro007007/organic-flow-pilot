@@ -88,7 +88,7 @@ const Index = () => {
                 </h1>
                 {isLoading && <Loader2 className="h-3.5 w-3.5 animate-spin text-muted-foreground" />}
               </div>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <p className="text-sm text-muted-foreground mt-1 font-medium">
                 Real-time data from your AI SEO growth engine
               </p>
             </div>

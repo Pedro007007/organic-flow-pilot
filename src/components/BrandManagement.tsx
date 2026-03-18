@@ -62,6 +62,8 @@ const BrandManagement = () => {
   const [syncing, setSyncing] = useState(false);
   const [sitemapPages, setSitemapPages] = useState<any[]>([]);
   const [sitemapUrl, setSitemapUrl] = useState("");
+  const [aiSeoLoading, setAiSeoLoading] = useState(false);
+  const [aiSeoResult, setAiSeoResult] = useState<any>(null);
 
   useEffect(() => {
     if (!user) return;

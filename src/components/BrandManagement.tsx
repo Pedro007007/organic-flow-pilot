@@ -31,6 +31,8 @@ import {
   RefreshCw,
   Globe,
   ExternalLink,
+  Sparkles,
+  CheckCircle2,
 } from "lucide-react";
 
 interface Brand {
@@ -60,6 +62,8 @@ const BrandManagement = () => {
   const [syncing, setSyncing] = useState(false);
   const [sitemapPages, setSitemapPages] = useState<any[]>([]);
   const [sitemapUrl, setSitemapUrl] = useState("");
+  const [aiSeoLoading, setAiSeoLoading] = useState(false);
+  const [aiSeoResult, setAiSeoResult] = useState<any>(null);
 
   useEffect(() => {
     if (!user) return;
@@ -337,6 +341,126 @@ const BrandManagement = () => {
 
             {/* SEO Settings */}
             <TabsContent value="seo" className="space-y-4">
+              {/* AI SEO Expert Card */}
+              <div className="rounded-lg border border-primary/30 bg-primary/5 p-4 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  <h4 className="text-sm font-semibold text-foreground">AI SEO Expert</h4>
+                  <Badge variant="secondary" className="text-[10px]">Auto-fill</Badge>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Let AI analyse your brand and domain to recommend optimal SEO settings — meta title suffix, schema types, and target positions.
+                </p>
+                <Button
+                  size="sm"
+                  onClick={async () => {
+                    if (!selectedBrand) return;
+                    setAiSeoLoading(true);
+                    setAiSeoResult(null);
+                    try {
+                      const { data, error } = await supabase.functions.invoke("seo-brand-advisor", {
+                        body: {
+                          brandName: selectedBrand.name,
+                          domain: selectedBrand.domain || "",
+                          toneOfVoice: selectedBrand.tone_of_voice || "professional",
+                          writingStyle: selectedBrand.writing_style || "",
+                          currentSettings: selectedBrand.seo_settings || {},
+                        },
+                      });
+                      if (error) throw error;
+                      if (data?.suggestions) {
+                        setAiSeoResult(data.suggestions);
+                      }
+                    } catch (err: any) {
+                      toast({ title: "AI analysis failed", description: err?.message || "Please try again", variant: "destructive" });
+                    }
+                    setAiSeoLoading(false);
+                  }}
+                  disabled={aiSeoLoading}
+                  className="w-full"
+                >
+                  {aiSeoLoading ? (
+                    <><Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> Analysing…</>
+                  ) : (
+                    <><Sparkles className="mr-1.5 h-3.5 w-3.5" /> Generate SEO Recommendations</>
+                  )}
+                </Button>
+
+                {aiSeoResult && (
+                  <div className="space-y-3 pt-2 border-t border-border">
+                    <p className="text-xs font-medium text-foreground flex items-center gap-1.5">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-green-500" /> Recommendations ready — click to apply each:
+                    </p>
+
+                    {aiSeoResult.meta_title_suffix && (
+                      <div className="flex items-center justify-between gap-2 rounded-md border border-border bg-background p-2.5">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[10px] text-muted-foreground">Meta Title Suffix</p>
+                          <p className="text-xs font-medium text-foreground truncate">{aiSeoResult.meta_title_suffix}</p>
+                        </div>
+                        <Button size="sm" variant="outline" className="text-xs h-7 shrink-0" onClick={() => {
+                          updateJsonField("seo_settings", "meta_title_suffix", aiSeoResult.meta_title_suffix);
+                          toast({ title: "Applied meta title suffix" });
+                        }}>Apply</Button>
+                      </div>
+                    )}
+
+                    {aiSeoResult.default_schema_types?.length > 0 && (
+                      <div className="flex items-center justify-between gap-2 rounded-md border border-border bg-background p-2.5">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[10px] text-muted-foreground">Default Schema Types</p>
+                          <p className="text-xs font-medium text-foreground truncate">{aiSeoResult.default_schema_types.join(", ")}</p>
+                        </div>
+                        <Button size="sm" variant="outline" className="text-xs h-7 shrink-0" onClick={() => {
+                          updateJsonField("seo_settings", "default_schema_types", aiSeoResult.default_schema_types);
+                          toast({ title: "Applied schema types" });
+                        }}>Apply</Button>
+                      </div>
+                    )}
+
+                    {aiSeoResult.target_positions && (
+                      <div className="flex items-center justify-between gap-2 rounded-md border border-border bg-background p-2.5">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[10px] text-muted-foreground">Target Positions</p>
+                          <p className="text-xs font-medium text-foreground">Min: {aiSeoResult.target_positions[0]}, Max: {aiSeoResult.target_positions[1]}</p>
+                        </div>
+                        <Button size="sm" variant="outline" className="text-xs h-7 shrink-0" onClick={() => {
+                          updateJsonField("seo_settings", "target_positions", aiSeoResult.target_positions);
+                          toast({ title: "Applied target positions" });
+                        }}>Apply</Button>
+                      </div>
+                    )}
+
+                    {aiSeoResult.focus_search_intent && (
+                      <div className="flex items-center justify-between gap-2 rounded-md border border-border bg-background p-2.5">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[10px] text-muted-foreground">Focus Search Intent</p>
+                          <p className="text-xs font-medium text-foreground capitalize">{aiSeoResult.focus_search_intent}</p>
+                        </div>
+                        <Button size="sm" variant="outline" className="text-xs h-7 shrink-0" onClick={() => {
+                          updateJsonField("seo_settings", "focus_search_intent", aiSeoResult.focus_search_intent);
+                          toast({ title: "Applied search intent" });
+                        }}>Apply</Button>
+                      </div>
+                    )}
+
+                    {aiSeoResult.reasoning && (
+                      <p className="text-[11px] text-muted-foreground italic pt-1">{aiSeoResult.reasoning}</p>
+                    )}
+
+                    <Button size="sm" variant="default" className="w-full text-xs" onClick={() => {
+                      if (aiSeoResult.meta_title_suffix) updateJsonField("seo_settings", "meta_title_suffix", aiSeoResult.meta_title_suffix);
+                      if (aiSeoResult.default_schema_types) updateJsonField("seo_settings", "default_schema_types", aiSeoResult.default_schema_types);
+                      if (aiSeoResult.target_positions) updateJsonField("seo_settings", "target_positions", aiSeoResult.target_positions);
+                      if (aiSeoResult.focus_search_intent) updateJsonField("seo_settings", "focus_search_intent", aiSeoResult.focus_search_intent);
+                      toast({ title: "All recommendations applied!" });
+                    }}>
+                      <CheckCircle2 className="mr-1.5 h-3.5 w-3.5" /> Apply All
+                    </Button>
+                  </div>
+                )}
+              </div>
+
               <div className="space-y-2">
                 <Label className="text-xs text-muted-foreground">Meta Title Suffix</Label>
                 <Input value={selectedBrand.seo_settings?.meta_title_suffix || ""} onChange={(e) => updateJsonField("seo_settings", "meta_title_suffix", e.target.value)} placeholder="e.g. | Brand Name" className="bg-background border-border text-sm" />
@@ -371,8 +495,6 @@ const BrandManagement = () => {
                 </div>
               </div>
             </TabsContent>
-
-            {/* Internal Linking */}
             <TabsContent value="linking" className="space-y-4">
               <div className="flex items-center justify-between">
                 <Label className="text-sm text-foreground">Enable Internal Linking</Label>

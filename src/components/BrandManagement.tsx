@@ -31,6 +31,8 @@ import {
   RefreshCw,
   Globe,
   ExternalLink,
+  Sparkles,
+  CheckCircle2,
 } from "lucide-react";
 
 interface Brand {

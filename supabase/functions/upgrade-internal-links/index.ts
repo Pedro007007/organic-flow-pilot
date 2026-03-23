@@ -66,11 +66,12 @@ serve(async (req) => {
       sitemapPages = fallback;
     }
 
-    // Fetch content items with slugs
+    // Fetch published content items with live URLs/slugs
     const { data: existingContent } = await supabase
       .from("content_items")
       .select("title, keyword, slug, url")
       .eq("user_id", userId)
+      .in("status", ["published", "monitoring"])
       .neq("id", contentItemId)
       .or("url.not.is.null,slug.not.is.null")
       .limit(20);

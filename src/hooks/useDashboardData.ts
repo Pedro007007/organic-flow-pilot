@@ -13,6 +13,7 @@ export function usePerformanceMetrics() {
       const { data, error } = await supabase
         .from("performance_snapshots")
         .select("*")
+        .eq("user_id", user!.id)
         .order("created_at", { ascending: false })
         .limit(4);
 

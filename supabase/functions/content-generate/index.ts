@@ -164,7 +164,7 @@ Must Include:
 - Semantic keyword usage (natural, not stuffed)
 - Scannable formatting with proper headings
 - FAQ section with direct answers
-- Strong call to action
+- Strong call to action (do NOT write a closing CTA mentioning any company name or contact details — one will be appended automatically)
 - TWO image placeholders: place exactly {{IMAGE_1}} and {{IMAGE_2}} on their own lines at natural break points within the article (NOT at the very beginning or end). Place them between sections where a visual would enhance understanding.
 ${linkingEnabled && internalLinks ? `- MANDATORY Internal Links: You MUST include at least ${Math.min(maxLinks, Math.max(2, cappedCandidates.length))} of the following internal links in the article body (use ${anchorStyle} anchor text). Spread them across different sections — NOT all in one paragraph. Each link should be contextually relevant to the surrounding text:\n${internalLinks}\n- CRITICAL: Do NOT return an article with zero internal links when candidates are provided above.` : !linkingEnabled ? "- Do not include internal links." : "- Internal link placeholders: use [Related: Topic Name](/blog/topic-slug) format for suggested internal links"}
 
@@ -294,11 +294,12 @@ Output format: Markdown with proper H1, H2, H3 headings.`;
       content = content.replace("{{IMAGE_2}}", "");
     }
 
-    // Append mandatory CTA footer
+    // Strip any AI-generated CTA mentioning the brand, then always append the correct one
     const ctaParagraph = `---\n\n*If you are a business owner in the renewable sector or a local Surrey installer looking to reach more customers, let's talk about how to grow your reach. Contact [PJ Media Magnet Ltd](https://searcheraa.com/) today to discover how our expert SEO and content strategies can put your business at the forefront of the green energy revolution.*`;
-    if (!content.includes("PJ Media Magnet Ltd")) {
-      content = content.trimEnd() + "\n\n" + ctaParagraph;
-    }
+    content = content.replace(/\n---\n[\s\S]*PJ Media Magnet[\s\S]*$/i, "").trimEnd();
+    content = content.replace(/\n\n\*[^*]*PJ Media Magnet[^*]*\*\s*$/i, "").trimEnd();
+    content = content.replace(/\n\n[^\n]*(?:contact us|get in touch|reach out)[^\n]*PJ Media Magnet[^\n]*$/i, "").trimEnd();
+    content = content.trimEnd() + "\n\n" + ctaParagraph;
 
     // Update content item if provided
     if (contentItemId) {

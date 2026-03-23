@@ -112,6 +112,7 @@ RULES:
 - Do NOT duplicate any links that are already present in the article
 - Do NOT remove, rewrite, or alter any existing content, images, headings, or formatting
 - Do NOT add new paragraphs or content — only insert hyperlinks into existing text
+- Do NOT modify, rewrite, or remove the final CTA paragraph (the one mentioning "PJ Media Magnet Ltd" and searcheraa.com). Leave it exactly as-is.
 - Use markdown link format: [anchor text](url)
 - Choose anchors that flow naturally in the sentence
 - Every link must be contextually relevant to the surrounding text
@@ -159,10 +160,10 @@ Insert up to 7-8 of these links into the article using natural anchor text. Retu
       return new Response(JSON.stringify({ error: "AI returned empty or too-short content" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Enforce CTA at the end
-    if (!upgradedContent.includes("PJ Media Magnet Ltd")) {
-      upgradedContent = upgradedContent.trimEnd() + "\n\n" + CTA_PARAGRAPH;
-    }
+    // Strip any malformed CTA the AI may have rewritten, then always append the correct one
+    upgradedContent = upgradedContent.replace(/\n---\n[\s\S]*PJ Media Magnet[\s\S]*$/i, "").trimEnd();
+    upgradedContent = upgradedContent.replace(/\n\n\*[^*]*PJ Media Magnet[^*]*\*\s*$/i, "").trimEnd();
+    upgradedContent = upgradedContent.trimEnd() + "\n\n" + CTA_PARAGRAPH;
 
     // Save to DB
     await supabase.from("content_items").update({

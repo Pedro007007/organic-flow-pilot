@@ -38,17 +38,57 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "Brand not found" }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    console.log(`Fetching sitemap: ${sitemapUrl}`);
+    // If the URL doesn't look like a sitemap, try common sitemap paths
+    let sitemapUrlToFetch = sitemapUrl;
+    const commonSitemapPaths = [
+      "/sitemap.xml",
+      "/sitemap_index.xml",
+      "/sitemap-index.xml",
+      "/wp-sitemap.xml",
+      "/sitemap.xml.gz",
+    ];
 
-    const sitemapRes = await fetch(sitemapUrl, {
-      headers: { "User-Agent": "Searchera-Bot/1.0" },
-    });
+    const isLikelySitemap = /sitemap.*\.xml/i.test(sitemapUrl) || sitemapUrl.endsWith(".xml");
 
-    if (!sitemapRes.ok) {
-      return new Response(JSON.stringify({ error: `Failed to fetch sitemap: ${sitemapRes.status}` }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    async function fetchSitemap(url: string): Promise<{ xml: string; finalUrl: string } | null> {
+      try {
+        console.log(`Trying sitemap: ${url}`);
+        const res = await fetch(url, { headers: { "User-Agent": "Searchera-Bot/1.0" } });
+        if (!res.ok) return null;
+        const text = await res.text();
+        if (text.includes("<urlset") || text.includes("<sitemapindex")) {
+          return { xml: text, finalUrl: url };
+        }
+        return null;
+      } catch {
+        return null;
+      }
     }
 
-    const xml = await sitemapRes.text();
+    let xml: string | null = null;
+    let resolvedUrl = sitemapUrlToFetch;
+
+    if (isLikelySitemap) {
+      const result = await fetchSitemap(sitemapUrlToFetch);
+      if (result) { xml = result.xml; resolvedUrl = result.finalUrl; }
+    }
+
+    if (!xml) {
+      // Try common paths from the base domain
+      let baseUrl = sitemapUrl.replace(/\/+$/, "");
+      try { baseUrl = new URL(sitemapUrl).origin; } catch { /* use as-is */ }
+
+      for (const path of commonSitemapPaths) {
+        const result = await fetchSitemap(`${baseUrl}${path}`);
+        if (result) { xml = result.xml; resolvedUrl = result.finalUrl; break; }
+      }
+    }
+
+    if (!xml) {
+      return new Response(JSON.stringify({ error: "No sitemap found. Tried: " + (isLikelySitemap ? sitemapUrl : commonSitemapPaths.map(p => p).join(", ")) }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    console.log(`Using sitemap: ${resolvedUrl}`);
 
     // Parse URLs from XML sitemap
     const urlRegex = /<loc>\s*(.*?)\s*<\/loc>/gi;
@@ -59,7 +99,7 @@ serve(async (req) => {
     }
 
     if (urls.length === 0) {
-      return new Response(JSON.stringify({ error: "No URLs found in sitemap" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({ error: "Sitemap found but contains no URLs" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     // Check if this is a sitemap index (contains other sitemaps)

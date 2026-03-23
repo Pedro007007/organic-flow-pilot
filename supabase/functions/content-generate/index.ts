@@ -294,8 +294,8 @@ Output format: Markdown with proper H1, H2, H3 headings.`;
     }
 
     // Append mandatory CTA footer
-    const ctaParagraph = `---\n\n*If you are a business owner in the renewable sector or a local Surrey installer looking to reach more customers, let's talk about how to grow your reach. Contact PJ Media Magnet Ltd today to discover how our expert SEO and content strategies can put your business at the forefront of the green energy revolution.*`;
-    if (!content.includes("Contact PJ Media Magnet Ltd today")) {
+    const ctaParagraph = `---\n\n*If you are a business owner in the renewable sector or a local Surrey installer looking to reach more customers, let's talk about how to grow your reach. Contact [PJ Media Magnet Ltd](https://searcheraa.com/) today to discover how our expert SEO and content strategies can put your business at the forefront of the green energy revolution.*`;
+    if (!content.includes("PJ Media Magnet Ltd")) {
       content = content.trimEnd() + "\n\n" + ctaParagraph;
     }
 

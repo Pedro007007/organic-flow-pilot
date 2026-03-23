@@ -51,7 +51,15 @@ serve(async (req) => {
     const imgStyle = style || imgDefaults.style || "modern editorial";
     const imgPalette = imgDefaults.color_palette || "";
     const imgRatio = aspectRatio || imgDefaults.aspect_ratio || "16:9";
-    const imgModel = model || "google/gemini-3.1-flash-image-preview";
+    // Only these models support image output modalities
+    const IMAGE_CAPABLE_MODELS = [
+      "google/gemini-3-pro-image-preview",
+      "google/gemini-3.1-flash-image-preview",
+      "google/gemini-2.5-flash-image",
+    ];
+    const DEFAULT_IMAGE_MODEL = "google/gemini-3.1-flash-image-preview";
+    const requestedModel = model || DEFAULT_IMAGE_MODEL;
+    const imgModel = IMAGE_CAPABLE_MODELS.includes(requestedModel) ? requestedModel : DEFAULT_IMAGE_MODEL;
 
     const { data: run } = await supabaseAuth.from("agent_runs").insert({
       user_id: userId,

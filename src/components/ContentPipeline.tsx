@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { FileText, Plus, Rocket, Loader2, Search, Filter, CheckSquare, Square, Download, Tag, X, Link, Sparkles } from "lucide-react";
+import { FileText, Plus, Rocket, Loader2, Search, Filter, CheckSquare, Square, Download, Tag, X, Link, Sparkles, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,6 +18,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -96,6 +107,8 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
   // Bulk selection
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkUpdating, setBulkUpdating] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     let result = content;
@@ -143,6 +156,33 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
       setSelectedIds(new Set());
       queryClient.invalidateQueries({ queryKey: ["content_items"] });
     }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    setBulkDeleting(true);
+    const ids = Array.from(selectedIds);
+    const { error } = await supabase.from("content_items").delete().in("id", ids);
+    setBulkDeleting(false);
+    if (error) {
+      toast({ title: "Delete failed", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: `${ids.length} item${ids.length > 1 ? "s" : ""} deleted` });
+      setSelectedIds(new Set());
+      queryClient.invalidateQueries({ queryKey: ["content_items"] });
+    }
+  };
+
+  const handleSingleDelete = async (id: string) => {
+    const { error } = await supabase.from("content_items").delete().eq("id", id);
+    if (error) {
+      toast({ title: "Delete failed", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Content deleted" });
+      setSelectedIds((prev) => { const next = new Set(prev); next.delete(id); return next; });
+      queryClient.invalidateQueries({ queryKey: ["content_items"] });
+    }
+    setDeleteConfirmId(null);
   };
 
   const handleCreate = async (runAutopilot = false) => {
@@ -388,6 +428,24 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
                 ))}
               </SelectContent>
             </Select>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button size="sm" variant="outline" className="h-8 text-xs gap-1.5 border-destructive/30 text-destructive hover:bg-destructive/10" disabled={bulkDeleting}>
+                  {bulkDeleting ? <Loader2 className="h-3 w-3 animate-spin" /> : <Trash2 className="h-3 w-3" />}
+                  Delete
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete {selectedIds.size} item{selectedIds.size > 1 ? "s" : ""}?</AlertDialogTitle>
+                  <AlertDialogDescription>This will permanently delete the selected content and all related data (SEO scores, optimization jobs, etc.). This cannot be undone.</AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleBulkDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         )}
 
@@ -422,7 +480,7 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
           return (
             <div
               key={item.id}
-              className={`flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-muted/30 ${isSelected ? "bg-primary/5" : ""}`}
+              className={`group flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-muted/30 ${isSelected ? "bg-primary/5" : ""}`}
             >
               <button
                 onClick={(e) => { e.stopPropagation(); toggleSelect(item.id); }}
@@ -467,6 +525,27 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
                     </div>
                   </div>
                 )}
+                <AlertDialog open={deleteConfirmId === item.id} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
+                  <AlertDialogTrigger asChild>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(item.id); }}
+                      className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all shrink-0"
+                      title="Delete"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete this content?</AlertDialogTitle>
+                      <AlertDialogDescription>"{item.title}" and all related data will be permanently deleted.</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => handleSingleDelete(item.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             </div>
           );

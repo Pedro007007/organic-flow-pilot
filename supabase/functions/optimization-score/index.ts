@@ -100,13 +100,13 @@ Score the content across these 5 dimensions (each 0-100):
 1. Technical SEO (25% weight) — meta title length, meta description quality, schema types, URL slug
 2. On-Page SEO (25% weight) — keyword in title, keyword density, heading structure (H1/H2/H3)
 3. Readability (20% weight) — sentence length, paragraph breaks, plain language, scanability
-4. Internal Linking (15% weight) — number of internal links, link relevance, anchor text quality
+4. Internal Linking (15% weight) — number of internal links, link relevance, anchor text quality. Count links pointing to /blog/ paths AND any of the known site pages listed below as valid internal links.
 5. Content Depth (15% weight) — word count, topic coverage, FAQ inclusion, comprehensive treatment
 
 Also generate a prioritized action plan (max 8 items) with effort (low/medium/high) and impact (low/medium/high) labels.
 
 ${brand ? `Brand: ${brand.name}${brand.domain ? ` (${brand.domain})` : ""}` : ""}
-${sitemapPages.length > 0 ? `\nExisting site pages for internal linking reference:\n${sitemapPages.slice(0, 20).join("\n")}` : ""}`;
+${allInternalLinkTargets.length > 0 ? `\nKnown internal link targets (count links to these as valid internal links):\n${allInternalLinkTargets.slice(0, 30).join("\n")}` : ""}`;
 
     const userMessage = `Analyze this content for SEO optimization scoring.
 

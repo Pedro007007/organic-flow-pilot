@@ -525,6 +525,27 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
                     </div>
                   </div>
                 )}
+                <AlertDialog open={deleteConfirmId === item.id} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
+                  <AlertDialogTrigger asChild>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(item.id); }}
+                      className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all shrink-0"
+                      title="Delete"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete this content?</AlertDialogTitle>
+                      <AlertDialogDescription>"{item.title}" and all related data will be permanently deleted.</AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => handleSingleDelete(item.id)} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               </div>
             </div>
           );

@@ -293,6 +293,12 @@ Output format: Markdown with proper H1, H2, H3 headings.`;
       content = content.replace("{{IMAGE_2}}", "");
     }
 
+    // Append mandatory CTA footer
+    const ctaParagraph = `---\n\n*If you are a business owner in the renewable sector or a local Surrey installer looking to reach more customers, let's talk about how to grow your reach. Contact PJ Media Magnet Ltd today to discover how our expert SEO and content strategies can put your business at the forefront of the green energy revolution.*`;
+    if (!content.includes("Contact PJ Media Magnet Ltd today")) {
+      content = content.trimEnd() + "\n\n" + ctaParagraph;
+    }
+
     // Update content item if provided
     if (contentItemId) {
       await supabase.from("content_items").update({

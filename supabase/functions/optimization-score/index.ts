@@ -73,6 +73,22 @@ serve(async (req) => {
       const { data: pages } = await supabase.from("sitemap_pages").select("url").eq("brand_id", brand.id).limit(50);
       sitemapPages = (pages || []).map((p: any) => p.url);
     }
+    // Fallback: if brand-specific query returned nothing, try all user sitemap pages
+    if (sitemapPages.length === 0) {
+      const { data: fallbackPages } = await supabase.from("sitemap_pages").select("url").eq("user_id", userId).limit(50);
+      sitemapPages = (fallbackPages || []).map((p: any) => p.url);
+    }
+
+    // Also include content items with slugs as valid internal link targets
+    const { data: contentLinks } = await supabase
+      .from("content_items")
+      .select("slug, url")
+      .eq("user_id", userId)
+      .neq("id", contentItemId)
+      .or("url.not.is.null,slug.not.is.null")
+      .limit(30);
+    const contentLinkUrls = (contentLinks || []).map((c: any) => c.url || `/blog/${c.slug}`);
+    const allInternalLinkTargets = [...new Set([...sitemapPages, ...contentLinkUrls])];
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");

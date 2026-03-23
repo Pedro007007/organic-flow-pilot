@@ -200,7 +200,16 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
     setGenerating(true);
     try {
       const res = await supabase.functions.invoke("content-generate", {
-        body: { contentItemId: item.id, keyword: item.keyword, title: item.title, serpResearch: item.serp_research || undefined },
+        body: {
+          contentItemId: item.id,
+          keyword: item.keyword,
+          title: item.title,
+          serpResearch: item.serp_research || undefined,
+          brandId: item.brand_id || undefined,
+          context: item.context || undefined,
+          referenceLinks: item.reference_links || undefined,
+          extraKeywords: item.extra_keywords || undefined,
+        },
       });
       if (res.error) throw res.error;
       const content = res.data?.content || "";

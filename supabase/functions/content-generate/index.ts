@@ -165,7 +165,7 @@ Must Include:
 - FAQ section with direct answers
 - Strong call to action
 - TWO image placeholders: place exactly {{IMAGE_1}} and {{IMAGE_2}} on their own lines at natural break points within the article (NOT at the very beginning or end). Place them between sections where a visual would enhance understanding.
-${internalLinks ? `- Internal links: naturally weave ${Math.min(maxLinks, 4)} of the following internal links (${anchorStyle} anchor text) into the article body where contextually relevant:\n${internalLinks}` : "- Internal link placeholders: use [Related: Topic Name](/blog/topic-slug) format for suggested internal links"}
+${linkingEnabled && internalLinks ? `- MANDATORY Internal Links: You MUST include at least ${Math.min(maxLinks, Math.max(2, cappedCandidates.length))} of the following internal links in the article body (use ${anchorStyle} anchor text). Spread them across different sections — NOT all in one paragraph. Each link should be contextually relevant to the surrounding text:\n${internalLinks}\n- CRITICAL: Do NOT return an article with zero internal links when candidates are provided above.` : !linkingEnabled ? "- Do not include internal links." : "- Internal link placeholders: use [Related: Topic Name](/blog/topic-slug) format for suggested internal links"}
 
 Must Avoid:
 - Keyword stuffing

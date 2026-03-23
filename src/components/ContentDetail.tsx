@@ -88,9 +88,10 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
   const [selectionRange, setSelectionRange] = useState<{ start: number; end: number } | null>(null);
   const [imagePromptDescription, setImagePromptDescription] = useState("");
   const [bodyImagePrompts, setBodyImagePrompts] = useState<Record<number, string>>({});
+  const IMAGE_MODEL_FALLBACK = "google/gemini-3.1-flash-image-preview";
   const [heroAspectRatio, setHeroAspectRatio] = useState("16:9");
   const [heroStyle, setHeroStyle] = useState("_default");
-  const [heroModel, setHeroModel] = useState("google/gemini-3-pro-image-preview");
+  const [heroModel, setHeroModel] = useState(IMAGE_MODEL_FALLBACK);
   const [bodyImageSettings, setBodyImageSettings] = useState<Record<number, { aspectRatio: string; style: string; model: string }>>({});
 
   const styleOptions = [
@@ -107,13 +108,24 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
   ];
 
   const modelOptions = [
-    { value: "google/gemini-3-pro-image-preview", label: "Gemini 3 Pro (HQ)" },
-    { value: "google/gemini-2.5-flash", label: "Gemini 2.5 Flash (Fast)" },
+    { value: "google/gemini-3.1-flash-image-preview", label: "Gemini 3.1 Flash Image (Fast)" },
+    { value: "google/gemini-3-pro-image-preview", label: "Gemini 3 Pro Image (HQ)" },
+    { value: "google/gemini-2.5-flash-image", label: "Gemini 2.5 Flash Image" },
   ];
+
+  const validImageModels = new Set(modelOptions.map((option) => option.value));
+  const sanitizeImageModel = (value?: string) =>
+    value && validImageModels.has(value) ? value : IMAGE_MODEL_FALLBACK;
 
   const aspectRatios = ["16:9", "4:3", "4:2", "3:2", "1:1", "4:5", "9:16"];
 
-  const getBodySettings = (i: number) => bodyImageSettings[i] || { aspectRatio: "16:9", style: "_default", model: "google/gemini-3-pro-image-preview" };
+  const getBodySettings = (i: number) => ({
+    aspectRatio: "16:9",
+    style: "_default",
+    model: IMAGE_MODEL_FALLBACK,
+    ...bodyImageSettings[i],
+    model: sanitizeImageModel(bodyImageSettings[i]?.model),
+  });
   const updateBodySettings = (i: number, patch: Partial<{ aspectRatio: string; style: string; model: string }>) => {
     setBodyImageSettings((prev) => ({ ...prev, [i]: { ...getBodySettings(i), ...patch } }));
   };

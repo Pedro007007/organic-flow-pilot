@@ -32,9 +32,24 @@ serve(async (req) => {
     }
     const userId = user.id;
 
-    const { contentItemId, outline, keyword, title, serpResearch, strategy, brandId, context, referenceLinks, extraKeywords } = await req.json();
+    const body = await req.json();
+    let { contentItemId, outline, keyword, title, serpResearch, strategy, brandId, context, referenceLinks, extraKeywords } = body;
     if (!outline && !keyword) {
       return new Response(JSON.stringify({ error: "outline or keyword required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // If contentItemId provided, load the item to get its brand_id and saved context
+    if (contentItemId) {
+      const { data: savedItem } = await supabase.from("content_items").select("brand_id, context, reference_links, extra_keywords, keyword, title, serp_research").eq("id", contentItemId).maybeSingle();
+      if (savedItem) {
+        if (!brandId && savedItem.brand_id) brandId = savedItem.brand_id;
+        if (!context && savedItem.context) context = savedItem.context;
+        if ((!referenceLinks || referenceLinks.length === 0) && savedItem.reference_links) referenceLinks = savedItem.reference_links;
+        if ((!extraKeywords || extraKeywords.length === 0) && savedItem.extra_keywords) extraKeywords = savedItem.extra_keywords;
+        if (!keyword && savedItem.keyword) keyword = savedItem.keyword;
+        if (!title && savedItem.title) title = savedItem.title;
+        if (!serpResearch && savedItem.serp_research) serpResearch = savedItem.serp_research;
+      }
     }
 
     // Fetch brand settings if brandId provided

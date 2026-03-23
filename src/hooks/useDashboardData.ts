@@ -13,6 +13,7 @@ export function usePerformanceMetrics() {
       const { data, error } = await supabase
         .from("performance_snapshots")
         .select("*")
+        .eq("user_id", user!.id)
         .order("created_at", { ascending: false })
         .limit(4);
 
@@ -38,6 +39,7 @@ export function useKeywords() {
       const { data, error } = await supabase
         .from("keywords")
         .select("*")
+        .eq("user_id", user!.id)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
@@ -68,6 +70,7 @@ export function useContentItems() {
       const { data, error } = await supabase
         .from("content_items")
         .select("*")
+        .eq("user_id", user!.id)
         .order("updated_at", { ascending: false });
 
       if (error) throw error;
@@ -108,6 +111,7 @@ export function useAgentRuns() {
       const { data, error } = await supabase
         .from("agent_runs")
         .select("*")
+        .eq("user_id", user!.id)
         .order("created_at", { ascending: false });
 
       if (error) throw error;

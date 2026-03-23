@@ -79,7 +79,17 @@ serve(async (req) => {
     if (resolvedBrandId) {
       sitemapQuery = sitemapQuery.eq("brand_id", resolvedBrandId);
     }
-    const { data: sitemapPages } = await sitemapQuery;
+    let { data: sitemapPages } = await sitemapQuery;
+
+    // Fallback: if brand-specific query returned nothing, try all user sitemap pages
+    if ((!sitemapPages || sitemapPages.length === 0) && resolvedBrandId) {
+      const { data: fallbackPages } = await supabase
+        .from("sitemap_pages")
+        .select("url, title")
+        .eq("user_id", userId)
+        .limit(50);
+      sitemapPages = fallbackPages;
+    }
 
     // Merge: sitemap pages first (real live URLs), then content items, deduplicated
     const seen = new Set<string>();

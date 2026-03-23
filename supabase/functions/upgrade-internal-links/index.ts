@@ -159,7 +159,7 @@ Insert up to 7-8 of these links into the article using natural anchor text. Retu
     }
 
     // Enforce CTA at the end
-    if (!upgradedContent.includes("Contact PJ Media Magnet Ltd today")) {
+    if (!upgradedContent.includes("PJ Media Magnet Ltd")) {
       upgradedContent = upgradedContent.trimEnd() + "\n\n" + CTA_PARAGRAPH;
     }
 

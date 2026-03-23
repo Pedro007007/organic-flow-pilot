@@ -1,22 +1,19 @@
 
 
-## Fix: Show "Upgrade Links" Button on More Statuses
+## Add Backlink to "PJ Media Magnet Ltd" in CTA
 
-The "Upgrade Links" button is only visible when `item.status === "writing"`. The article you're viewing likely has a different status (e.g., "optimizing", "published", or "strategy"). The button should be available whenever there's draft content, regardless of status.
+### What
+Turn "PJ Media Magnet Ltd" into a clickable link pointing to `https://searcheraa.com/` in the mandatory CTA paragraph across both edge functions.
 
-### Change
+### Changes
 
-**`src/components/ContentDetail.tsx`** (line ~554-565):
-- Move the "Upgrade Links" button out of the `writing`-only conditional
-- Show it whenever `draftContent` exists (any status that has a draft), alongside whichever other buttons are relevant for the current status
-- Keep it inside `writing` AND also add it to `optimizing` and `published` statuses — or simply show it independently whenever `draftContent` has content
+#### 1. `supabase/functions/upgrade-internal-links/index.ts`
+- Update the `CTA_PARAGRAPH` constant (line 11): Change `Contact PJ Media Magnet Ltd today` → `Contact [PJ Media Magnet Ltd](https://searcheraa.com/) today`
+- Update the check on line 162 to still detect the CTA (search for `"PJ Media Magnet Ltd"` instead of the full phrase)
 
-Specifically: Add a separate condition before the status-specific blocks:
-```
-{draftContent && (
-  <Button ...>Upgrade Links</Button>
-)}
-```
+#### 2. `supabase/functions/content-generate/index.ts`
+- Update the CTA string (line 297): Same change — wrap "PJ Media Magnet Ltd" in a markdown link to `https://searcheraa.com/`
+- Update the detection check on line 298 similarly
 
-This ensures the button appears on any article that has draft content, regardless of pipeline stage.
+Both functions get the same updated CTA text. Existing articles won't change, but any newly generated or link-upgraded articles will include the backlink.
 

@@ -51,7 +51,7 @@ serve(async (req) => {
     const imgStyle = style || imgDefaults.style || "modern editorial";
     const imgPalette = imgDefaults.color_palette || "";
     const imgRatio = aspectRatio || imgDefaults.aspect_ratio || "16:9";
-    const imgModel = model || "google/gemini-3-pro-image-preview";
+    const imgModel = model || "google/gemini-3.1-flash-image-preview";
 
     const { data: run } = await supabaseAuth.from("agent_runs").insert({
       user_id: userId,

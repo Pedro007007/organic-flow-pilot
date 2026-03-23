@@ -158,6 +158,33 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
     }
   };
 
+  const handleBulkDelete = async () => {
+    if (selectedIds.size === 0) return;
+    setBulkDeleting(true);
+    const ids = Array.from(selectedIds);
+    const { error } = await supabase.from("content_items").delete().in("id", ids);
+    setBulkDeleting(false);
+    if (error) {
+      toast({ title: "Delete failed", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: `${ids.length} item${ids.length > 1 ? "s" : ""} deleted` });
+      setSelectedIds(new Set());
+      queryClient.invalidateQueries({ queryKey: ["content_items"] });
+    }
+  };
+
+  const handleSingleDelete = async (id: string) => {
+    const { error } = await supabase.from("content_items").delete().eq("id", id);
+    if (error) {
+      toast({ title: "Delete failed", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Content deleted" });
+      setSelectedIds((prev) => { const next = new Set(prev); next.delete(id); return next; });
+      queryClient.invalidateQueries({ queryKey: ["content_items"] });
+    }
+    setDeleteConfirmId(null);
+  };
+
   const handleCreate = async (runAutopilot = false) => {
     if (!user || !title.trim() || !keyword.trim()) return;
     setCreating(true);

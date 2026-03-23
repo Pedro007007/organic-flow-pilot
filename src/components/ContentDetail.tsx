@@ -119,13 +119,14 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
 
   const aspectRatios = ["16:9", "4:3", "4:2", "3:2", "1:1", "4:5", "9:16"];
 
-  const getBodySettings = (i: number) => ({
-    aspectRatio: "16:9",
-    style: "_default",
-    model: IMAGE_MODEL_FALLBACK,
-    ...bodyImageSettings[i],
-    model: sanitizeImageModel(bodyImageSettings[i]?.model),
-  });
+  const getBodySettings = (i: number) => {
+    const current = bodyImageSettings[i];
+    return {
+      aspectRatio: current?.aspectRatio || "16:9",
+      style: current?.style || "_default",
+      model: sanitizeImageModel(current?.model),
+    };
+  };
   const updateBodySettings = (i: number, patch: Partial<{ aspectRatio: string; style: string; model: string }>) => {
     setBodyImageSettings((prev) => ({ ...prev, [i]: { ...getBodySettings(i), ...patch } }));
   };

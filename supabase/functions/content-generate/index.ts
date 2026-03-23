@@ -75,11 +75,12 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    // Fetch existing content for internal linking
+    // Fetch existing published content for internal linking
     const { data: existingContent } = await supabase
       .from("content_items")
       .select("title, keyword, slug, url")
       .eq("user_id", userId)
+      .in("status", ["published", "monitoring"])
       .neq("id", contentItemId || "")
       .or("url.not.is.null,slug.not.is.null")
       .limit(20);

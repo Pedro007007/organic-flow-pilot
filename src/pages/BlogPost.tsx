@@ -156,7 +156,22 @@ ${bodyHtml}
               prose-pre:bg-gray-50 prose-pre:border prose-pre:border-gray-200 prose-pre:rounded-lg
               prose-img:rounded-lg
             ">
-              <ReactMarkdown>{post.draft_content || ""}</ReactMarkdown>
+              <ReactMarkdown
+                components={{
+                  a: ({ href, children, ...props }) => {
+                    const isExternal = href?.startsWith("http");
+                    return (
+                      <a
+                        href={href}
+                        {...(isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                        {...props}
+                      >
+                        {children}
+                      </a>
+                    );
+                  },
+                }}
+              >{post.draft_content || ""}</ReactMarkdown>
             </div>
 
             {/* JSON-LD structured data */}

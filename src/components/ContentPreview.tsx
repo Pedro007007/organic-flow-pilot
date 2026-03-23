@@ -80,7 +80,22 @@ const ContentPreview = ({
         prose-hr:border-border
       ">
         {draftContent ? (
-          <ReactMarkdown>{draftContent}</ReactMarkdown>
+          <ReactMarkdown
+            components={{
+              a: ({ href, children, ...props }) => {
+                const isExternal = href?.startsWith("http");
+                return (
+                  <a
+                    href={href}
+                    {...(isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                    {...props}
+                  >
+                    {children}
+                  </a>
+                );
+              },
+            }}
+          >{draftContent}</ReactMarkdown>
         ) : (
           <p className="text-center text-muted-foreground py-12">
             No content yet. Generate or write content to see the preview.

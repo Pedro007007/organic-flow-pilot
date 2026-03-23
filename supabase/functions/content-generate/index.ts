@@ -66,7 +66,7 @@ serve(async (req) => {
       .select("title, keyword, slug, url")
       .eq("user_id", userId)
       .neq("id", contentItemId || "")
-      .not("url", "is", null)
+      .or("url.not.is.null,slug.not.is.null")
       .limit(20);
 
     // Fetch sitemap pages for richer internal link candidates

@@ -274,7 +274,7 @@ serve(async (req) => {
 
     // Save session
     await supabase.from("llm_search_sessions").insert({
-      user_id: user.id,
+      user_id: userId,
       prompt,
       queries: enrichedQueries,
       keyword_matches: keywordMatches,

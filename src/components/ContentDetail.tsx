@@ -551,17 +551,17 @@ ${body}
               </Button>
             </>
           )}
+          {draftContent && (
+            <Button size="sm" variant="outline" onClick={handleUpgradeLinks} disabled={isBusy} className="border-primary/30 text-primary hover:bg-primary/10">
+              {upgradingLinks ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Link className="mr-1.5 h-3.5 w-3.5" />}
+              Upgrade Links
+            </Button>
+          )}
           {item.status === "writing" && (
-            <>
-              <Button size="sm" variant="outline" onClick={handleUpgradeLinks} disabled={isBusy} className="border-primary/30 text-primary hover:bg-primary/10">
-                {upgradingLinks ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Link className="mr-1.5 h-3.5 w-3.5" />}
-                Upgrade Links
-              </Button>
-              <Button size="sm" variant="outline" onClick={handleOptimize} disabled={isBusy} className="border-accent/30 text-accent hover:bg-accent/10">
-                {optimizing ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Wand2 className="mr-1.5 h-3.5 w-3.5" />}
-                Optimize SEO
-              </Button>
-            </>
+            <Button size="sm" variant="outline" onClick={handleOptimize} disabled={isBusy} className="border-accent/30 text-accent hover:bg-accent/10">
+              {optimizing ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Wand2 className="mr-1.5 h-3.5 w-3.5" />}
+              Optimize SEO
+            </Button>
           )}
           {item.status === "optimizing" && (
             <Button size="sm" onClick={handlePublish} disabled={isBusy} className="bg-success hover:bg-success/90 text-success-foreground">

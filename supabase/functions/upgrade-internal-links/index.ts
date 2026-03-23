@@ -8,7 +8,7 @@ const corsHeaders = {
 
 const CTA_PARAGRAPH = `---
 
-*If you are a business owner in the renewable sector or a local Surrey installer looking to reach more customers, let's talk about how to grow your reach. Contact PJ Media Magnet Ltd today to discover how our expert SEO and content strategies can put your business at the forefront of the green energy revolution.*`;
+*If you are a business owner in the renewable sector or a local Surrey installer looking to reach more customers, let's talk about how to grow your reach. Contact [PJ Media Magnet Ltd](https://searcheraa.com/) today to discover how our expert SEO and content strategies can put your business at the forefront of the green energy revolution.*`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });

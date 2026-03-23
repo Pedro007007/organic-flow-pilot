@@ -118,10 +118,12 @@ serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     );
 
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
+    if (claimsError || !claimsData?.claims) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
+    const userId = claimsData.claims.sub;
 
     const { prompt } = await req.json();
     if (!prompt?.trim()) {
@@ -272,7 +274,7 @@ serve(async (req) => {
 
     // Save session
     await supabase.from("llm_search_sessions").insert({
-      user_id: user.id,
+      user_id: userId,
       prompt,
       queries: enrichedQueries,
       keyword_matches: keywordMatches,

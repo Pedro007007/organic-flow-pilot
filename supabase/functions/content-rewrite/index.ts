@@ -42,7 +42,9 @@ serve(async (req) => {
         { global: { headers: { Authorization: authHeader } } }
       );
 
-      const { data: { user } } = await supabase.auth.getUser();
+      const token = authHeader.replace("Bearer ", "");
+      const { data: claimsData } = await supabase.auth.getClaims(token);
+      const user = claimsData?.claims ? { id: claimsData.claims.sub } : null;
       if (user) {
         if (brandId) {
           const { data } = await supabase.from("brands").select("tone_of_voice, writing_style, writing_preferences").eq("id", brandId).eq("user_id", user.id).maybeSingle();

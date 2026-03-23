@@ -1,24 +1,25 @@
 
 
-## Add Delete Articles to Content Pipeline
+## Fix Internal Linking in Content Generation
 
-### What
-Add a bulk delete button and individual delete option so users can remove content items and clean up their workspace.
+### Root Cause
 
-### Changes
+Two issues prevent internal links from appearing in generated articles:
 
-**`src/components/ContentPipeline.tsx`**:
+1. **Content items filter is too strict**: The query uses `.not("url", "is", null)`, but 9 out of 10 content items have `url: null`. Items with a `slug` (6 of 10) could be used as link candidates via `/blog/{slug}` but are currently excluded.
 
-1. **Import** `Trash2` icon from lucide-react and `AlertDialog` components for confirmation
-2. **Add state**: `bulkDeleting` boolean
-3. **Add `handleBulkDelete` function**: Deletes selected items from `content_items` table via `supabase.from("content_items").delete().in("id", ids)`, then clears selection and invalidates query cache
-4. **Add delete button in bulk actions bar** (next to the "Move to..." dropdown): A red "Delete" button that shows a confirmation dialog before executing. Shows count of items to be deleted.
-5. **Add individual delete**: A trash icon button on each row (visible on hover) that deletes a single item with confirmation
+2. **Brand ID mismatch**: Content items use brand `08da19ff` (PJ Media Magnet) but sitemap pages are stored under brand `0dadb149` (Energy Centre Surrey). When generating for brand `08da19ff`, the sitemap query returns 0 results because no sitemap pages exist for that brand.
 
-The confirmation dialog prevents accidental deletion. Related data (aeo_scores, optimization_jobs, seo_fulfilment, repurposed_content) should be cleaned up — will check if cascade deletes exist, otherwise the delete will target just content_items.
+Combined, the AI gets an empty `internalLinks` list, so it produces no internal links.
 
-### Technical detail
-- Uses existing `AlertDialog` UI component for confirmation
-- DELETE is already allowed by RLS policy on `content_items` for authenticated users who own the record
-- Invalidates `["content_items"]` query after deletion to refresh the list
+### Fix in `supabase/functions/content-generate/index.ts`
+
+1. **Relax the content items query** — remove `.not("url", "is", null)` and instead filter for items that have either a `url` or a `slug`:
+   ```
+   .or("url.not.is.null,slug.not.is.null")
+   ```
+
+2. **Add sitemap fallback** — if the brand-specific sitemap query returns 0 results, re-query without the `brand_id` filter to get all user sitemap pages as candidates.
+
+3. **No other files need changes** — the system prompt already handles the link list correctly when it's populated.
 

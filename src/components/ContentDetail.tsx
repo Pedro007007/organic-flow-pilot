@@ -487,6 +487,27 @@ ${body}
     }
   };
 
+  const handleUpgradeLinks = async () => {
+    if (!item || !draftContent) return;
+    setUpgradingLinks(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("upgrade-internal-links", {
+        body: { contentItemId: item.id, draftContent },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      if (data?.content) {
+        setDraftContent(data.content);
+        toast({ title: "Internal links upgraded", description: "Up to 7-8 internal links have been added to your article." });
+        queryClient.invalidateQueries({ queryKey: ["content_items"] });
+      }
+    } catch (err: any) {
+      toast({ title: "Link upgrade failed", description: err.message, variant: "destructive" });
+    } finally {
+      setUpgradingLinks(false);
+    }
+  };
+
   const currentStageIndex = item ? stages.indexOf(item.status) : -1;
   const canAdvance = currentStageIndex >= 0 && currentStageIndex < stages.length - 1;
   const nextStage = canAdvance ? stages[currentStageIndex + 1] : null;

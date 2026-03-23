@@ -107,6 +107,8 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
   // Bulk selection
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [bulkUpdating, setBulkUpdating] = useState(false);
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     let result = content;

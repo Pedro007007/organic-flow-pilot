@@ -127,7 +127,7 @@ serve(async (req) => {
     // Build brand-aware system prompt
     const wp = brand?.writing_preferences || {};
     const linkConfig = brand?.internal_linking_config || {};
-    const maxLinks = linkConfig.max_links || linkConfig.max_links_per_article || 5;
+    const maxLinks = linkConfig.max_links || linkConfig.max_links_per_article || 8;
     const anchorStyle = linkConfig.anchor_style || linkConfig.anchor_text_style || "natural";
     const linkingEnabled = linkConfig.enabled !== false;
 
@@ -291,6 +291,12 @@ Output format: Markdown with proper H1, H2, H3 headings.`;
       content = content.replace("{{IMAGE_2}}", `![${keyword} - practical example](${imageUrls[1]})`);
     } else {
       content = content.replace("{{IMAGE_2}}", "");
+    }
+
+    // Append mandatory CTA footer
+    const ctaParagraph = `---\n\n*If you are a business owner in the renewable sector or a local Surrey installer looking to reach more customers, let's talk about how to grow your reach. Contact PJ Media Magnet Ltd today to discover how our expert SEO and content strategies can put your business at the forefront of the green energy revolution.*`;
+    if (!content.includes("Contact PJ Media Magnet Ltd today")) {
+      content = content.trimEnd() + "\n\n" + ctaParagraph;
     }
 
     // Update content item if provided

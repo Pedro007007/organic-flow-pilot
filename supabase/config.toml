@@ -68,3 +68,6 @@ verify_jwt = false
 
 [functions.content-section-rewrite]
 verify_jwt = false
+
+[functions.upgrade-internal-links]
+verify_jwt = false

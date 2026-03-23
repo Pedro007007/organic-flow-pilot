@@ -29,6 +29,7 @@ import {
   Search,
   PenLine,
   Download,
+  Link,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -73,6 +74,7 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
   const [generatingImage, setGeneratingImage] = useState(false);
   const [regeneratingImageIndex, setRegeneratingImageIndex] = useState<number | null>(null);
   const [researchingSERP, setResearchingSERP] = useState(false);
+  const [upgradingLinks, setUpgradingLinks] = useState(false);
 
   // Local editable state
   const [item, setItem] = useState<any>(null);
@@ -393,7 +395,7 @@ ${body}
     downloadBlob(new Blob([plain], { type: "text/plain" }), `${fileBaseName}.txt`);
   };
 
-  const isBusy = saving || generating || optimizing || publishing || generatingImage || researchingSERP || sectionRewriting || regeneratingImageIndex !== null;
+  const isBusy = saving || generating || optimizing || publishing || generatingImage || researchingSERP || sectionRewriting || regeneratingImageIndex !== null || upgradingLinks;
 
   const handleSERPResearch = async () => {
     setResearchingSERP(true);
@@ -485,6 +487,27 @@ ${body}
     }
   };
 
+  const handleUpgradeLinks = async () => {
+    if (!item || !draftContent) return;
+    setUpgradingLinks(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("upgrade-internal-links", {
+        body: { contentItemId: item.id, draftContent },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      if (data?.content) {
+        setDraftContent(data.content);
+        toast({ title: "Internal links upgraded", description: "Up to 7-8 internal links have been added to your article." });
+        queryClient.invalidateQueries({ queryKey: ["content_items"] });
+      }
+    } catch (err: any) {
+      toast({ title: "Link upgrade failed", description: err.message, variant: "destructive" });
+    } finally {
+      setUpgradingLinks(false);
+    }
+  };
+
   const currentStageIndex = item ? stages.indexOf(item.status) : -1;
   const canAdvance = currentStageIndex >= 0 && currentStageIndex < stages.length - 1;
   const nextStage = canAdvance ? stages[currentStageIndex + 1] : null;
@@ -529,10 +552,16 @@ ${body}
             </>
           )}
           {item.status === "writing" && (
-            <Button size="sm" variant="outline" onClick={handleOptimize} disabled={isBusy} className="border-accent/30 text-accent hover:bg-accent/10">
-              {optimizing ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Wand2 className="mr-1.5 h-3.5 w-3.5" />}
-              Optimize SEO
-            </Button>
+            <>
+              <Button size="sm" variant="outline" onClick={handleUpgradeLinks} disabled={isBusy} className="border-primary/30 text-primary hover:bg-primary/10">
+                {upgradingLinks ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Link className="mr-1.5 h-3.5 w-3.5" />}
+                Upgrade Links
+              </Button>
+              <Button size="sm" variant="outline" onClick={handleOptimize} disabled={isBusy} className="border-accent/30 text-accent hover:bg-accent/10">
+                {optimizing ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Wand2 className="mr-1.5 h-3.5 w-3.5" />}
+                Optimize SEO
+              </Button>
+            </>
           )}
           {item.status === "optimizing" && (
             <Button size="sm" onClick={handlePublish} disabled={isBusy} className="bg-success hover:bg-success/90 text-success-foreground">

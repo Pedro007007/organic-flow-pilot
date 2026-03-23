@@ -9,11 +9,11 @@ const corsHeaders = {
 
 const basePrompts: Record<string, string> = {
   rewrite:
-    "Rewrite the following text to be clearer, more engaging, and better structured while preserving the original meaning. Return only the rewritten text, no commentary.",
+    "Rewrite the following text to be clearer, more engaging, and better structured while preserving the original meaning. IMPORTANT: You MUST preserve ALL existing markdown links (both internal links like [text](/blog/slug) and external links like [text](https://...)). Keep every link intact with its original URL and anchor text. Return only the rewritten text, no commentary.",
   expand:
-    "Expand the following text with additional detail, examples, and depth while maintaining the same tone and style. Return only the expanded text, no commentary.",
+    "Expand the following text with additional detail, examples, and depth while maintaining the same tone and style. IMPORTANT: You MUST preserve ALL existing markdown links (both internal links like [text](/blog/slug) and external links like [text](https://...)). Keep every link intact with its original URL and anchor text. Do NOT remove or change any links. Return only the expanded text, no commentary.",
   shorten:
-    "Condense the following text to be more concise while preserving all key information. Remove filler and redundancy. Return only the shortened text, no commentary.",
+    "Condense the following text to be more concise while preserving all key information. Remove filler and redundancy. IMPORTANT: You MUST preserve ALL existing markdown links (both internal links like [text](/blog/slug) and external links like [text](https://...)). Keep every link intact. Return only the shortened text, no commentary.",
 };
 
 serve(async (req) => {

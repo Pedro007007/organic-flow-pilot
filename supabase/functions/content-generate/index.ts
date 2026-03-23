@@ -32,9 +32,24 @@ serve(async (req) => {
     }
     const userId = user.id;
 
-    const { contentItemId, outline, keyword, title, serpResearch, strategy, brandId, context, referenceLinks, extraKeywords } = await req.json();
+    const body = await req.json();
+    let { contentItemId, outline, keyword, title, serpResearch, strategy, brandId, context, referenceLinks, extraKeywords } = body;
     if (!outline && !keyword) {
       return new Response(JSON.stringify({ error: "outline or keyword required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+
+    // If contentItemId provided, load the item to get its brand_id and saved context
+    if (contentItemId) {
+      const { data: savedItem } = await supabase.from("content_items").select("brand_id, context, reference_links, extra_keywords, keyword, title, serp_research").eq("id", contentItemId).maybeSingle();
+      if (savedItem) {
+        if (!brandId && savedItem.brand_id) brandId = savedItem.brand_id;
+        if (!context && savedItem.context) context = savedItem.context;
+        if ((!referenceLinks || referenceLinks.length === 0) && savedItem.reference_links) referenceLinks = savedItem.reference_links;
+        if ((!extraKeywords || extraKeywords.length === 0) && savedItem.extra_keywords) extraKeywords = savedItem.extra_keywords;
+        if (!keyword && savedItem.keyword) keyword = savedItem.keyword;
+        if (!title && savedItem.title) title = savedItem.title;
+        if (!serpResearch && savedItem.serp_research) serpResearch = savedItem.serp_research;
+      }
     }
 
     // Fetch brand settings if brandId provided
@@ -112,8 +127,9 @@ serve(async (req) => {
     // Build brand-aware system prompt
     const wp = brand?.writing_preferences || {};
     const linkConfig = brand?.internal_linking_config || {};
-    const maxLinks = linkConfig.max_links_per_article || 5;
-    const anchorStyle = linkConfig.anchor_text_style || "natural";
+    const maxLinks = linkConfig.max_links || linkConfig.max_links_per_article || 5;
+    const anchorStyle = linkConfig.anchor_style || linkConfig.anchor_text_style || "natural";
+    const linkingEnabled = linkConfig.enabled !== false;
 
     // Cap candidates at maxLinks * 3 to give AI options
     const cappedCandidates = linkCandidates.slice(0, maxLinks * 3);
@@ -149,7 +165,7 @@ Must Include:
 - FAQ section with direct answers
 - Strong call to action
 - TWO image placeholders: place exactly {{IMAGE_1}} and {{IMAGE_2}} on their own lines at natural break points within the article (NOT at the very beginning or end). Place them between sections where a visual would enhance understanding.
-${internalLinks ? `- Internal links: naturally weave ${Math.min(maxLinks, 4)} of the following internal links (${anchorStyle} anchor text) into the article body where contextually relevant:\n${internalLinks}` : "- Internal link placeholders: use [Related: Topic Name](/blog/topic-slug) format for suggested internal links"}
+${linkingEnabled && internalLinks ? `- MANDATORY Internal Links: You MUST include at least ${Math.min(maxLinks, Math.max(2, cappedCandidates.length))} of the following internal links in the article body (use ${anchorStyle} anchor text). Spread them across different sections — NOT all in one paragraph. Each link should be contextually relevant to the surrounding text:\n${internalLinks}\n- CRITICAL: Do NOT return an article with zero internal links when candidates are provided above.` : !linkingEnabled ? "- Do not include internal links." : "- Internal link placeholders: use [Related: Topic Name](/blog/topic-slug) format for suggested internal links"}
 
 Must Avoid:
 - Keyword stuffing

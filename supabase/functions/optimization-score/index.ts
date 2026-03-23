@@ -73,6 +73,22 @@ serve(async (req) => {
       const { data: pages } = await supabase.from("sitemap_pages").select("url").eq("brand_id", brand.id).limit(50);
       sitemapPages = (pages || []).map((p: any) => p.url);
     }
+    // Fallback: if brand-specific query returned nothing, try all user sitemap pages
+    if (sitemapPages.length === 0) {
+      const { data: fallbackPages } = await supabase.from("sitemap_pages").select("url").eq("user_id", userId).limit(50);
+      sitemapPages = (fallbackPages || []).map((p: any) => p.url);
+    }
+
+    // Also include content items with slugs as valid internal link targets
+    const { data: contentLinks } = await supabase
+      .from("content_items")
+      .select("slug, url")
+      .eq("user_id", userId)
+      .neq("id", contentItemId)
+      .or("url.not.is.null,slug.not.is.null")
+      .limit(30);
+    const contentLinkUrls = (contentLinks || []).map((c: any) => c.url || `/blog/${c.slug}`);
+    const allInternalLinkTargets = [...new Set([...sitemapPages, ...contentLinkUrls])];
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
@@ -84,13 +100,13 @@ Score the content across these 5 dimensions (each 0-100):
 1. Technical SEO (25% weight) — meta title length, meta description quality, schema types, URL slug
 2. On-Page SEO (25% weight) — keyword in title, keyword density, heading structure (H1/H2/H3)
 3. Readability (20% weight) — sentence length, paragraph breaks, plain language, scanability
-4. Internal Linking (15% weight) — number of internal links, link relevance, anchor text quality
+4. Internal Linking (15% weight) — number of internal links, link relevance, anchor text quality. Count links pointing to /blog/ paths AND any of the known site pages listed below as valid internal links.
 5. Content Depth (15% weight) — word count, topic coverage, FAQ inclusion, comprehensive treatment
 
 Also generate a prioritized action plan (max 8 items) with effort (low/medium/high) and impact (low/medium/high) labels.
 
 ${brand ? `Brand: ${brand.name}${brand.domain ? ` (${brand.domain})` : ""}` : ""}
-${sitemapPages.length > 0 ? `\nExisting site pages for internal linking reference:\n${sitemapPages.slice(0, 20).join("\n")}` : ""}`;
+${allInternalLinkTargets.length > 0 ? `\nKnown internal link targets (count links to these as valid internal links):\n${allInternalLinkTargets.slice(0, 30).join("\n")}` : ""}`;
 
     const userMessage = `Analyze this content for SEO optimization scoring.
 

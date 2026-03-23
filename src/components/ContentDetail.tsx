@@ -74,6 +74,7 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
   const [generatingImage, setGeneratingImage] = useState(false);
   const [regeneratingImageIndex, setRegeneratingImageIndex] = useState<number | null>(null);
   const [researchingSERP, setResearchingSERP] = useState(false);
+  const [upgradingLinks, setUpgradingLinks] = useState(false);
 
   // Local editable state
   const [item, setItem] = useState<any>(null);

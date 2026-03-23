@@ -395,7 +395,7 @@ ${body}
     downloadBlob(new Blob([plain], { type: "text/plain" }), `${fileBaseName}.txt`);
   };
 
-  const isBusy = saving || generating || optimizing || publishing || generatingImage || researchingSERP || sectionRewriting || regeneratingImageIndex !== null;
+  const isBusy = saving || generating || optimizing || publishing || generatingImage || researchingSERP || sectionRewriting || regeneratingImageIndex !== null || upgradingLinks;
 
   const handleSERPResearch = async () => {
     setResearchingSERP(true);

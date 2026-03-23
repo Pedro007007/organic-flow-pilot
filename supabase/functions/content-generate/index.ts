@@ -127,7 +127,7 @@ serve(async (req) => {
     // Build brand-aware system prompt
     const wp = brand?.writing_preferences || {};
     const linkConfig = brand?.internal_linking_config || {};
-    const maxLinks = linkConfig.max_links || linkConfig.max_links_per_article || 5;
+    const maxLinks = linkConfig.max_links || linkConfig.max_links_per_article || 8;
     const anchorStyle = linkConfig.anchor_style || linkConfig.anchor_text_style || "natural";
     const linkingEnabled = linkConfig.enabled !== false;
 

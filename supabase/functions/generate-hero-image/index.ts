@@ -258,27 +258,18 @@ Ultra high resolution, ${dimensionHint}.${customPrompt ? `\n\nCLIENT CREATIVE DI
 
     console.log("Generating hero image for:", title || keyword);
 
-    const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: imgModel,
-        messages: [{ role: "user", content: imagePrompt }],
-        modalities: ["image", "text"],
-      }),
+    const aiResponse = await callAiImageWithRetries({
+      apiKey: LOVABLE_API_KEY,
+      model: imgModel,
+      prompt: imagePrompt,
     });
 
-    if (!aiRes.ok) {
-      const errText = await aiRes.text();
-      console.error("AI image generation error:", aiRes.status, errText);
-      await supabaseAuth.from("agent_runs").update({ status: "error", error_message: `AI error: ${aiRes.status}`, completed_at: new Date().toISOString() }).eq("id", run?.id);
-      return new Response(JSON.stringify({ error: aiRes.status === 429 ? "Rate limited" : aiRes.status === 402 ? "Payment required" : "Image generation failed" }), { status: aiRes.status === 429 ? 429 : aiRes.status === 402 ? 402 : 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (!aiResponse.ok) {
+      await supabaseAuth.from("agent_runs").update({ status: "error", error_message: `AI error: ${aiResponse.status}`, completed_at: new Date().toISOString() }).eq("id", run?.id);
+      return new Response(JSON.stringify({ error: aiResponse.status === 429 ? "Rate limited" : aiResponse.status === 402 ? "Payment required" : "Image generation failed" }), { status: aiResponse.status === 429 ? 429 : aiResponse.status === 402 ? 402 : 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const aiText = await aiRes.text();
+    const aiText = aiResponse.body;
     if (!aiText || aiText.trim().length === 0) {
       console.error("AI gateway returned empty response body");
       await supabaseAuth.from("agent_runs").update({ status: "error", error_message: "AI returned empty response", completed_at: new Date().toISOString() }).eq("id", run?.id);

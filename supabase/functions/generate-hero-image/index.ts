@@ -6,6 +6,60 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const AI_GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
+const RETRYABLE_AI_STATUS_CODES = new Set([429, 500, 502, 503, 504]);
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function callAiImageWithRetries({
+  apiKey,
+  model,
+  prompt,
+  maxAttempts = 3,
+}: {
+  apiKey: string;
+  model: string;
+  prompt: string;
+  maxAttempts?: number;
+}) {
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    const response = await fetch(AI_GATEWAY_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model,
+        messages: [{ role: "user", content: prompt }],
+        modalities: ["image", "text"],
+      }),
+    });
+
+    const responseText = await response.text();
+
+    if (response.ok) {
+      return { ok: true as const, status: response.status, body: responseText };
+    }
+
+    console.error("AI image generation error:", response.status, responseText);
+
+    const isRetryable = RETRYABLE_AI_STATUS_CODES.has(response.status);
+    if (!isRetryable || attempt === maxAttempts) {
+      return { ok: false as const, status: response.status, body: responseText };
+    }
+
+    const retryAfterSeconds = Number(response.headers.get("retry-after"));
+    const backoffMs = Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0
+      ? retryAfterSeconds * 1000
+      : 1500 * 2 ** (attempt - 1);
+
+    console.warn(`AI image generation rate limited, retrying in ${backoffMs}ms (attempt ${attempt + 1}/${maxAttempts})`);
+    await sleep(backoffMs);
+  }
+
+  return { ok: false as const, status: 500, body: "Unknown AI retry failure" };
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -204,27 +258,18 @@ Ultra high resolution, ${dimensionHint}.${customPrompt ? `\n\nCLIENT CREATIVE DI
 
     console.log("Generating hero image for:", title || keyword);
 
-    const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: imgModel,
-        messages: [{ role: "user", content: imagePrompt }],
-        modalities: ["image", "text"],
-      }),
+    const aiResponse = await callAiImageWithRetries({
+      apiKey: LOVABLE_API_KEY,
+      model: imgModel,
+      prompt: imagePrompt,
     });
 
-    if (!aiRes.ok) {
-      const errText = await aiRes.text();
-      console.error("AI image generation error:", aiRes.status, errText);
-      await supabaseAuth.from("agent_runs").update({ status: "error", error_message: `AI error: ${aiRes.status}`, completed_at: new Date().toISOString() }).eq("id", run?.id);
-      return new Response(JSON.stringify({ error: aiRes.status === 429 ? "Rate limited" : aiRes.status === 402 ? "Payment required" : "Image generation failed" }), { status: aiRes.status === 429 ? 429 : aiRes.status === 402 ? 402 : 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    if (!aiResponse.ok) {
+      await supabaseAuth.from("agent_runs").update({ status: "error", error_message: `AI error: ${aiResponse.status}`, completed_at: new Date().toISOString() }).eq("id", run?.id);
+      return new Response(JSON.stringify({ error: aiResponse.status === 429 ? "Rate limited" : aiResponse.status === 402 ? "Payment required" : "Image generation failed" }), { status: aiResponse.status === 429 ? 429 : aiResponse.status === 402 ? 402 : 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const aiText = await aiRes.text();
+    const aiText = aiResponse.body;
     if (!aiText || aiText.trim().length === 0) {
       console.error("AI gateway returned empty response body");
       await supabaseAuth.from("agent_runs").update({ status: "error", error_message: "AI returned empty response", completed_at: new Date().toISOString() }).eq("id", run?.id);

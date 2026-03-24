@@ -421,7 +421,8 @@ ${body}
         body: { contentItemId: item.id, keyword: item.keyword, title: item.title, customPrompt: imagePromptDescription || undefined, aspectRatio: heroAspectRatio, style: heroStyle === "_default" ? undefined : heroStyle, model: heroModel },
       });
       if (res.error) throw res.error;
-      setItem((prev: any) => ({ ...prev, hero_image_url: res.data?.hero_image_url }));
+      const newUrl = res.data?.hero_image_url;
+      setItem((prev: any) => ({ ...prev, hero_image_url: newUrl ? `${newUrl}?t=${Date.now()}` : newUrl }));
       toast({ title: "Hero image generated" });
       queryClient.invalidateQueries({ queryKey: ["content_items"] });
     } catch (err: any) {

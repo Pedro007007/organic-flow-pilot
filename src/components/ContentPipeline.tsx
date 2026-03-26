@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { FileText, Plus, Rocket, Loader2, Search, Filter, CheckSquare, Square, Download, Tag, X, Link, Sparkles, Trash2 } from "lucide-react";
+import { FileText, Plus, Rocket, Loader2, Search, Filter, CheckSquare, Square, Download, Tag, X, Link, Sparkles, Trash2, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

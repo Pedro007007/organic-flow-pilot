@@ -40,6 +40,7 @@ const statusConfig: Record<string, { label: string; color: string; bg: string }>
   strategy: { label: "Strategy", color: "text-warning", bg: "bg-warning/15 border-warning/20" },
   writing: { label: "Writing", color: "text-primary", bg: "bg-primary/15 border-primary/20" },
   optimizing: { label: "Optimizing", color: "text-warning", bg: "bg-warning/15 border-warning/20" },
+  unpublished: { label: "Unpublished", color: "text-muted-foreground", bg: "bg-muted border-border" },
   published: { label: "Published", color: "text-success", bg: "bg-success/15 border-success/20" },
   monitoring: { label: "Monitoring", color: "text-success", bg: "bg-success/15 border-success/20" },
 };

@@ -64,13 +64,14 @@ interface ContentDetailProps {
   onBack: () => void;
 }
 
-const stages = ["discovery", "strategy", "writing", "optimizing", "published", "monitoring"] as const;
+const stages = ["discovery", "strategy", "writing", "optimizing", "unpublished", "published", "monitoring"] as const;
 
 const stageConfig: Record<string, { label: string; color: string }> = {
   discovery: { label: "Discovery", color: "text-info" },
   strategy: { label: "Strategy", color: "text-warning" },
   writing: { label: "Writing", color: "text-primary" },
   optimizing: { label: "Optimizing", color: "text-warning" },
+  unpublished: { label: "Unpublished", color: "text-muted-foreground" },
   published: { label: "Published", color: "text-success" },
   monitoring: { label: "Monitoring", color: "text-success" },
 };

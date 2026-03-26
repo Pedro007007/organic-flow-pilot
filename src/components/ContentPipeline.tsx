@@ -143,9 +143,12 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
     if (selectedIds.size === 0) return;
     setBulkUpdating(true);
     const ids = Array.from(selectedIds);
+    const isUnpublishing = newStatus !== "published" && newStatus !== "monitoring";
+    const updatePayload: Record<string, any> = { status: newStatus };
+    if (isUnpublishing) updatePayload.url = null;
     const { error } = await supabase
       .from("content_items")
-      .update({ status: newStatus })
+      .update(updatePayload)
       .in("id", ids);
 
     setBulkUpdating(false);

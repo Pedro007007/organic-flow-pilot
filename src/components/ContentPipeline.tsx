@@ -185,6 +185,19 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
     setDeleteConfirmId(null);
   };
 
+  const handleUnpublish = async (id: string) => {
+    const { error } = await supabase
+      .from("content_items")
+      .update({ status: "optimizing", url: null })
+      .eq("id", id);
+    if (error) {
+      toast({ title: "Unpublish failed", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Unpublished", description: "Article moved back to Optimizing." });
+      queryClient.invalidateQueries({ queryKey: ["content_items"] });
+    }
+  };
+
   const handleCreate = async (runAutopilot = false) => {
     if (!user || !title.trim() || !keyword.trim()) return;
     setCreating(true);

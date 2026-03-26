@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { FileText, Plus, Rocket, Loader2, Search, Filter, CheckSquare, Square, Download, Tag, X, Link, Sparkles, Trash2 } from "lucide-react";
+import { FileText, Plus, Rocket, Loader2, Search, Filter, CheckSquare, Square, Download, Tag, X, Link, Sparkles, Trash2, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -183,6 +183,19 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
       queryClient.invalidateQueries({ queryKey: ["content_items"] });
     }
     setDeleteConfirmId(null);
+  };
+
+  const handleUnpublish = async (id: string) => {
+    const { error } = await supabase
+      .from("content_items")
+      .update({ status: "optimizing", url: null })
+      .eq("id", id);
+    if (error) {
+      toast({ title: "Unpublish failed", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: "Unpublished", description: "Article moved back to Optimizing." });
+      queryClient.invalidateQueries({ queryKey: ["content_items"] });
+    }
   };
 
   const handleCreate = async (runAutopilot = false) => {
@@ -524,6 +537,15 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
                       <p className="text-[10px] text-muted-foreground">clicks</p>
                     </div>
                   </div>
+                )}
+                {(item.status === "published" || item.status === "monitoring") && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleUnpublish(item.id); }}
+                    className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-warning transition-all shrink-0"
+                    title="Unpublish"
+                  >
+                    <EyeOff className="h-3.5 w-3.5" />
+                  </button>
                 )}
                 <AlertDialog open={deleteConfirmId === item.id} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
                   <AlertDialogTrigger asChild>

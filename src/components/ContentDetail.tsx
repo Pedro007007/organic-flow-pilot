@@ -30,7 +30,20 @@ import {
   PenLine,
   Download,
   Link,
+  EyeOff,
+  Trash2,
 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -75,6 +88,8 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
   const [regeneratingImageIndex, setRegeneratingImageIndex] = useState<number | null>(null);
   const [researchingSERP, setResearchingSERP] = useState(false);
   const [upgradingLinks, setUpgradingLinks] = useState(false);
+  const [unpublishing, setUnpublishing] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   // Local editable state
   const [item, setItem] = useState<any>(null);
@@ -395,7 +410,39 @@ ${body}
     downloadBlob(new Blob([plain], { type: "text/plain" }), `${fileBaseName}.txt`);
   };
 
-  const isBusy = saving || generating || optimizing || publishing || generatingImage || researchingSERP || sectionRewriting || regeneratingImageIndex !== null || upgradingLinks;
+  const isBusy = saving || generating || optimizing || publishing || generatingImage || researchingSERP || sectionRewriting || regeneratingImageIndex !== null || upgradingLinks || unpublishing || deleting;
+
+  const handleUnpublish = async () => {
+    setUnpublishing(true);
+    try {
+      const { error } = await supabase
+        .from("content_items")
+        .update({ status: "optimizing", url: null })
+        .eq("id", contentId);
+      if (error) throw error;
+      setItem((prev: any) => ({ ...prev, status: "optimizing", url: null }));
+      toast({ title: "Unpublished", description: "Article moved back to Optimizing and removed from the public blog." });
+      queryClient.invalidateQueries({ queryKey: ["content_items"] });
+    } catch (err: any) {
+      toast({ title: "Unpublish failed", description: err.message, variant: "destructive" });
+    } finally {
+      setUnpublishing(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      const { error } = await supabase.from("content_items").delete().eq("id", contentId);
+      if (error) throw error;
+      toast({ title: "Deleted", description: "Content permanently removed." });
+      queryClient.invalidateQueries({ queryKey: ["content_items"] });
+      onBack();
+    } catch (err: any) {
+      toast({ title: "Delete failed", description: err.message, variant: "destructive" });
+      setDeleting(false);
+    }
+  };
 
   const handleSERPResearch = async () => {
     setResearchingSERP(true);
@@ -592,12 +639,36 @@ ${body}
             {saving ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Save className="mr-1.5 h-3.5 w-3.5" />}
             Save
           </Button>
-          {item.status !== "published" && (
+          {item.status !== "published" && item.status !== "monitoring" && (
             <Button size="sm" variant="destructive" onClick={handleReject} disabled={isBusy}>
               <XCircle className="mr-1.5 h-3.5 w-3.5" />
               Reject
             </Button>
           )}
+          {(item.status === "published" || item.status === "monitoring") && (
+            <Button size="sm" variant="outline" onClick={handleUnpublish} disabled={isBusy} className="border-warning/30 text-warning hover:bg-warning/10">
+              {unpublishing ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <EyeOff className="mr-1.5 h-3.5 w-3.5" />}
+              Unpublish
+            </Button>
+          )}
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button size="sm" variant="outline" disabled={isBusy} className="border-destructive/30 text-destructive hover:bg-destructive/10">
+                <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                Delete
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete this content?</AlertDialogTitle>
+                <AlertDialogDescription>"{item.title}" and all related data (SEO scores, optimization jobs, etc.) will be permanently deleted. This cannot be undone.</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
           {canAdvance && item.status !== "optimizing" && nextStage && (
             <Button size="sm" onClick={() => handleStageChange(nextStage)} disabled={isBusy}>
               <ChevronRight className="mr-1.5 h-3.5 w-3.5" />

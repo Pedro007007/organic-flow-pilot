@@ -64,13 +64,14 @@ interface ContentDetailProps {
   onBack: () => void;
 }
 
-const stages = ["discovery", "strategy", "writing", "optimizing", "published", "monitoring"] as const;
+const stages = ["discovery", "strategy", "writing", "optimizing", "unpublished", "published", "monitoring"] as const;
 
 const stageConfig: Record<string, { label: string; color: string }> = {
   discovery: { label: "Discovery", color: "text-info" },
   strategy: { label: "Strategy", color: "text-warning" },
   writing: { label: "Writing", color: "text-primary" },
   optimizing: { label: "Optimizing", color: "text-warning" },
+  unpublished: { label: "Unpublished", color: "text-muted-foreground" },
   published: { label: "Published", color: "text-success" },
   monitoring: { label: "Monitoring", color: "text-success" },
 };
@@ -417,11 +418,11 @@ ${body}
     try {
       const { error } = await supabase
         .from("content_items")
-        .update({ status: "optimizing", url: null })
+        .update({ status: "unpublished", url: null })
         .eq("id", contentId);
       if (error) throw error;
-      setItem((prev: any) => ({ ...prev, status: "optimizing", url: null }));
-      toast({ title: "Unpublished", description: "Article moved back to Optimizing and removed from the public blog." });
+      setItem((prev: any) => ({ ...prev, status: "unpublished", url: null }));
+      toast({ title: "Unpublished", description: "Article removed from the public blog and marked as Unpublished." });
       queryClient.invalidateQueries({ queryKey: ["content_items"] });
     } catch (err: any) {
       toast({ title: "Unpublish failed", description: err.message, variant: "destructive" });
@@ -611,7 +612,7 @@ ${body}
               Optimize SEO
             </Button>
           )}
-          {item.status === "optimizing" && (
+          {(item.status === "optimizing" || item.status === "unpublished") && (
             <Button size="sm" onClick={handlePublish} disabled={isBusy} className="bg-success hover:bg-success/90 text-success-foreground">
               {publishing ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Send className="mr-1.5 h-3.5 w-3.5" />}
               Publish

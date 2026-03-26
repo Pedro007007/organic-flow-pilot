@@ -1,28 +1,22 @@
 
 
-## Fix CTA Always Using Correct Backlink
+## Add Unpublish & Delete Options for Content Items
 
-### Problem
-The AI model is rewriting the CTA in its own words with wrong URLs (e.g., `pjcmediamagnet.com`, `surrey-energy-canvas.lovable.app`) instead of using the exact hardcoded CTA. The post-generation check `includes("PJ Media Magnet Ltd")` returns `true` because the AI included the brand name, so the correct CTA never gets appended.
+### What this adds
+1. **Unpublish button** on the content detail page — moves a published/monitoring article back to "optimizing" status, removing it from the public blog while preserving all content
+2. **Delete button** on the content detail page — permanently removes the content item (with confirmation dialog)
+3. Both actions available from the content pipeline list as well (via a dropdown menu or action buttons)
 
-### Solution
+### Technical details
 
-#### 1. `supabase/functions/content-generate/index.ts`
-- **Remove** the CTA instruction from the AI system prompt entirely — don't ask the AI to write a closing CTA
-- **After** receiving AI output, strip any AI-generated CTA-like paragraph at the end (anything mentioning "PJ Media Magnet" or "contact us" in the last paragraph)
-- **Always** append the exact hardcoded CTA paragraph with the correct `https://searcheraa.com/` link, unconditionally (remove the `includes` check)
+**File: `src/components/ContentDetail.tsx`**
+- Add an "Unpublish" button (visible when status is `published` or `monitoring`) that calls `supabase.from("content_items").update({ status: "optimizing", url: null }).eq("id", item.id)`
+- Add a "Delete" button with a confirmation dialog that calls `supabase.from("content_items").delete().eq("id", item.id)` then navigates back to the pipeline
+- Both buttons in a dropdown or action bar near the top of the page
 
-#### 2. `supabase/functions/upgrade-internal-links/index.ts`
-- Add a rule to the AI system prompt: "Do NOT modify or rewrite the final CTA paragraph"
-- After AI returns content, strip any malformed CTA and re-append the exact hardcoded version
-- Replace the `includes("PJ Media Magnet Ltd")` check with unconditional append after stripping
+**File: `src/components/ContentPipeline.tsx`**
+- Add a context menu or action dropdown on each content row with "Unpublish" and "Delete" options
+- Same logic as above, with toast confirmations
 
-#### 3. `src/components/ContentPreview.tsx` and `src/pages/BlogPost.tsx`
-- Add a custom `components` prop to `ReactMarkdown` so that external links (`https://...`) open in a new tab with `target="_blank" rel="noopener noreferrer"`
-- This ensures the searcheraa.com link actually navigates correctly instead of being handled by React Router
-
-### Why this fixes it
-- The AI can no longer invent its own CTA with wrong URLs
-- The exact CTA with the correct backlink is always the last thing in every article
-- External links open properly in a new tab
+**No database changes needed** — the existing `content_items` table and RLS policies already support updates and deletes by the owning user.
 

@@ -639,12 +639,36 @@ ${body}
             {saving ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Save className="mr-1.5 h-3.5 w-3.5" />}
             Save
           </Button>
-          {item.status !== "published" && (
+          {item.status !== "published" && item.status !== "monitoring" && (
             <Button size="sm" variant="destructive" onClick={handleReject} disabled={isBusy}>
               <XCircle className="mr-1.5 h-3.5 w-3.5" />
               Reject
             </Button>
           )}
+          {(item.status === "published" || item.status === "monitoring") && (
+            <Button size="sm" variant="outline" onClick={handleUnpublish} disabled={isBusy} className="border-warning/30 text-warning hover:bg-warning/10">
+              {unpublishing ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <EyeOff className="mr-1.5 h-3.5 w-3.5" />}
+              Unpublish
+            </Button>
+          )}
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button size="sm" variant="outline" disabled={isBusy} className="border-destructive/30 text-destructive hover:bg-destructive/10">
+                <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+                Delete
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete this content?</AlertDialogTitle>
+                <AlertDialogDescription>"{item.title}" and all related data (SEO scores, optimization jobs, etc.) will be permanently deleted. This cannot be undone.</AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
           {canAdvance && item.status !== "optimizing" && nextStage && (
             <Button size="sm" onClick={() => handleStageChange(nextStage)} disabled={isBusy}>
               <ChevronRight className="mr-1.5 h-3.5 w-3.5" />

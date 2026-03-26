@@ -538,6 +538,15 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
                     </div>
                   </div>
                 )}
+                {(item.status === "published" || item.status === "monitoring") && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleUnpublish(item.id); }}
+                    className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-warning transition-all shrink-0"
+                    title="Unpublish"
+                  >
+                    <EyeOff className="h-3.5 w-3.5" />
+                  </button>
+                )}
                 <AlertDialog open={deleteConfirmId === item.id} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
                   <AlertDialogTrigger asChild>
                     <button

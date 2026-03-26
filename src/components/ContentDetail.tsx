@@ -410,7 +410,39 @@ ${body}
     downloadBlob(new Blob([plain], { type: "text/plain" }), `${fileBaseName}.txt`);
   };
 
-  const isBusy = saving || generating || optimizing || publishing || generatingImage || researchingSERP || sectionRewriting || regeneratingImageIndex !== null || upgradingLinks;
+  const isBusy = saving || generating || optimizing || publishing || generatingImage || researchingSERP || sectionRewriting || regeneratingImageIndex !== null || upgradingLinks || unpublishing || deleting;
+
+  const handleUnpublish = async () => {
+    setUnpublishing(true);
+    try {
+      const { error } = await supabase
+        .from("content_items")
+        .update({ status: "optimizing", url: null })
+        .eq("id", contentId);
+      if (error) throw error;
+      setItem((prev: any) => ({ ...prev, status: "optimizing", url: null }));
+      toast({ title: "Unpublished", description: "Article moved back to Optimizing and removed from the public blog." });
+      queryClient.invalidateQueries({ queryKey: ["content_items"] });
+    } catch (err: any) {
+      toast({ title: "Unpublish failed", description: err.message, variant: "destructive" });
+    } finally {
+      setUnpublishing(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    setDeleting(true);
+    try {
+      const { error } = await supabase.from("content_items").delete().eq("id", contentId);
+      if (error) throw error;
+      toast({ title: "Deleted", description: "Content permanently removed." });
+      queryClient.invalidateQueries({ queryKey: ["content_items"] });
+      onBack();
+    } catch (err: any) {
+      toast({ title: "Delete failed", description: err.message, variant: "destructive" });
+      setDeleting(false);
+    }
+  };
 
   const handleSERPResearch = async () => {
     setResearchingSERP(true);

@@ -544,7 +544,7 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
                 {(item.status === "published" || item.status === "monitoring") && (
                   <button
                     onClick={(e) => { e.stopPropagation(); handleUnpublish(item.id); }}
-                    className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-warning transition-all shrink-0"
+                    className="text-warning/70 hover:text-warning transition-all shrink-0"
                     title="Unpublish"
                   >
                     <EyeOff className="h-3.5 w-3.5" />

@@ -194,6 +194,7 @@ const ContentCalendar = ({ content, onSelectItem }: ContentCalendarProps) => {
                 { label: "Strategy", color: "bg-warning/20 text-warning" },
                 { label: "Writing", color: "bg-primary/20 text-primary" },
                 { label: "Optimizing", color: "bg-warning/20 text-warning" },
+                { label: "Unpublished", color: "bg-muted text-muted-foreground" },
                 { label: "Published", color: "bg-success/20 text-success" },
                 { label: "Monitoring", color: "bg-success/20 text-success" },
               ].map((s) => (

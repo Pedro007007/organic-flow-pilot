@@ -15,7 +15,7 @@ export interface ContentItem {
   id: string;
   title: string;
   keyword: string;
-  status: "discovery" | "strategy" | "writing" | "optimizing" | "published" | "monitoring";
+  status: "discovery" | "strategy" | "writing" | "optimizing" | "unpublished" | "published" | "monitoring";
   author: string;
   lastUpdated: string;
   impressions?: number;

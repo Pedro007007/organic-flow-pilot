@@ -612,7 +612,7 @@ ${body}
               Optimize SEO
             </Button>
           )}
-          {item.status === "optimizing" && (
+          {(item.status === "optimizing" || item.status === "unpublished") && (
             <Button size="sm" onClick={handlePublish} disabled={isBusy} className="bg-success hover:bg-success/90 text-success-foreground">
               {publishing ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Send className="mr-1.5 h-3.5 w-3.5" />}
               Publish

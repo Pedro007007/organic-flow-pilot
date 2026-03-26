@@ -418,11 +418,11 @@ ${body}
     try {
       const { error } = await supabase
         .from("content_items")
-        .update({ status: "optimizing", url: null })
+        .update({ status: "unpublished", url: null })
         .eq("id", contentId);
       if (error) throw error;
-      setItem((prev: any) => ({ ...prev, status: "optimizing", url: null }));
-      toast({ title: "Unpublished", description: "Article moved back to Optimizing and removed from the public blog." });
+      setItem((prev: any) => ({ ...prev, status: "unpublished", url: null }));
+      toast({ title: "Unpublished", description: "Article removed from the public blog and marked as Unpublished." });
       queryClient.invalidateQueries({ queryKey: ["content_items"] });
     } catch (err: any) {
       toast({ title: "Unpublish failed", description: err.message, variant: "destructive" });

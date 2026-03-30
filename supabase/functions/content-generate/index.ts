@@ -302,12 +302,80 @@ Output format: Markdown with proper H1, H2, H3 headings.`;
     content = content.replace(/\n\n[^\n]*(?:contact us|get in touch|reach out)[^\n]*PJ Media Magnet[^\n]*$/i, "").trimEnd();
     content = content.trimEnd() + "\n\n" + ctaParagraph;
 
+    // Generate Technical SEO metadata via tool calling
+    let seoMetadata: { seo_title: string; meta_description: string; slug: string; schema_types: string[] } = {
+      seo_title: "",
+      meta_description: "",
+      slug: "",
+      schema_types: ["Article"],
+    };
+
+    try {
+      const metaRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash-lite",
+          messages: [
+            { role: "system", content: "You are an elite SEO metadata specialist. Generate optimised metadata for the given article." },
+            { role: "user", content: `Generate SEO metadata for this article.\n\nTitle: ${title || keyword}\nKeyword: ${keyword}\n\nFirst 500 chars of content:\n${content.slice(0, 500)}` },
+          ],
+          tools: [
+            {
+              type: "function",
+              function: {
+                name: "set_seo_metadata",
+                description: "Set the SEO metadata for the article",
+                parameters: {
+                  type: "object",
+                  properties: {
+                    seo_title: { type: "string", description: "SEO title, 50-60 chars, keyword first, compelling" },
+                    meta_description: { type: "string", description: "Meta description, 150-160 chars, includes keyword and CTA" },
+                    slug: { type: "string", description: "URL-safe slug, lowercase, hyphens, max 60 chars, keyword-rich, no stop words" },
+                    schema_types: { type: "array", items: { type: "string" }, description: "Schema.org types e.g. Article, FAQPage, HowTo" },
+                  },
+                  required: ["seo_title", "meta_description", "slug", "schema_types"],
+                  additionalProperties: false,
+                },
+              },
+            },
+          ],
+          tool_choice: { type: "function", function: { name: "set_seo_metadata" } },
+        }),
+      });
+
+      if (metaRes.ok) {
+        const metaResult = await metaRes.json();
+        const toolCall = metaResult.choices?.[0]?.message?.tool_calls?.[0];
+        if (toolCall?.function?.arguments) {
+          const parsed = JSON.parse(toolCall.function.arguments);
+          seoMetadata = {
+            seo_title: (parsed.seo_title || "").slice(0, 70),
+            meta_description: (parsed.meta_description || "").slice(0, 170),
+            slug: (parsed.slug || "").toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 60),
+            schema_types: Array.isArray(parsed.schema_types) ? parsed.schema_types : ["Article"],
+          };
+        }
+      } else {
+        console.warn("SEO metadata generation failed:", metaRes.status);
+      }
+    } catch (metaErr) {
+      console.warn("SEO metadata error:", metaErr);
+    }
+
     // Update content item if provided
     if (contentItemId) {
       await supabase.from("content_items").update({
         draft_content: content,
         status: "writing",
         brand_id: brandId || brand?.id || null,
+        seo_title: seoMetadata.seo_title || null,
+        meta_description: seoMetadata.meta_description || null,
+        slug: seoMetadata.slug || null,
+        schema_types: seoMetadata.schema_types,
       }).eq("id", contentItemId).eq("user_id", userId);
     }
 

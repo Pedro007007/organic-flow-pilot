@@ -262,6 +262,7 @@ Ultra high resolution, ${dimensionHint}.${customPrompt ? `\n\nCLIENT CREATIVE DI
       apiKey: LOVABLE_API_KEY,
       model: imgModel,
       prompt: imagePrompt,
+      maxAttempts: 5,
     });
 
     if (!aiResponse.ok) {

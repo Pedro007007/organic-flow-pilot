@@ -51,7 +51,7 @@ async function callAiImageWithRetries({
     const retryAfterSeconds = Number(response.headers.get("retry-after"));
     const backoffMs = Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0
       ? retryAfterSeconds * 1000
-      : 1500 * 2 ** (attempt - 1);
+      : 3000 * 2 ** (attempt - 1);
 
     console.warn(`AI image generation rate limited, retrying in ${backoffMs}ms (attempt ${attempt + 1}/${maxAttempts})`);
     await sleep(backoffMs);

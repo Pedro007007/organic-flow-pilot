@@ -508,7 +508,12 @@ ${body}
         body: { contentItemId: item.id, keyword: item.keyword, title: item.title, customPrompt: prompt, imageType: "body", aspectRatio: bs.aspectRatio, style: bs.style === "_default" ? undefined : bs.style, model: bs.model },
       });
       if (res.error) throw res.error;
+      const queued = res.data?.queued === true;
       const newUrl = res.data?.image_url;
+      if (queued && !newUrl) {
+        toast({ title: "Image queued", description: res.data?.message || "Rate limited — retry in about a minute." });
+        return;
+      }
       if (newUrl) {
         const altText = item.keyword;
         const newMarkdown = `![${altText}](${newUrl})`;
@@ -531,11 +536,6 @@ ${body}
           toast({ title: `Body image ${slotIndex + 1} ${oldMatch ? "regenerated" : "generated"} & saved` });
         }
       }
-    } catch (err: any) {
-      toast({ title: "Image generation failed", description: err.message, variant: "destructive" });
-    } finally {
-      setRegeneratingImageIndex(null);
-    }
   };
 
   const handleUpgradeLinks = async () => {

@@ -477,9 +477,13 @@ ${body}
       toast({
         title: queued ? "Image queued" : "Hero image generated",
         description: queued ? (res.data?.message || "Rate limited — retry in about a minute.") : undefined,
-        variant: queued ? "default" : "default",
       });
       queryClient.invalidateQueries({ queryKey: ["content_items"] });
+    } catch (err: any) {
+      toast({ title: "Image generation failed", description: err.message, variant: "destructive" });
+    } finally {
+      setGeneratingImage(false);
+    }
   };
 
   // Extract body images from markdown
@@ -508,16 +512,19 @@ ${body}
         body: { contentItemId: item.id, keyword: item.keyword, title: item.title, customPrompt: prompt, imageType: "body", aspectRatio: bs.aspectRatio, style: bs.style === "_default" ? undefined : bs.style, model: bs.model },
       });
       if (res.error) throw res.error;
+
       const queued = res.data?.queued === true;
       const newUrl = res.data?.image_url;
       if (queued && !newUrl) {
         toast({ title: "Image queued", description: res.data?.message || "Rate limited — retry in about a minute." });
         return;
       }
+
       if (newUrl) {
         const altText = item.keyword;
         const newMarkdown = `![${altText}](${newUrl})`;
         let newContent: string;
+
         if (oldMatch) {
           newContent = draftContent.replace(oldMatch, newMarkdown);
         } else {
@@ -526,7 +533,9 @@ ${body}
           lines.splice(insertPoint, 0, "", newMarkdown, "");
           newContent = lines.join("\n");
         }
+
         setDraftContent(newContent);
+
         // Auto-save to database
         const { error: saveError } = await supabase.from("content_items").update({ draft_content: newContent }).eq("id", item.id);
         if (saveError) {
@@ -536,6 +545,11 @@ ${body}
           toast({ title: `Body image ${slotIndex + 1} ${oldMatch ? "regenerated" : "generated"} & saved` });
         }
       }
+    } catch (err: any) {
+      toast({ title: "Image generation failed", description: err.message, variant: "destructive" });
+    } finally {
+      setRegeneratingImageIndex(null);
+    }
   };
 
   const handleUpgradeLinks = async () => {

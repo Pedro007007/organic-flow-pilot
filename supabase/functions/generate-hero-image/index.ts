@@ -10,6 +10,13 @@ const AI_GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
 const RETRYABLE_AI_STATUS_CODES = new Set([429, 500, 502, 503, 504]);
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+// Ordered fallback chain for image models
+const IMAGE_MODEL_FALLBACKS: Record<string, string[]> = {
+  "google/gemini-3.1-flash-image-preview": ["google/gemini-3-pro-image-preview", "google/gemini-2.5-flash-image"],
+  "google/gemini-3-pro-image-preview": ["google/gemini-3.1-flash-image-preview", "google/gemini-2.5-flash-image"],
+  "google/gemini-2.5-flash-image": ["google/gemini-3.1-flash-image-preview", "google/gemini-3-pro-image-preview"],
+};
+
 async function callAiImageWithRetries({
   apiKey,
   model,
@@ -21,43 +28,52 @@ async function callAiImageWithRetries({
   prompt: string;
   maxAttempts?: number;
 }) {
-  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-    const response = await fetch(AI_GATEWAY_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model,
-        messages: [{ role: "user", content: prompt }],
-        modalities: ["image", "text"],
-      }),
-    });
+  const modelsToTry = [model, ...(IMAGE_MODEL_FALLBACKS[model] || [])];
 
-    const responseText = await response.text();
+  for (const currentModel of modelsToTry) {
+    for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+      const response = await fetch(AI_GATEWAY_URL, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: currentModel,
+          messages: [{ role: "user", content: prompt }],
+          modalities: ["image", "text"],
+        }),
+      });
 
-    if (response.ok) {
-      return { ok: true as const, status: response.status, body: responseText };
+      const responseText = await response.text();
+
+      if (response.ok) {
+        return { ok: true as const, status: response.status, body: responseText };
+      }
+
+      console.error(`AI image generation error (${currentModel}):`, response.status, responseText);
+
+      const isRetryable = RETRYABLE_AI_STATUS_CODES.has(response.status);
+      if (!isRetryable) {
+        return { ok: false as const, status: response.status, body: responseText };
+      }
+
+      if (attempt === maxAttempts) {
+        console.warn(`Model ${currentModel} exhausted ${maxAttempts} attempts, trying next model...`);
+        break; // try next model in fallback chain
+      }
+
+      const retryAfterSeconds = Number(response.headers.get("retry-after"));
+      const backoffMs = Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0
+        ? retryAfterSeconds * 1000
+        : 3000 * 2 ** (attempt - 1);
+
+      console.warn(`AI image generation rate limited, retrying in ${backoffMs}ms (attempt ${attempt + 1}/${maxAttempts})`);
+      await sleep(backoffMs);
     }
-
-    console.error("AI image generation error:", response.status, responseText);
-
-    const isRetryable = RETRYABLE_AI_STATUS_CODES.has(response.status);
-    if (!isRetryable || attempt === maxAttempts) {
-      return { ok: false as const, status: response.status, body: responseText };
-    }
-
-    const retryAfterSeconds = Number(response.headers.get("retry-after"));
-    const backoffMs = Number.isFinite(retryAfterSeconds) && retryAfterSeconds > 0
-      ? retryAfterSeconds * 1000
-      : 3000 * 2 ** (attempt - 1);
-
-    console.warn(`AI image generation rate limited, retrying in ${backoffMs}ms (attempt ${attempt + 1}/${maxAttempts})`);
-    await sleep(backoffMs);
   }
 
-  return { ok: false as const, status: 500, body: "Unknown AI retry failure" };
+  return { ok: false as const, status: 429, body: "All image models rate limited" };
 };
 
 serve(async (req) => {

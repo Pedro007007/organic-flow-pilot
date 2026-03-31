@@ -282,8 +282,59 @@ Ultra high resolution, ${dimensionHint}.${customPrompt ? `\n\nCLIENT CREATIVE DI
     });
 
     if (!aiResponse.ok) {
-      await supabaseAuth.from("agent_runs").update({ status: "error", error_message: `AI error: ${aiResponse.status}`, completed_at: new Date().toISOString() }).eq("id", run?.id);
-      return new Response(JSON.stringify({ error: aiResponse.status === 429 ? "Rate limited" : aiResponse.status === 402 ? "Payment required" : "Image generation failed" }), { status: aiResponse.status === 429 ? 429 : aiResponse.status === 402 ? 402 : 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      const isRateLimited = aiResponse.status === 429;
+      const isCreditsError = aiResponse.status === 402;
+
+      await supabaseAuth
+        .from("agent_runs")
+        .update({
+          status: "error",
+          error_message: `AI error: ${aiResponse.status}`,
+          completed_at: new Date().toISOString(),
+          result: isRateLimited ? { queued: true, reason: "rate_limited" } : null,
+        })
+        .eq("id", run?.id);
+
+      // Graceful handling for provider throttling: avoid surfacing hard runtime errors in the UI
+      if (isRateLimited) {
+        let existingImageUrl: string | null = null;
+        if (contentItemId) {
+          const { data: existingItem } = await supabaseAuth
+            .from("content_items")
+            .select("hero_image_url")
+            .eq("id", contentItemId)
+            .eq("user_id", userId)
+            .maybeSingle();
+          existingImageUrl = existingItem?.hero_image_url || null;
+        }
+
+        return new Response(
+          JSON.stringify({
+            success: false,
+            queued: true,
+            error: "Rate limited",
+            message: "Image provider is temporarily rate-limited. Please retry in about 60 seconds.",
+            hero_image_url: existingImageUrl,
+            image_url: existingImageUrl,
+          }),
+          {
+            status: 202,
+            headers: {
+              ...corsHeaders,
+              "Content-Type": "application/json",
+              "Retry-After": "60",
+            },
+          },
+        );
+      }
+
+      return new Response(
+        JSON.stringify({ error: isCreditsError ? "Payment required" : "Image generation failed" }),
+        {
+          status: isCreditsError ? 402 : 500,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
     }
 
     const aiText = aiResponse.body;

@@ -469,15 +469,17 @@ ${body}
         body: { contentItemId: item.id, keyword: item.keyword, title: item.title, customPrompt: imagePromptDescription || undefined, aspectRatio: heroAspectRatio, style: heroStyle === "_default" ? undefined : heroStyle, model: heroModel },
       });
       if (res.error) throw res.error;
+      const queued = res.data?.queued === true;
       const newUrl = res.data?.hero_image_url;
-      setItem((prev: any) => ({ ...prev, hero_image_url: newUrl ? `${newUrl}?t=${Date.now()}` : newUrl }));
-      toast({ title: "Hero image generated" });
+      if (newUrl) {
+        setItem((prev: any) => ({ ...prev, hero_image_url: `${newUrl}?t=${Date.now()}` }));
+      }
+      toast({
+        title: queued ? "Image queued" : "Hero image generated",
+        description: queued ? (res.data?.message || "Rate limited — retry in about a minute.") : undefined,
+        variant: queued ? "default" : "default",
+      });
       queryClient.invalidateQueries({ queryKey: ["content_items"] });
-    } catch (err: any) {
-      toast({ title: "Image generation failed", description: err.message, variant: "destructive" });
-    } finally {
-      setGeneratingImage(false);
-    }
   };
 
   // Extract body images from markdown

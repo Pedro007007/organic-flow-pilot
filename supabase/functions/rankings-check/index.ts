@@ -73,6 +73,7 @@ Deno.serve(async (req) => {
           });
 
           const tokenData = await tokenRes.json();
+          console.log("GSC token refresh status:", tokenRes.status, tokenData.error || "ok");
 
           if (tokenData.access_token) {
             // Update stored token

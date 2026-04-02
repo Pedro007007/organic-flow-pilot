@@ -95,19 +95,45 @@ serve(async (req) => {
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
     const content = item.draft_content || "";
+
+    // Pre-count internal links in content for accurate scoring
+    const brandDomain = brand?.domain?.replace(/^https?:\/\//, "").replace(/\/$/, "") || "";
+    const linkRegex = /\[([^\]]*)\]\(([^)]+)\)|href=["']([^"']+)["']/gi;
+    let linkMatch;
+    const foundInternalLinks: { anchor: string; url: string }[] = [];
+    const foundExternalLinks: string[] = [];
+    while ((linkMatch = linkRegex.exec(content)) !== null) {
+      const anchor = linkMatch[1] || "";
+      const url = linkMatch[2] || linkMatch[3] || "";
+      const isInternal =
+        url.startsWith("/") ||
+        url.startsWith("#") ||
+        (brandDomain && url.includes(brandDomain)) ||
+        allInternalLinkTargets.some((t) => url.includes(t) || t.includes(url));
+      if (isInternal) {
+        foundInternalLinks.push({ anchor, url });
+      } else if (url.startsWith("http")) {
+        foundExternalLinks.push(url);
+      }
+    }
+
+    const internalLinkSummary = foundInternalLinks.length > 0
+      ? `\nPre-counted internal links found in content (${foundInternalLinks.length} total):\n${foundInternalLinks.map((l) => `  - "${l.anchor}" → ${l.url}`).join("\n")}`
+      : "\nPre-counted internal links: 0 found in content.";
+
     const systemPrompt = `You are an SEO Content Scoring Expert. Analyze the provided content and return a detailed SEO score with an action plan.
 
 Score the content across these 5 dimensions (each 0-100):
 1. Technical SEO (25% weight) — meta title length, meta description quality, schema types, URL slug
 2. On-Page SEO (25% weight) — keyword in title, keyword density, heading structure (H1/H2/H3)
 3. Readability (20% weight) — sentence length, paragraph breaks, plain language, scanability
-4. Internal Linking (15% weight) — number of internal links, link relevance, anchor text quality. Count links pointing to /blog/ paths AND any of the known site pages listed below as valid internal links.
+4. Internal Linking (15% weight) — Use the pre-counted link data below. Score based on: number of internal links (ideally 5-8 per 1500 words), link relevance to topic, anchor text quality (descriptive vs generic), and distribution throughout the article. Links to /blog/ paths, the brand domain, and known site pages all count as internal links.
 5. Content Depth (15% weight) — word count, topic coverage, FAQ inclusion, comprehensive treatment
 
 Also generate a prioritized action plan (max 8 items) with effort (low/medium/high) and impact (low/medium/high) labels.
 
 ${brand ? `Brand: ${brand.name}${brand.domain ? ` (${brand.domain})` : ""}` : ""}
-${allInternalLinkTargets.length > 0 ? `\nKnown internal link targets (count links to these as valid internal links):\n${allInternalLinkTargets.slice(0, 30).join("\n")}` : ""}`;
+${allInternalLinkTargets.length > 0 ? `\nKnown internal link targets:\n${allInternalLinkTargets.slice(0, 30).join("\n")}` : ""}`;
 
     const userMessage = `Analyze this content for SEO optimization scoring.
 
@@ -117,6 +143,8 @@ SEO Title: ${item.seo_title || "(not set)"}
 Meta Description: ${item.meta_description || "(not set)"}
 Slug: ${item.slug || "(not set)"}
 Schema Types: ${(item.schema_types || []).join(", ") || "(none)"}
+${internalLinkSummary}
+External links found: ${foundExternalLinks.length}
 
 Content:
 ${content.substring(0, 10000)}`;

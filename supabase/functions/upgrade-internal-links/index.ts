@@ -88,7 +88,11 @@ serve(async (req) => {
       }
     }
     for (const c of (existingContent || []) as any[]) {
-      const u = c.url || (c.slug ? `/blog/${c.slug}` : null);
+      const u = c.url || (c.slug
+        ? (brand?.domain
+            ? `https://${brand.domain.replace(/^https?:\/\//, '').replace(/\/$/, '')}/blog/${c.slug}`
+            : `https://organic-flow-pilot.lovable.app/blog/${c.slug}`)
+        : null);
       if (u && !seen.has(u)) {
         seen.add(u);
         candidates.push({ title: c.title, url: u, keyword: c.keyword });

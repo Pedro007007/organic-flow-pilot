@@ -151,29 +151,38 @@ Deno.serve(async (req) => {
     });
 
     // Match content items to GSC data
+    const siteUrl = gscConn?.site_url?.replace(/\/$/, "") || "";
     const today = new Date().toISOString().split("T")[0];
     const rows = content.map((c: any) => {
       const kwLower = c.keyword?.toLowerCase() || "";
-      // Try exact keyword+url match first, then keyword-only, then partial match
-      let gscMatch = gscPositionMap.get(`${kwLower}||${c.url}`);
+      const contentUrl = c.url || "";
+      // Build full URL for matching (content stores relative paths like /blog/...)
+      const fullUrl = contentUrl.startsWith("http") ? contentUrl : `${siteUrl}${contentUrl.startsWith("/") ? "" : "/"}${contentUrl}`;
+
+      // Try exact keyword+fullUrl match
+      let gscMatch = gscPositionMap.get(`${kwLower}||${fullUrl}`);
       if (!gscMatch) {
-        // Try matching by URL path
+        // Try matching by URL path suffix in GSC data
         for (const [key, val] of gscPositionMap.entries()) {
-          if (key.includes("||") && key.endsWith(c.url)) {
+          if (key.includes("||")) {
+            const gscUrl = key.split("||")[1];
+            if (gscUrl === fullUrl || gscUrl.endsWith(contentUrl) || contentUrl.endsWith(new URL(gscUrl).pathname)) {
+              gscMatch = val;
+              break;
+            }
+          }
+        }
+      }
+      if (!gscMatch) {
+        // Try keyword-only match (best position for this keyword across all pages)
+        for (const [key, val] of gscPositionMap.entries()) {
+          if (!key.includes("||") && (key === kwLower || kwLower.includes(key) || key.includes(kwLower))) {
             gscMatch = val;
             break;
           }
         }
       }
-      if (!gscMatch) {
-        // Try partial keyword match
-        for (const [key, val] of gscPositionMap.entries()) {
-          if (!key.includes("||") && kwLower.includes(key)) {
-            gscMatch = val;
-            break;
-          }
-        }
-      }
+      console.log(`Matching "${c.keyword}" (${contentUrl} → ${fullUrl}): ${gscMatch ? `pos ${gscMatch.position}` : "no match"}`);
 
       const position = gscMatch?.position || null;
       const prevKey = `${c.keyword}||${c.url}`;

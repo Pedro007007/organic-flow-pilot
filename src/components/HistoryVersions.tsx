@@ -88,6 +88,8 @@ const HistoryVersions = ({
   currentHeroImageUrl,
   currentSchemaTypes,
   currentSeoScore,
+  keyword,
+  author,
   onRestoreVersion,
 }: HistoryVersionsProps) => {
   const { user } = useAuth();

@@ -19,6 +19,12 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   History,
   Plus,
   Loader2,
@@ -30,7 +36,9 @@ import {
   BarChart3,
   Link,
   Eye,
+  Maximize2,
 } from "lucide-react";
+import ContentPreview from "@/components/ContentPreview";
 
 interface HistoryVersionsProps {
   contentId: string;

@@ -404,6 +404,10 @@ const HistoryVersions = ({
                           <Eye className="h-3 w-3" />
                           {isPreviewing ? "Hide Preview" : "Preview Content"}
                         </Button>
+                        <Button size="sm" variant="default" onClick={() => setFullPreviewVersion(v)} className="h-7 text-xs gap-1.5">
+                          <Maximize2 className="h-3 w-3" />
+                          Full Preview
+                        </Button>
                         <Button size="sm" variant="outline" onClick={() => handleRestore(v)} className="h-7 text-xs gap-1.5">
                           <RotateCcw className="h-3 w-3" />
                           Restore
@@ -446,6 +450,42 @@ const HistoryVersions = ({
           </p>
         </div>
       )}
+
+      {/* Full Preview Dialog */}
+      <Dialog open={!!fullPreviewVersion} onOpenChange={(open) => !open && setFullPreviewVersion(null)}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
+          <DialogHeader className="px-6 pt-6 pb-2">
+            <DialogTitle className="flex items-center gap-3">
+              <Eye className="h-5 w-5 text-primary" />
+              {fullPreviewVersion?.version_label || `Version ${fullPreviewVersion?.version_number}`}
+              {fullPreviewVersion?.seo_score != null && (
+                <Badge variant={fullPreviewVersion.seo_score >= 70 ? "default" : "secondary"} className="text-[10px]">
+                  SEO {fullPreviewVersion.seo_score}
+                </Badge>
+              )}
+              {fullPreviewVersion?.aeo_score != null && (
+                <Badge variant={fullPreviewVersion.aeo_score >= 70 ? "default" : "secondary"} className="text-[10px]">
+                  AEO {fullPreviewVersion.aeo_score}
+                </Badge>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          {fullPreviewVersion && (
+            <div className="px-4 pb-6">
+              <ContentPreview
+                title={fullPreviewVersion.seo_title || keyword}
+                seoTitle={fullPreviewVersion.seo_title || ""}
+                metaDescription={fullPreviewVersion.meta_description || ""}
+                author={author}
+                keyword={keyword}
+                heroImageUrl={fullPreviewVersion.hero_image_url}
+                draftContent={fullPreviewVersion.draft_content || ""}
+                updatedAt={fullPreviewVersion.created_at}
+              />
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

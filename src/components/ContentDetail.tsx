@@ -1219,6 +1219,8 @@ ${body}
             currentHeroImageUrl={item?.hero_image_url}
             currentSchemaTypes={item?.schema_types}
             currentSeoScore={item?.seo_score}
+            keyword={item?.keyword || ""}
+            author={item?.author || "Agent"}
             onRestoreVersion={(version) => {
               if (version.draft_content) setDraftContent(version.draft_content);
               if (version.seo_title) setSeoTitle(version.seo_title);

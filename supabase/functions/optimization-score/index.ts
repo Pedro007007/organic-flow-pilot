@@ -98,22 +98,31 @@ serve(async (req) => {
 
     // Pre-count internal links in content for accurate scoring
     const brandDomain = brand?.domain?.replace(/^https?:\/\//, "").replace(/\/$/, "") || "";
-    const linkRegex = /\[([^\]]*)\]\(([^)]+)\)|href=["']([^"']+)["']/gi;
+    // Detect markdown links, HTML href, and bare anchor tags
+    const linkRegex = /\[([^\]]*)\]\(([^)]+)\)|href=["']([^"']+)["']|<a[^>]+href=["']([^"']+)["'][^>]*>([^<]*)<\/a>/gi;
     let linkMatch;
     const foundInternalLinks: { anchor: string; url: string }[] = [];
     const foundExternalLinks: string[] = [];
     while ((linkMatch = linkRegex.exec(content)) !== null) {
-      const anchor = linkMatch[1] || "";
-      const url = linkMatch[2] || linkMatch[3] || "";
+      const anchor = linkMatch[1] || linkMatch[5] || "";
+      const url = (linkMatch[2] || linkMatch[3] || linkMatch[4] || "").trim();
+      if (!url) continue;
+      const cleanUrl = url.replace(/\s+/g, "");
       const isInternal =
-        url.startsWith("/") ||
-        url.startsWith("#") ||
-        (brandDomain && url.includes(brandDomain)) ||
-        allInternalLinkTargets.some((t) => url.includes(t) || t.includes(url));
+        cleanUrl.startsWith("/") ||
+        cleanUrl.startsWith("#") ||
+        cleanUrl.startsWith("./") ||
+        (brandDomain && cleanUrl.includes(brandDomain)) ||
+        cleanUrl.includes("/blog/") ||
+        allInternalLinkTargets.some((t) => {
+          const normalT = t.replace(/\/$/, "");
+          const normalU = cleanUrl.replace(/\/$/, "");
+          return normalU.includes(normalT) || normalT.includes(normalU) || normalU.endsWith(normalT.split("/").pop() || "___");
+        });
       if (isInternal) {
-        foundInternalLinks.push({ anchor, url });
-      } else if (url.startsWith("http")) {
-        foundExternalLinks.push(url);
+        foundInternalLinks.push({ anchor, url: cleanUrl });
+      } else if (cleanUrl.startsWith("http")) {
+        foundExternalLinks.push(cleanUrl);
       }
     }
 

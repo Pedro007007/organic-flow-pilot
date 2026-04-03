@@ -568,13 +568,18 @@ ${body}
     setUpgradingLinks(true);
     try {
       const { data, error } = await supabase.functions.invoke("upgrade-internal-links", {
-        body: { contentItemId: item.id, draftContent },
+        body: {
+          contentItemId: item.id,
+          draftContent,
+          maxLinks: linkCount,
+          targetSections: targetSections.length > 0 ? targetSections : undefined,
+        },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       if (data?.content) {
         setDraftContent(data.content);
-        toast({ title: "Internal links upgraded", description: "Up to 7-8 internal links have been added to your article." });
+        toast({ title: "Internal links upgraded", description: `Up to ${linkCount} internal links added.` });
         queryClient.invalidateQueries({ queryKey: ["content_items"] });
       }
     } catch (err: any) {
@@ -583,6 +588,43 @@ ${body}
       setUpgradingLinks(false);
     }
   };
+
+  const handleGenerateFaqs = async () => {
+    if (!item || !draftContent) return;
+    setGeneratingFaqs(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-faqs", {
+        body: { contentItemId: item.id, faqCount },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      if (data?.success) {
+        // Re-fetch updated content
+        const { data: updated } = await supabase.from("content_items").select("draft_content").eq("id", item.id).maybeSingle();
+        if (updated?.draft_content) {
+          setDraftContent(updated.draft_content);
+        }
+        toast({ title: "FAQs generated", description: `${data.count} FAQ pairs added to the article.` });
+        queryClient.invalidateQueries({ queryKey: ["content_items"] });
+      }
+    } catch (err: any) {
+      toast({ title: "FAQ generation failed", description: err.message, variant: "destructive" });
+    } finally {
+      setGeneratingFaqs(false);
+    }
+  };
+
+  // Extract H2 headings from draft content for section targeting
+  const extractHeadings = (content: string): string[] => {
+    const headingRegex = /^##\s+(.+)$/gm;
+    const headings: string[] = [];
+    let m: RegExpExecArray | null;
+    while ((m = headingRegex.exec(content)) !== null) {
+      headings.push(m[1].trim());
+    }
+    return headings;
+  };
+  const articleHeadings = extractHeadings(draftContent);
 
   const currentStageIndex = item ? stages.indexOf(item.status) : -1;
   const canAdvance = currentStageIndex >= 0 && currentStageIndex < stages.length - 1;

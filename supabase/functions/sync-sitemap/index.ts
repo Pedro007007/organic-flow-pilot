@@ -33,22 +33,15 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "brandId and sitemapUrl are required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Verify brand ownership
     const { data: brand } = await supabase.from("brands").select("id, domain").eq("id", brandId).eq("user_id", userId).maybeSingle();
     if (!brand) {
       return new Response(JSON.stringify({ error: "Brand not found" }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     const commonSitemapPaths = [
-      "/sitemap.xml",
-      "/sitemap_index.xml",
-      "/sitemap-index.xml",
-      "/wp-sitemap.xml",
-      "/sitemap.xml.gz",
-      "/page-sitemap.xml",
-      "/post-sitemap.xml",
-      "/sitemap1.xml",
-      "/sitemap/sitemap-index.xml",
+      "/sitemap.xml", "/sitemap_index.xml", "/sitemap-index.xml",
+      "/wp-sitemap.xml", "/sitemap.xml.gz", "/page-sitemap.xml",
+      "/post-sitemap.xml", "/sitemap1.xml", "/sitemap/sitemap-index.xml",
     ];
 
     const isLikelySitemap = /sitemap.*\.xml/i.test(sitemapUrl) || sitemapUrl.endsWith(".xml");
@@ -56,61 +49,72 @@ serve(async (req) => {
     async function fetchSitemap(url: string): Promise<{ xml: string; finalUrl: string } | null> {
       try {
         console.log(`Trying sitemap: ${url}`);
-        const res = await fetch(url, {
-          headers: { "User-Agent": "Searchera-Bot/1.0" },
-          redirect: "follow",
-        });
+        const res = await fetch(url, { headers: { "User-Agent": "Searchera-Bot/1.0" }, redirect: "follow" });
         if (!res.ok) return null;
         const text = await res.text();
         if (text.includes("<urlset") || text.includes("<sitemapindex")) {
           return { xml: text, finalUrl: url };
         }
         return null;
-      } catch {
-        return null;
-      }
+      } catch { return null; }
     }
 
-    // Try to discover sitemaps from robots.txt
     async function discoverFromRobotsTxt(baseUrl: string): Promise<string[]> {
       try {
         console.log(`Checking robots.txt: ${baseUrl}/robots.txt`);
-        const res = await fetch(`${baseUrl}/robots.txt`, {
-          headers: { "User-Agent": "Searchera-Bot/1.0" },
-          redirect: "follow",
-        });
+        const res = await fetch(`${baseUrl}/robots.txt`, { headers: { "User-Agent": "Searchera-Bot/1.0" }, redirect: "follow" });
         if (!res.ok) return [];
         const text = await res.text();
-        const sitemapUrls: string[] = [];
+        const urls: string[] = [];
         for (const line of text.split("\n")) {
           const match = line.match(/^Sitemap:\s*(.+)/i);
-          if (match) {
-            sitemapUrls.push(match[1].trim());
-          }
+          if (match) urls.push(match[1].trim());
         }
-        if (sitemapUrls.length > 0) {
-          console.log(`Found ${sitemapUrls.length} sitemaps in robots.txt: ${sitemapUrls.join(", ")}`);
+        if (urls.length > 0) console.log(`Found ${urls.length} sitemaps in robots.txt`);
+        return urls;
+      } catch { return []; }
+    }
+
+    // Firecrawl Map API fallback for sites without sitemaps
+    async function discoverViaFirecrawl(baseUrl: string): Promise<string[]> {
+      const apiKey = Deno.env.get("FIRECRAWL_API_KEY");
+      if (!apiKey) {
+        console.log("FIRECRAWL_API_KEY not set, skipping crawl fallback");
+        return [];
+      }
+      try {
+        console.log(`Using Firecrawl Map to discover URLs for: ${baseUrl}`);
+        const res = await fetch("https://api.firecrawl.dev/v1/map", {
+          method: "POST",
+          headers: { "Authorization": `Bearer ${apiKey}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ url: baseUrl, limit: 500, includeSubdomains: false }),
+        });
+        if (!res.ok) {
+          console.warn(`Firecrawl Map returned ${res.status}`);
+          return [];
         }
-        return sitemapUrls;
-      } catch {
+        const data = await res.json();
+        const links: string[] = data?.links || [];
+        console.log(`Firecrawl Map discovered ${links.length} URLs`);
+        return links;
+      } catch (e) {
+        console.warn("Firecrawl Map error:", e);
         return [];
       }
     }
 
     let xml: string | null = null;
     let resolvedUrl = sitemapUrl;
+    let baseUrl = sitemapUrl.replace(/\/+$/, "");
+    try { baseUrl = new URL(sitemapUrl).origin; } catch { /* use as-is */ }
 
-    // 1. If it looks like a direct sitemap URL, try it first
+    // 1. Direct sitemap URL
     if (isLikelySitemap) {
       const result = await fetchSitemap(sitemapUrl);
       if (result) { xml = result.xml; resolvedUrl = result.finalUrl; }
     }
 
-    // 2. Determine base URL
-    let baseUrl = sitemapUrl.replace(/\/+$/, "");
-    try { baseUrl = new URL(sitemapUrl).origin; } catch { /* use as-is */ }
-
-    // 3. Try robots.txt discovery
+    // 2. robots.txt
     if (!xml) {
       const robotsSitemaps = await discoverFromRobotsTxt(baseUrl);
       for (const robotsUrl of robotsSitemaps) {
@@ -119,7 +123,7 @@ serve(async (req) => {
       }
     }
 
-    // 4. Try common paths
+    // 3. Common paths
     if (!xml) {
       for (const path of commonSitemapPaths) {
         const result = await fetchSitemap(`${baseUrl}${path}`);
@@ -127,58 +131,51 @@ serve(async (req) => {
       }
     }
 
-    if (!xml) {
-      return new Response(JSON.stringify({
-        error: `No sitemap found for ${baseUrl}. Checked robots.txt and common paths. The site may not have a sitemap — you can add pages manually instead.`,
-      }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-
-    console.log(`Using sitemap: ${resolvedUrl}`);
-
-    // Parse URLs from XML sitemap
-    const urlRegex = /<loc>\s*(.*?)\s*<\/loc>/gi;
-    const urls: string[] = [];
-    let match;
-    while ((match = urlRegex.exec(xml)) !== null) {
-      urls.push(match[1]);
-    }
-
-    if (urls.length === 0) {
-      return new Response(JSON.stringify({ error: "Sitemap found but contains no URLs" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-
-    // Check if this is a sitemap index (contains other sitemaps)
-    const isSitemapIndex = xml.includes("<sitemapindex");
-    
     let allPageUrls: string[] = [];
+    let discoveryMethod = "sitemap";
 
-    if (isSitemapIndex) {
-      const childSitemaps = urls.slice(0, 5);
-      for (const childUrl of childSitemaps) {
-        try {
-          const childRes = await fetch(childUrl, {
-            headers: { "User-Agent": "Searchera-Bot/1.0" },
-            redirect: "follow",
-          });
-          if (!childRes.ok) continue;
-          const childXml = await childRes.text();
-          const childUrlRegex = /<loc>\s*(.*?)\s*<\/loc>/gi;
-          let childMatch;
-          while ((childMatch = childUrlRegex.exec(childXml)) !== null) {
-            allPageUrls.push(childMatch[1]);
-          }
-        } catch {
-          // Skip failed child sitemaps
+    if (xml) {
+      console.log(`Using sitemap: ${resolvedUrl}`);
+      const urlRegex = /<loc>\s*(.*?)\s*<\/loc>/gi;
+      const urls: string[] = [];
+      let match;
+      while ((match = urlRegex.exec(xml)) !== null) urls.push(match[1]);
+
+      if (urls.length === 0) {
+        return new Response(JSON.stringify({ error: "Sitemap found but contains no URLs" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      const isSitemapIndex = xml.includes("<sitemapindex");
+      if (isSitemapIndex) {
+        const childSitemaps = urls.slice(0, 5);
+        for (const childUrl of childSitemaps) {
+          try {
+            const childRes = await fetch(childUrl, { headers: { "User-Agent": "Searchera-Bot/1.0" }, redirect: "follow" });
+            if (!childRes.ok) continue;
+            const childXml = await childRes.text();
+            const childUrlRegex = /<loc>\s*(.*?)\s*<\/loc>/gi;
+            let childMatch;
+            while ((childMatch = childUrlRegex.exec(childXml)) !== null) allPageUrls.push(childMatch[1]);
+          } catch { /* skip */ }
         }
+      } else {
+        allPageUrls = urls;
       }
     } else {
-      allPageUrls = urls;
+      // 4. Firecrawl fallback — crawl the site to discover pages
+      allPageUrls = await discoverViaFirecrawl(baseUrl);
+      discoveryMethod = "crawl";
+
+      if (allPageUrls.length === 0) {
+        return new Response(JSON.stringify({
+          error: `No sitemap found and crawl returned no pages for ${baseUrl}. You can add pages manually instead.`,
+        }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
     }
 
     // Limit to 500 pages
     allPageUrls = allPageUrls.slice(0, 500);
-
-    console.log(`Found ${allPageUrls.length} URLs in sitemap`);
+    console.log(`Found ${allPageUrls.length} URLs via ${discoveryMethod}`);
 
     // Delete existing sitemap pages for this brand
     await supabase.from("sitemap_pages").delete().eq("brand_id", brandId).eq("user_id", userId);
@@ -205,11 +202,11 @@ serve(async (req) => {
       }
     }
 
-    return new Response(JSON.stringify({ 
-      success: true, 
+    return new Response(JSON.stringify({
+      success: true,
       pages_found: allPageUrls.length,
       pages_imported: inserted,
-      is_sitemap_index: isSitemapIndex,
+      discovery_method: discoveryMethod,
     }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -232,7 +229,5 @@ function extractTitleFromUrl(url: string): string {
       .replace(/\.\w+$/, "")
       .replace(/\b\w/g, (c) => c.toUpperCase())
       .trim() || url;
-  } catch {
-    return url;
-  }
+  } catch { return url; }
 }

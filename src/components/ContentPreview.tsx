@@ -24,6 +24,7 @@ const ContentPreview = ({
   updatedAt,
 }: ContentPreviewProps) => {
   const displayTitle = seoTitle || title;
+  const normalizedDraftContent = sanitizeMarkdownLinks(draftContent);
   const date = updatedAt ? new Date(updatedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) : "";
 
   return (

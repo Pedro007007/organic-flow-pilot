@@ -1,5 +1,6 @@
 import ReactMarkdown from "react-markdown";
 import { Badge } from "@/components/ui/badge";
+import { sanitizeMarkdownLinks } from "@/lib/markdown";
 
 interface ContentPreviewProps {
   title: string;
@@ -23,6 +24,7 @@ const ContentPreview = ({
   updatedAt,
 }: ContentPreviewProps) => {
   const displayTitle = seoTitle || title;
+  const normalizedDraftContent = sanitizeMarkdownLinks(draftContent);
   const date = updatedAt ? new Date(updatedAt).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) : "";
 
   return (
@@ -79,7 +81,7 @@ const ContentPreview = ({
         prose-img:rounded-lg prose-img:border prose-img:border-border prose-img:shadow-sm
         prose-hr:border-border
       ">
-        {draftContent ? (
+        {normalizedDraftContent ? (
           <ReactMarkdown
             components={{
               a: ({ href, children, ...props }) => {
@@ -95,7 +97,7 @@ const ContentPreview = ({
                 );
               },
             }}
-          >{draftContent}</ReactMarkdown>
+          >{normalizedDraftContent}</ReactMarkdown>
         ) : (
           <p className="text-center text-muted-foreground py-12">
             No content yet. Generate or write content to see the preview.

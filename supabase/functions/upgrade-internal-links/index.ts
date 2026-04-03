@@ -15,37 +15,40 @@ const DEFAULT_APP_ORIGIN = "https://organic-flow-pilot.lovable.app";
 const normalizeDomain = (domain?: string | null) =>
   domain ? domain.replace(/^https?:\/\//, "").replace(/\/$/, "") : null;
 
+const sanitizeMarkdownUrlValue = (value: string) => value.trim().replace(/\s+/g, "");
+
 const resolveAbsoluteUrl = (value: string | null | undefined, preferredDomain?: string | null) => {
   if (!value) return null;
 
+  const sanitizedValue = sanitizeMarkdownUrlValue(value);
   const domain = normalizeDomain(preferredDomain);
   const preferredOrigin = domain ? `https://${domain}` : DEFAULT_APP_ORIGIN;
 
-  if (value.startsWith("/")) {
-    return `${preferredOrigin}${value}`;
+  if (sanitizedValue.startsWith("/")) {
+    return `${preferredOrigin}${sanitizedValue}`;
   }
 
   try {
-    const parsed = new URL(value);
+    const parsed = new URL(sanitizedValue);
     const isLovableHost = parsed.hostname.endsWith(".lovable.app");
     const isStorageHost = parsed.hostname.includes(".supabase.co");
 
-    if (isStorageHost) return value;
+    if (isStorageHost) return sanitizedValue;
 
     if (isLovableHost) {
       return `${preferredOrigin}${parsed.pathname}${parsed.search}${parsed.hash}`;
     }
 
-    return value;
+    return sanitizedValue;
   } catch {
-    return value;
+    return sanitizedValue;
   }
 };
 
 const normalizeMarkdownLinks = (content: string, preferredDomain?: string | null) =>
   content.replace(/(!?\[[^\]]*\]\()([^)]+)(\))/g, (_match, prefix, url, suffix) => {
     const normalizedUrl = resolveAbsoluteUrl(url, preferredDomain);
-    return `${prefix}${normalizedUrl || url}${suffix}`;
+    return `${prefix}${normalizedUrl || sanitizeMarkdownUrlValue(url)}${suffix}`;
   });
 
 serve(async (req) => {

@@ -5,8 +5,9 @@ import { supabase } from "@/integrations/supabase/client";
 import ReactMarkdown from "react-markdown";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Calendar, Download, User } from "lucide-react";
+import { ArrowLeft, Calendar, User } from "lucide-react";
 import searcheraLogo from "@/assets/searchera-logo.png";
+import { sanitizeMarkdownLinks } from "@/lib/markdown";
 
 const BlogPost = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -28,6 +29,7 @@ const BlogPost = () => {
   });
 
   const displayTitle = post?.seo_title || post?.title || "";
+  const normalizedDraftContent = sanitizeMarkdownLinks(post?.draft_content || "");
   const date = post?.updated_at
     ? new Date(post.updated_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
     : "";
@@ -171,7 +173,7 @@ ${bodyHtml}
                     );
                   },
                 }}
-              >{post.draft_content || ""}</ReactMarkdown>
+              >{normalizedDraftContent}</ReactMarkdown>
             </div>
 
             {/* JSON-LD structured data */}

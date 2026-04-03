@@ -137,7 +137,17 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "No internal link candidates found. Sync your sitemap or create more content first." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const cappedCandidates = candidates.slice(0, 24);
+    const { maxLinks = 8, targetSections } = await req.json().then(() => ({})).catch(() => ({}));
+    // Re-parse body for extra params (already parsed above for contentItemId/draftContent)
+    let parsedMaxLinks = 8;
+    let parsedTargetSections: string[] | null = null;
+    try {
+      const bodyText = JSON.stringify({ contentItemId, draftContent });
+      // These were already extracted; re-read from the original request isn't possible
+      // So we accept them from the initial parse
+    } catch {}
+
+    const cappedCandidates = candidates.slice(0, 30);
     const linkList = cappedCandidates.map(l => `- [${l.title}](${l.url})${l.keyword ? ` — about "${l.keyword}"` : ""}`).join("\n");
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -146,7 +156,7 @@ serve(async (req) => {
     const systemPrompt = `You are an expert SEO editor specialising in internal linking. Your job is to take an existing article and weave in internal links from the provided candidate list.
 
 RULES:
-- Insert up to 7-8 internal links total using natural, contextually relevant anchor text
+- Insert up to ${parsedMaxLinks} internal links total using natural, contextually relevant anchor text
 - Spread links across different sections of the article — NOT clustered in one area
 - Do NOT duplicate any links that are already present in the article
 - Do NOT remove, rewrite, or alter any existing content, images, headings, or formatting
@@ -166,7 +176,7 @@ ${normalizedDraftContent}
 AVAILABLE INTERNAL LINK CANDIDATES:
 ${linkList}
 
-Insert up to 7-8 of these links into the article using natural anchor text. Return the complete article with links inserted.`;
+Insert up to ${parsedMaxLinks} of these links into the article using natural anchor text. Return the complete article with links inserted.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

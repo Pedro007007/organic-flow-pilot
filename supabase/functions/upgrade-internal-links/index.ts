@@ -72,10 +72,12 @@ serve(async (req) => {
     }
     const userId = user.id;
 
-    const { contentItemId, draftContent } = await req.json();
+    const { contentItemId, draftContent, maxLinks: rawMaxLinks, targetSections } = await req.json();
     if (!contentItemId || !draftContent) {
       return new Response(JSON.stringify({ error: "contentItemId and draftContent required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
+    const requestedMaxLinks = Math.min(Math.max(Number(rawMaxLinks) || 8, 3), 20);
+    const sectionTargets: string[] | null = Array.isArray(targetSections) && targetSections.length > 0 ? targetSections : null;
 
     const { data: item } = await supabase.from("content_items").select("brand_id, keyword, title").eq("id", contentItemId).eq("user_id", userId).maybeSingle();
     if (!item) {

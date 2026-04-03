@@ -327,7 +327,7 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
               New Content
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Create Content Item</DialogTitle>
             </DialogHeader>

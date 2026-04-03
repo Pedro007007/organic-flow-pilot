@@ -651,47 +651,43 @@ ${body}
   return (
     <div className="space-y-6">
       {/* Top bar */}
-      <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between">
         <button onClick={onBack} className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
           <ArrowLeft className="h-4 w-4" />
           Back to pipeline
         </button>
-        <div className="flex items-center gap-2">
-          {/* AI Actions */}
+        <div className="flex items-center gap-1">
+          {/* AI Generation Group */}
           {(item.status === "discovery" || item.status === "strategy") && (
-            <>
-              <Button size="sm" variant="outline" onClick={handleSERPResearch} disabled={isBusy} className="border-info/30 text-info hover:bg-info/10">
-                {researchingSERP ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Search className="mr-1.5 h-3.5 w-3.5" />}
-                SERP Research
+            <div className="flex items-center gap-1 mr-1">
+              <Button size="sm" variant="ghost" onClick={handleSERPResearch} disabled={isBusy} className="text-info hover:bg-info/10 h-8 px-2.5 text-xs">
+                {researchingSERP ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Search className="h-3.5 w-3.5" />}
+                <span className="ml-1 hidden lg:inline">SERP</span>
               </Button>
-              <Button size="sm" variant="outline" onClick={handleGenerate} disabled={isBusy} className="border-primary/30 text-primary hover:bg-primary/10">
-                {generating ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Sparkles className="mr-1.5 h-3.5 w-3.5" />}
-                Generate Content
+              <Button size="sm" variant="ghost" onClick={handleGenerate} disabled={isBusy} className="text-primary hover:bg-primary/10 h-8 px-2.5 text-xs">
+                {generating ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                <span className="ml-1 hidden lg:inline">Generate</span>
               </Button>
-            </>
+              <Separator orientation="vertical" className="h-5 mx-1" />
+            </div>
           )}
+
+          {/* Content Enhancement Group */}
           {draftContent && (
-            <>
-              {/* Upgrade Links with settings popover */}
+            <div className="flex items-center gap-1 mr-1">
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button size="sm" variant="outline" disabled={isBusy} className="border-primary/30 text-primary hover:bg-primary/10">
-                    {upgradingLinks ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Link className="mr-1.5 h-3.5 w-3.5" />}
-                    Upgrade Links ({linkCount})
+                  <Button size="sm" variant="ghost" disabled={isBusy} className="text-primary hover:bg-primary/10 h-8 px-2.5 text-xs">
+                    {upgradingLinks ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Link className="h-3.5 w-3.5" />}
+                    <span className="ml-1 hidden lg:inline">Links</span>
+                    <Badge variant="secondary" className="ml-1 h-4 px-1 text-[10px] rounded">{linkCount}</Badge>
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-72 p-4 space-y-3" align="end">
                   <div className="space-y-2">
                     <Label className="text-xs font-semibold">Max Links</Label>
                     <div className="flex items-center gap-2">
-                      <input
-                        type="range"
-                        min={3}
-                        max={20}
-                        value={linkCount}
-                        onChange={(e) => setLinkCount(Number(e.target.value))}
-                        className="flex-1 accent-primary"
-                      />
+                      <input type="range" min={3} max={20} value={linkCount} onChange={(e) => setLinkCount(Number(e.target.value))} className="flex-1 accent-primary" />
                       <span className="text-sm font-mono w-6 text-center">{linkCount}</span>
                     </div>
                   </div>
@@ -702,14 +698,7 @@ ${body}
                       <div className="max-h-32 overflow-y-auto space-y-1.5">
                         {articleHeadings.map((heading) => (
                           <label key={heading} className="flex items-center gap-2 text-xs cursor-pointer">
-                            <Checkbox
-                              checked={targetSections.includes(heading)}
-                              onCheckedChange={(checked) => {
-                                setTargetSections((prev) =>
-                                  checked ? [...prev, heading] : prev.filter((s) => s !== heading)
-                                );
-                              }}
-                            />
+                            <Checkbox checked={targetSections.includes(heading)} onCheckedChange={(checked) => { setTargetSections((prev) => checked ? [...prev, heading] : prev.filter((s) => s !== heading)); }} />
                             <span className="truncate">{heading}</span>
                           </label>
                         ))}
@@ -723,26 +712,18 @@ ${body}
                 </PopoverContent>
               </Popover>
 
-              {/* Generate FAQs with count selector */}
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button size="sm" variant="outline" disabled={isBusy} className="border-accent/30 text-accent hover:bg-accent/10">
-                    {generatingFaqs ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <MessageSquarePlus className="mr-1.5 h-3.5 w-3.5" />}
-                    Generate FAQs
+                  <Button size="sm" variant="ghost" disabled={isBusy} className="text-accent hover:bg-accent/10 h-8 px-2.5 text-xs">
+                    {generatingFaqs ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <MessageSquarePlus className="h-3.5 w-3.5" />}
+                    <span className="ml-1 hidden lg:inline">FAQs</span>
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-64 p-4 space-y-3" align="end">
                   <div className="space-y-2">
                     <Label className="text-xs font-semibold">Number of FAQs</Label>
                     <div className="flex items-center gap-2">
-                      <input
-                        type="range"
-                        min={3}
-                        max={20}
-                        value={faqCount}
-                        onChange={(e) => setFaqCount(Number(e.target.value))}
-                        className="flex-1 accent-accent"
-                      />
+                      <input type="range" min={3} max={20} value={faqCount} onChange={(e) => setFaqCount(Number(e.target.value))} className="flex-1 accent-accent" />
                       <span className="text-sm font-mono w-6 text-center">{faqCount}</span>
                     </div>
                     <p className="text-[10px] text-muted-foreground">AI will generate {faqCount} unique FAQ pairs and append them to the article.</p>
@@ -753,77 +734,88 @@ ${body}
                   </Button>
                 </PopoverContent>
               </Popover>
-            </>
+              <Separator orientation="vertical" className="h-5 mx-1" />
+            </div>
           )}
+
+          {/* Optimize / Publish */}
           {item.status === "writing" && (
-            <Button size="sm" variant="outline" onClick={handleOptimize} disabled={isBusy} className="border-accent/30 text-accent hover:bg-accent/10">
-              {optimizing ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Wand2 className="mr-1.5 h-3.5 w-3.5" />}
-              Optimize SEO
+            <Button size="sm" variant="ghost" onClick={handleOptimize} disabled={isBusy} className="text-accent hover:bg-accent/10 h-8 px-2.5 text-xs">
+              {optimizing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Wand2 className="h-3.5 w-3.5" />}
+              <span className="ml-1">Optimize</span>
             </Button>
           )}
           {(item.status === "optimizing" || item.status === "unpublished") && (
-            <Button size="sm" onClick={handlePublish} disabled={isBusy} className="bg-success hover:bg-success/90 text-success-foreground">
-              {publishing ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Send className="mr-1.5 h-3.5 w-3.5" />}
-              Publish
+            <Button size="sm" onClick={handlePublish} disabled={isBusy} className="bg-success hover:bg-success/90 text-success-foreground h-8 px-3 text-xs rounded-lg">
+              {publishing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+              <span className="ml-1">Publish</span>
             </Button>
           )}
 
-          {draftContent && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button size="sm" variant="outline" disabled={isBusy}>
-                  <Download className="mr-1.5 h-3.5 w-3.5" />
-                  Export
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-popover border border-border shadow-lg z-50">
-                <DropdownMenuItem onClick={exportMarkdown}>Export as Markdown</DropdownMenuItem>
-                <DropdownMenuItem onClick={exportHtml}>Export as HTML</DropdownMenuItem>
-                <DropdownMenuItem onClick={exportDocx}>Export as DOCX</DropdownMenuItem>
-                <DropdownMenuItem onClick={exportPlainText}>Export as Plain Text</DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+          {/* Utility Group */}
+          <div className="flex items-center gap-0.5">
+            {draftContent && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button size="icon" variant="ghost" disabled={isBusy} className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                    <Download className="h-3.5 w-3.5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="bg-popover border border-border shadow-lg z-50">
+                  <DropdownMenuItem onClick={exportMarkdown}>Export as Markdown</DropdownMenuItem>
+                  <DropdownMenuItem onClick={exportHtml}>Export as HTML</DropdownMenuItem>
+                  <DropdownMenuItem onClick={exportDocx}>Export as DOCX</DropdownMenuItem>
+                  <DropdownMenuItem onClick={exportPlainText}>Export as Plain Text</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
 
-          <Button size="sm" variant="outline" onClick={handleSave} disabled={isBusy}>
-            {saving ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Save className="mr-1.5 h-3.5 w-3.5" />}
-            Save
-          </Button>
-          {item.status !== "published" && item.status !== "monitoring" && (
-            <Button size="sm" variant="destructive" onClick={handleReject} disabled={isBusy}>
-              <XCircle className="mr-1.5 h-3.5 w-3.5" />
-              Reject
+            <Button size="icon" variant="ghost" onClick={handleSave} disabled={isBusy} className="h-8 w-8 text-muted-foreground hover:text-foreground">
+              {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
             </Button>
-          )}
-          {(item.status === "published" || item.status === "monitoring") && (
-            <Button size="sm" variant="outline" onClick={handleUnpublish} disabled={isBusy} className="border-warning/30 text-warning hover:bg-warning/10">
-              {unpublishing ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <EyeOff className="mr-1.5 h-3.5 w-3.5" />}
-              Unpublish
-            </Button>
-          )}
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button size="sm" variant="outline" disabled={isBusy} className="border-destructive/30 text-destructive hover:bg-destructive/10">
-                <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-                Delete
+
+            {(item.status === "published" || item.status === "monitoring") && (
+              <Button size="icon" variant="ghost" onClick={handleUnpublish} disabled={isBusy} className="h-8 w-8 text-warning hover:bg-warning/10">
+                {unpublishing ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <EyeOff className="h-3.5 w-3.5" />}
               </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Delete this content?</AlertDialogTitle>
-                <AlertDialogDescription>"{item.title}" and all related data (SEO scores, optimization jobs, etc.) will be permanently deleted. This cannot be undone.</AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+            )}
+          </div>
+
+          {/* Danger Zone */}
+          <Separator orientation="vertical" className="h-5 mx-1" />
+          <div className="flex items-center gap-0.5">
+            {item.status !== "published" && item.status !== "monitoring" && (
+              <Button size="icon" variant="ghost" onClick={handleReject} disabled={isBusy} className="h-8 w-8 text-destructive hover:bg-destructive/10">
+                <XCircle className="h-3.5 w-3.5" />
+              </Button>
+            )}
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button size="icon" variant="ghost" disabled={isBusy} className="h-8 w-8 text-destructive hover:bg-destructive/10">
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete this content?</AlertDialogTitle>
+                  <AlertDialogDescription>"{item.title}" and all related data (SEO scores, optimization jobs, etc.) will be permanently deleted. This cannot be undone.</AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">Delete</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+
           {canAdvance && item.status !== "optimizing" && nextStage && (
-            <Button size="sm" onClick={() => handleStageChange(nextStage)} disabled={isBusy}>
-              <ChevronRight className="mr-1.5 h-3.5 w-3.5" />
-              Move to {stageConfig[nextStage]?.label}
-            </Button>
+            <>
+              <Separator orientation="vertical" className="h-5 mx-1" />
+              <Button size="sm" onClick={() => handleStageChange(nextStage)} disabled={isBusy} className="h-8 px-3 text-xs">
+                Move to {stageConfig[nextStage]?.label}
+                <ChevronRight className="ml-1 h-3.5 w-3.5" />
+              </Button>
+            </>
           )}
         </div>
       </div>

@@ -863,6 +863,7 @@ ${body}
           <TabsTrigger value="optimization">Optimization</TabsTrigger>
           <TabsTrigger value="aeo">AEO</TabsTrigger>
           <TabsTrigger value="fulfilment">SEO/GEO Fulfilment</TabsTrigger>
+          <TabsTrigger value="history">History Versions</TabsTrigger>
           <TabsTrigger value="repurpose">Repurpose</TabsTrigger>
         </TabsList>
 

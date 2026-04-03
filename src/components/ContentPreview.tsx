@@ -81,7 +81,7 @@ const ContentPreview = ({
         prose-img:rounded-lg prose-img:border prose-img:border-border prose-img:shadow-sm
         prose-hr:border-border
       ">
-        {draftContent ? (
+        {normalizedDraftContent ? (
           <ReactMarkdown
             components={{
               a: ({ href, children, ...props }) => {
@@ -97,7 +97,7 @@ const ContentPreview = ({
                 );
               },
             }}
-          >{draftContent}</ReactMarkdown>
+          >{normalizedDraftContent}</ReactMarkdown>
         ) : (
           <p className="text-center text-muted-foreground py-12">
             No content yet. Generate or write content to see the preview.

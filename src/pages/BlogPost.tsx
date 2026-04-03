@@ -173,7 +173,7 @@ ${bodyHtml}
                     );
                   },
                 }}
-              >{post.draft_content || ""}</ReactMarkdown>
+              >{normalizedDraftContent}</ReactMarkdown>
             </div>
 
             {/* JSON-LD structured data */}

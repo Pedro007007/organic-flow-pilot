@@ -364,7 +364,8 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
               )}
               <div className="space-y-2">
                 <Label className="text-xs text-muted-foreground">Context & Instructions</Label>
-                <Textarea value={context} onChange={(e) => setContext(e.target.value)} placeholder="Add background context, specific instructions, or notes for the AI..." className="bg-background border-border text-sm min-h-[60px]" />
+                <Textarea value={context} onChange={(e) => setContext(e.target.value)} placeholder="Add background context, specific instructions, or notes for the AI... (up to 1,000 words)" className="bg-background border-border text-sm min-h-[120px]" maxLength={7000} />
+                <p className="text-[10px] text-muted-foreground text-right">{context.trim().split(/\s+/).filter(Boolean).length} / 1,000 words</p>
               </div>
               <div className="space-y-2">
                 <Label className="text-xs text-muted-foreground flex items-center gap-1"><Link className="h-3 w-3" /> Reference Links</Label>

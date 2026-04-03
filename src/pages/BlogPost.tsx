@@ -5,8 +5,9 @@ import { supabase } from "@/integrations/supabase/client";
 import ReactMarkdown from "react-markdown";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Calendar, Download, User } from "lucide-react";
+import { ArrowLeft, Calendar, User } from "lucide-react";
 import searcheraLogo from "@/assets/searchera-logo.png";
+import { sanitizeMarkdownLinks } from "@/lib/markdown";
 
 const BlogPost = () => {
   const { slug } = useParams<{ slug: string }>();

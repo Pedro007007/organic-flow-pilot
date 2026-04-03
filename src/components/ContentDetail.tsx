@@ -1209,6 +1209,25 @@ ${body}
           </div>
         </TabsContent>
 
+        <TabsContent value="history">
+          <HistoryVersions
+            contentId={contentId}
+            currentContent={draftContent}
+            currentSeoTitle={seoTitle}
+            currentMetaDescription={metaDescription}
+            currentSlug={slug}
+            currentHeroImageUrl={item?.hero_image_url}
+            currentSchemaTypes={item?.schema_types}
+            currentSeoScore={item?.seo_score}
+            onRestoreVersion={(version) => {
+              if (version.draft_content) setDraftContent(version.draft_content);
+              if (version.seo_title) setSeoTitle(version.seo_title);
+              if (version.meta_description) setMetaDescription(version.meta_description);
+              if (version.slug) setSlug(version.slug);
+            }}
+          />
+        </TabsContent>
+
         <TabsContent value="repurpose">
           <div className="rounded-lg border border-border bg-card p-5">
             <RepurposeTab contentItemId={contentId} />

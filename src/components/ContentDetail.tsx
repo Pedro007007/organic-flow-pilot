@@ -32,7 +32,14 @@ import {
   Link,
   EyeOff,
   Trash2,
+  MessageSquarePlus,
 } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -91,6 +98,10 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
   const [upgradingLinks, setUpgradingLinks] = useState(false);
   const [unpublishing, setUnpublishing] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [generatingFaqs, setGeneratingFaqs] = useState(false);
+  const [faqCount, setFaqCount] = useState(7);
+  const [linkCount, setLinkCount] = useState(8);
+  const [targetSections, setTargetSections] = useState<string[]>([]);
 
   // Local editable state
   const [item, setItem] = useState<any>(null);
@@ -411,7 +422,7 @@ ${body}
     downloadBlob(new Blob([plain], { type: "text/plain" }), `${fileBaseName}.txt`);
   };
 
-  const isBusy = saving || generating || optimizing || publishing || generatingImage || researchingSERP || sectionRewriting || regeneratingImageIndex !== null || upgradingLinks || unpublishing || deleting;
+  const isBusy = saving || generating || optimizing || publishing || generatingImage || researchingSERP || sectionRewriting || regeneratingImageIndex !== null || upgradingLinks || unpublishing || deleting || generatingFaqs;
 
   const handleUnpublish = async () => {
     setUnpublishing(true);
@@ -557,13 +568,18 @@ ${body}
     setUpgradingLinks(true);
     try {
       const { data, error } = await supabase.functions.invoke("upgrade-internal-links", {
-        body: { contentItemId: item.id, draftContent },
+        body: {
+          contentItemId: item.id,
+          draftContent,
+          maxLinks: linkCount,
+          targetSections: targetSections.length > 0 ? targetSections : undefined,
+        },
       });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       if (data?.content) {
         setDraftContent(data.content);
-        toast({ title: "Internal links upgraded", description: "Up to 7-8 internal links have been added to your article." });
+        toast({ title: "Internal links upgraded", description: `Up to ${linkCount} internal links added.` });
         queryClient.invalidateQueries({ queryKey: ["content_items"] });
       }
     } catch (err: any) {
@@ -572,6 +588,43 @@ ${body}
       setUpgradingLinks(false);
     }
   };
+
+  const handleGenerateFaqs = async () => {
+    if (!item || !draftContent) return;
+    setGeneratingFaqs(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-faqs", {
+        body: { contentItemId: item.id, faqCount },
+      });
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+      if (data?.success) {
+        // Re-fetch updated content
+        const { data: updated } = await supabase.from("content_items").select("draft_content").eq("id", item.id).maybeSingle();
+        if (updated?.draft_content) {
+          setDraftContent(updated.draft_content);
+        }
+        toast({ title: "FAQs generated", description: `${data.count} FAQ pairs added to the article.` });
+        queryClient.invalidateQueries({ queryKey: ["content_items"] });
+      }
+    } catch (err: any) {
+      toast({ title: "FAQ generation failed", description: err.message, variant: "destructive" });
+    } finally {
+      setGeneratingFaqs(false);
+    }
+  };
+
+  // Extract H2 headings from draft content for section targeting
+  const extractHeadings = (content: string): string[] => {
+    const headingRegex = /^##\s+(.+)$/gm;
+    const headings: string[] = [];
+    let m: RegExpExecArray | null;
+    while ((m = headingRegex.exec(content)) !== null) {
+      headings.push(m[1].trim());
+    }
+    return headings;
+  };
+  const articleHeadings = extractHeadings(draftContent);
 
   const currentStageIndex = item ? stages.indexOf(item.status) : -1;
   const canAdvance = currentStageIndex >= 0 && currentStageIndex < stages.length - 1;
@@ -617,10 +670,89 @@ ${body}
             </>
           )}
           {draftContent && (
-            <Button size="sm" variant="outline" onClick={handleUpgradeLinks} disabled={isBusy} className="border-primary/30 text-primary hover:bg-primary/10">
-              {upgradingLinks ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Link className="mr-1.5 h-3.5 w-3.5" />}
-              Upgrade Links
-            </Button>
+            <>
+              {/* Upgrade Links with settings popover */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button size="sm" variant="outline" disabled={isBusy} className="border-primary/30 text-primary hover:bg-primary/10">
+                    {upgradingLinks ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Link className="mr-1.5 h-3.5 w-3.5" />}
+                    Upgrade Links ({linkCount})
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-72 p-4 space-y-3" align="end">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-semibold">Max Links</Label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="range"
+                        min={3}
+                        max={20}
+                        value={linkCount}
+                        onChange={(e) => setLinkCount(Number(e.target.value))}
+                        className="flex-1 accent-primary"
+                      />
+                      <span className="text-sm font-mono w-6 text-center">{linkCount}</span>
+                    </div>
+                  </div>
+                  {articleHeadings.length > 0 && (
+                    <div className="space-y-2">
+                      <Label className="text-xs font-semibold">Target Sections</Label>
+                      <p className="text-[10px] text-muted-foreground">Prioritise links in these sections (optional)</p>
+                      <div className="max-h-32 overflow-y-auto space-y-1.5">
+                        {articleHeadings.map((heading) => (
+                          <label key={heading} className="flex items-center gap-2 text-xs cursor-pointer">
+                            <Checkbox
+                              checked={targetSections.includes(heading)}
+                              onCheckedChange={(checked) => {
+                                setTargetSections((prev) =>
+                                  checked ? [...prev, heading] : prev.filter((s) => s !== heading)
+                                );
+                              }}
+                            />
+                            <span className="truncate">{heading}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  <Button size="sm" onClick={handleUpgradeLinks} disabled={isBusy} className="w-full">
+                    {upgradingLinks ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Link className="mr-1.5 h-3.5 w-3.5" />}
+                    Run Upgrade
+                  </Button>
+                </PopoverContent>
+              </Popover>
+
+              {/* Generate FAQs with count selector */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button size="sm" variant="outline" disabled={isBusy} className="border-accent/30 text-accent hover:bg-accent/10">
+                    {generatingFaqs ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <MessageSquarePlus className="mr-1.5 h-3.5 w-3.5" />}
+                    Generate FAQs
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 p-4 space-y-3" align="end">
+                  <div className="space-y-2">
+                    <Label className="text-xs font-semibold">Number of FAQs</Label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="range"
+                        min={3}
+                        max={20}
+                        value={faqCount}
+                        onChange={(e) => setFaqCount(Number(e.target.value))}
+                        className="flex-1 accent-accent"
+                      />
+                      <span className="text-sm font-mono w-6 text-center">{faqCount}</span>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground">AI will generate {faqCount} unique FAQ pairs and append them to the article.</p>
+                  </div>
+                  <Button size="sm" onClick={handleGenerateFaqs} disabled={isBusy} className="w-full">
+                    {generatingFaqs ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <MessageSquarePlus className="mr-1.5 h-3.5 w-3.5" />}
+                    Generate {faqCount} FAQs
+                  </Button>
+                </PopoverContent>
+              </Popover>
+            </>
           )}
           {item.status === "writing" && (
             <Button size="sm" variant="outline" onClick={handleOptimize} disabled={isBusy} className="border-accent/30 text-accent hover:bg-accent/10">

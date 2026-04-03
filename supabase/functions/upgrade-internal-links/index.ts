@@ -72,10 +72,12 @@ serve(async (req) => {
     }
     const userId = user.id;
 
-    const { contentItemId, draftContent } = await req.json();
+    const { contentItemId, draftContent, maxLinks: rawMaxLinks, targetSections } = await req.json();
     if (!contentItemId || !draftContent) {
       return new Response(JSON.stringify({ error: "contentItemId and draftContent required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
+    const requestedMaxLinks = Math.min(Math.max(Number(rawMaxLinks) || 8, 3), 20);
+    const sectionTargets: string[] | null = Array.isArray(targetSections) && targetSections.length > 0 ? targetSections : null;
 
     const { data: item } = await supabase.from("content_items").select("brand_id, keyword, title").eq("id", contentItemId).eq("user_id", userId).maybeSingle();
     if (!item) {
@@ -137,17 +139,21 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "No internal link candidates found. Sync your sitemap or create more content first." }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const cappedCandidates = candidates.slice(0, 24);
+    const cappedCandidates = candidates.slice(0, 30);
     const linkList = cappedCandidates.map(l => `- [${l.title}](${l.url})${l.keyword ? ` — about "${l.keyword}"` : ""}`).join("\n");
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
+    const sectionRule = sectionTargets
+      ? `- PRIORITISE placing links in these sections: ${sectionTargets.map(s => `"${s}"`).join(", ")}. Place most links in these sections, but you may also add a few elsewhere if contextually appropriate.`
+      : "- Spread links across different sections of the article — NOT clustered in one area";
+
     const systemPrompt = `You are an expert SEO editor specialising in internal linking. Your job is to take an existing article and weave in internal links from the provided candidate list.
 
 RULES:
-- Insert up to 7-8 internal links total using natural, contextually relevant anchor text
-- Spread links across different sections of the article — NOT clustered in one area
+- Insert up to ${requestedMaxLinks} internal links total using natural, contextually relevant anchor text
+${sectionRule}
 - Do NOT duplicate any links that are already present in the article
 - Do NOT remove, rewrite, or alter any existing content, images, headings, or formatting
 - Do NOT add new paragraphs or content — only insert hyperlinks into existing text
@@ -166,7 +172,7 @@ ${normalizedDraftContent}
 AVAILABLE INTERNAL LINK CANDIDATES:
 ${linkList}
 
-Insert up to 7-8 of these links into the article using natural anchor text. Return the complete article with links inserted.`;
+Insert up to ${requestedMaxLinks} of these links into the article using natural anchor text. Return the complete article with links inserted.`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

@@ -66,6 +66,7 @@ import AeoTab from "@/components/AeoTab";
 import ContentDetailGuide from "@/components/ContentDetailGuide";
 import HistoryVersions from "@/components/HistoryVersions";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Separator } from "@/components/ui/separator";
 
 interface ContentDetailProps {
   contentId: string;

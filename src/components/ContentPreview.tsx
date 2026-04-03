@@ -1,5 +1,6 @@
 import ReactMarkdown from "react-markdown";
 import { Badge } from "@/components/ui/badge";
+import { sanitizeMarkdownLinks } from "@/lib/markdown";
 
 interface ContentPreviewProps {
   title: string;

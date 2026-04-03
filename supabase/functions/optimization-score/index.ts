@@ -98,22 +98,31 @@ serve(async (req) => {
 
     // Pre-count internal links in content for accurate scoring
     const brandDomain = brand?.domain?.replace(/^https?:\/\//, "").replace(/\/$/, "") || "";
-    const linkRegex = /\[([^\]]*)\]\(([^)]+)\)|href=["']([^"']+)["']/gi;
+    // Detect markdown links, HTML href, and bare anchor tags
+    const linkRegex = /\[([^\]]*)\]\(([^)]+)\)|href=["']([^"']+)["']|<a[^>]+href=["']([^"']+)["'][^>]*>([^<]*)<\/a>/gi;
     let linkMatch;
     const foundInternalLinks: { anchor: string; url: string }[] = [];
     const foundExternalLinks: string[] = [];
     while ((linkMatch = linkRegex.exec(content)) !== null) {
-      const anchor = linkMatch[1] || "";
-      const url = linkMatch[2] || linkMatch[3] || "";
+      const anchor = linkMatch[1] || linkMatch[5] || "";
+      const url = (linkMatch[2] || linkMatch[3] || linkMatch[4] || "").trim();
+      if (!url) continue;
+      const cleanUrl = url.replace(/\s+/g, "");
       const isInternal =
-        url.startsWith("/") ||
-        url.startsWith("#") ||
-        (brandDomain && url.includes(brandDomain)) ||
-        allInternalLinkTargets.some((t) => url.includes(t) || t.includes(url));
+        cleanUrl.startsWith("/") ||
+        cleanUrl.startsWith("#") ||
+        cleanUrl.startsWith("./") ||
+        (brandDomain && cleanUrl.includes(brandDomain)) ||
+        cleanUrl.includes("/blog/") ||
+        allInternalLinkTargets.some((t) => {
+          const normalT = t.replace(/\/$/, "");
+          const normalU = cleanUrl.replace(/\/$/, "");
+          return normalU.includes(normalT) || normalT.includes(normalU) || normalU.endsWith(normalT.split("/").pop() || "___");
+        });
       if (isInternal) {
-        foundInternalLinks.push({ anchor, url });
-      } else if (url.startsWith("http")) {
-        foundExternalLinks.push(url);
+        foundInternalLinks.push({ anchor, url: cleanUrl });
+      } else if (cleanUrl.startsWith("http")) {
+        foundExternalLinks.push(cleanUrl);
       }
     }
 
@@ -127,7 +136,7 @@ Score the content across these 5 dimensions (each 0-100):
 1. Technical SEO (25% weight) — meta title length, meta description quality, schema types, URL slug
 2. On-Page SEO (25% weight) — keyword in title, keyword density, heading structure (H1/H2/H3)
 3. Readability (20% weight) — sentence length, paragraph breaks, plain language, scanability
-4. Internal Linking (15% weight) — Use the pre-counted link data below. Score based on: number of internal links (ideally 5-8 per 1500 words), link relevance to topic, anchor text quality (descriptive vs generic), and distribution throughout the article. Links to /blog/ paths, the brand domain, and known site pages all count as internal links.
+4. Internal Linking (15% weight) — IMPORTANT: Use ONLY the pre-counted link data below as the source of truth. Do NOT recount links yourself. Scoring guide: 1-2 internal links = 40-50, 3-4 = 55-65, 5-7 = 70-80, 8-10 = 80-90, 11+ = 90-100. Award bonus points for descriptive anchor text (not "click here"), links distributed across multiple sections, and links to topically relevant pages. Deduct only if anchors are generic or all links are clustered in one section.
 5. Content Depth (15% weight) — word count, topic coverage, FAQ inclusion, comprehensive treatment
 
 Also generate a prioritized action plan (max 8 items) with effort (low/medium/high) and impact (low/medium/high) labels.

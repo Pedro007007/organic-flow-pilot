@@ -39,14 +39,16 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "Brand not found" }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // If the URL doesn't look like a sitemap, try common sitemap paths
-    let sitemapUrlToFetch = sitemapUrl;
     const commonSitemapPaths = [
       "/sitemap.xml",
       "/sitemap_index.xml",
       "/sitemap-index.xml",
       "/wp-sitemap.xml",
       "/sitemap.xml.gz",
+      "/page-sitemap.xml",
+      "/post-sitemap.xml",
+      "/sitemap1.xml",
+      "/sitemap/sitemap-index.xml",
     ];
 
     const isLikelySitemap = /sitemap.*\.xml/i.test(sitemapUrl) || sitemapUrl.endsWith(".xml");
@@ -54,7 +56,10 @@ serve(async (req) => {
     async function fetchSitemap(url: string): Promise<{ xml: string; finalUrl: string } | null> {
       try {
         console.log(`Trying sitemap: ${url}`);
-        const res = await fetch(url, { headers: { "User-Agent": "Searchera-Bot/1.0" } });
+        const res = await fetch(url, {
+          headers: { "User-Agent": "Searchera-Bot/1.0" },
+          redirect: "follow",
+        });
         if (!res.ok) return null;
         const text = await res.text();
         if (text.includes("<urlset") || text.includes("<sitemapindex")) {
@@ -66,19 +71,56 @@ serve(async (req) => {
       }
     }
 
-    let xml: string | null = null;
-    let resolvedUrl = sitemapUrlToFetch;
+    // Try to discover sitemaps from robots.txt
+    async function discoverFromRobotsTxt(baseUrl: string): Promise<string[]> {
+      try {
+        console.log(`Checking robots.txt: ${baseUrl}/robots.txt`);
+        const res = await fetch(`${baseUrl}/robots.txt`, {
+          headers: { "User-Agent": "Searchera-Bot/1.0" },
+          redirect: "follow",
+        });
+        if (!res.ok) return [];
+        const text = await res.text();
+        const sitemapUrls: string[] = [];
+        for (const line of text.split("\n")) {
+          const match = line.match(/^Sitemap:\s*(.+)/i);
+          if (match) {
+            sitemapUrls.push(match[1].trim());
+          }
+        }
+        if (sitemapUrls.length > 0) {
+          console.log(`Found ${sitemapUrls.length} sitemaps in robots.txt: ${sitemapUrls.join(", ")}`);
+        }
+        return sitemapUrls;
+      } catch {
+        return [];
+      }
+    }
 
+    let xml: string | null = null;
+    let resolvedUrl = sitemapUrl;
+
+    // 1. If it looks like a direct sitemap URL, try it first
     if (isLikelySitemap) {
-      const result = await fetchSitemap(sitemapUrlToFetch);
+      const result = await fetchSitemap(sitemapUrl);
       if (result) { xml = result.xml; resolvedUrl = result.finalUrl; }
     }
 
-    if (!xml) {
-      // Try common paths from the base domain
-      let baseUrl = sitemapUrl.replace(/\/+$/, "");
-      try { baseUrl = new URL(sitemapUrl).origin; } catch { /* use as-is */ }
+    // 2. Determine base URL
+    let baseUrl = sitemapUrl.replace(/\/+$/, "");
+    try { baseUrl = new URL(sitemapUrl).origin; } catch { /* use as-is */ }
 
+    // 3. Try robots.txt discovery
+    if (!xml) {
+      const robotsSitemaps = await discoverFromRobotsTxt(baseUrl);
+      for (const robotsUrl of robotsSitemaps) {
+        const result = await fetchSitemap(robotsUrl);
+        if (result) { xml = result.xml; resolvedUrl = result.finalUrl; break; }
+      }
+    }
+
+    // 4. Try common paths
+    if (!xml) {
       for (const path of commonSitemapPaths) {
         const result = await fetchSitemap(`${baseUrl}${path}`);
         if (result) { xml = result.xml; resolvedUrl = result.finalUrl; break; }
@@ -86,7 +128,9 @@ serve(async (req) => {
     }
 
     if (!xml) {
-      return new Response(JSON.stringify({ error: "No sitemap found. Tried: " + (isLikelySitemap ? sitemapUrl : commonSitemapPaths.map(p => p).join(", ")) }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      return new Response(JSON.stringify({
+        error: `No sitemap found for ${baseUrl}. Checked robots.txt and common paths. The site may not have a sitemap — you can add pages manually instead.`,
+      }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
     console.log(`Using sitemap: ${resolvedUrl}`);
@@ -109,12 +153,12 @@ serve(async (req) => {
     let allPageUrls: string[] = [];
 
     if (isSitemapIndex) {
-      // Fetch child sitemaps (limit to first 5 to avoid timeout)
       const childSitemaps = urls.slice(0, 5);
       for (const childUrl of childSitemaps) {
         try {
           const childRes = await fetch(childUrl, {
             headers: { "User-Agent": "Searchera-Bot/1.0" },
+            redirect: "follow",
           });
           if (!childRes.ok) continue;
           const childXml = await childRes.text();

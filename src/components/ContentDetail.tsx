@@ -64,6 +64,7 @@ import OptimizationTab from "@/components/OptimizationTab";
 import RepurposeTab from "@/components/RepurposeTab";
 import AeoTab from "@/components/AeoTab";
 import ContentDetailGuide from "@/components/ContentDetailGuide";
+import HistoryVersions from "@/components/HistoryVersions";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface ContentDetailProps {
@@ -862,6 +863,7 @@ ${body}
           <TabsTrigger value="optimization">Optimization</TabsTrigger>
           <TabsTrigger value="aeo">AEO</TabsTrigger>
           <TabsTrigger value="fulfilment">SEO/GEO Fulfilment</TabsTrigger>
+          <TabsTrigger value="history">History Versions</TabsTrigger>
           <TabsTrigger value="repurpose">Repurpose</TabsTrigger>
         </TabsList>
 
@@ -1205,6 +1207,25 @@ ${body}
           <div className="rounded-lg border border-border bg-card p-5">
             <FulfilmentDashboard contentItemId={contentId} />
           </div>
+        </TabsContent>
+
+        <TabsContent value="history">
+          <HistoryVersions
+            contentId={contentId}
+            currentContent={draftContent}
+            currentSeoTitle={seoTitle}
+            currentMetaDescription={metaDescription}
+            currentSlug={slug}
+            currentHeroImageUrl={item?.hero_image_url}
+            currentSchemaTypes={item?.schema_types}
+            currentSeoScore={item?.seo_score}
+            onRestoreVersion={(version) => {
+              if (version.draft_content) setDraftContent(version.draft_content);
+              if (version.seo_title) setSeoTitle(version.seo_title);
+              if (version.meta_description) setMetaDescription(version.meta_description);
+              if (version.slug) setSlug(version.slug);
+            }}
+          />
         </TabsContent>
 
         <TabsContent value="repurpose">

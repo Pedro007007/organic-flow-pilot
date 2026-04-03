@@ -303,6 +303,89 @@ export type Database = {
           },
         ]
       }
+      content_versions: {
+        Row: {
+          aeo_recommendations: Json | null
+          aeo_score: number | null
+          aeo_scores: Json | null
+          content_item_id: string
+          created_at: string
+          draft_content: string | null
+          external_links: Json | null
+          hero_image_url: string | null
+          id: string
+          internal_links: Json | null
+          meta_description: string | null
+          notes: string | null
+          optimization_action_plan: Json | null
+          optimization_scores: Json | null
+          schema_types: string[] | null
+          seo_score: number | null
+          seo_title: string | null
+          slug: string | null
+          user_id: string
+          version_label: string | null
+          version_number: number
+          word_count: number | null
+        }
+        Insert: {
+          aeo_recommendations?: Json | null
+          aeo_score?: number | null
+          aeo_scores?: Json | null
+          content_item_id: string
+          created_at?: string
+          draft_content?: string | null
+          external_links?: Json | null
+          hero_image_url?: string | null
+          id?: string
+          internal_links?: Json | null
+          meta_description?: string | null
+          notes?: string | null
+          optimization_action_plan?: Json | null
+          optimization_scores?: Json | null
+          schema_types?: string[] | null
+          seo_score?: number | null
+          seo_title?: string | null
+          slug?: string | null
+          user_id: string
+          version_label?: string | null
+          version_number?: number
+          word_count?: number | null
+        }
+        Update: {
+          aeo_recommendations?: Json | null
+          aeo_score?: number | null
+          aeo_scores?: Json | null
+          content_item_id?: string
+          created_at?: string
+          draft_content?: string | null
+          external_links?: Json | null
+          hero_image_url?: string | null
+          id?: string
+          internal_links?: Json | null
+          meta_description?: string | null
+          notes?: string | null
+          optimization_action_plan?: Json | null
+          optimization_scores?: Json | null
+          schema_types?: string[] | null
+          seo_score?: number | null
+          seo_title?: string | null
+          slug?: string | null
+          user_id?: string
+          version_label?: string | null
+          version_number?: number
+          word_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_versions_content_item_id_fkey"
+            columns: ["content_item_id"]
+            isOneToOne: false
+            referencedRelation: "content_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       daniela_leads: {
         Row: {
           created_at: string

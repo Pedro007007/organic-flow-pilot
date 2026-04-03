@@ -98,6 +98,10 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
   const [upgradingLinks, setUpgradingLinks] = useState(false);
   const [unpublishing, setUnpublishing] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [generatingFaqs, setGeneratingFaqs] = useState(false);
+  const [faqCount, setFaqCount] = useState(7);
+  const [linkCount, setLinkCount] = useState(8);
+  const [targetSections, setTargetSections] = useState<string[]>([]);
 
   // Local editable state
   const [item, setItem] = useState<any>(null);

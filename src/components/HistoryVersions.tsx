@@ -49,6 +49,8 @@ interface HistoryVersionsProps {
   currentHeroImageUrl?: string;
   currentSchemaTypes?: string[];
   currentSeoScore?: number;
+  keyword: string;
+  author: string;
   onRestoreVersion: (version: any) => void;
 }
 

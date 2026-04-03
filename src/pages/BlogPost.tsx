@@ -29,6 +29,7 @@ const BlogPost = () => {
   });
 
   const displayTitle = post?.seo_title || post?.title || "";
+  const normalizedDraftContent = sanitizeMarkdownLinks(post?.draft_content || "");
   const date = post?.updated_at
     ? new Date(post.updated_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
     : "";

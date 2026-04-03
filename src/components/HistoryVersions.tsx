@@ -95,6 +95,7 @@ const HistoryVersions = ({
   const [saving, setSaving] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [previewId, setPreviewId] = useState<string | null>(null);
+  const [fullPreviewVersion, setFullPreviewVersion] = useState<ContentVersion | null>(null);
   const [versionLabel, setVersionLabel] = useState("");
   const [versionNotes, setVersionNotes] = useState("");
 

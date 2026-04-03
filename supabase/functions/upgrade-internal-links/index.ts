@@ -10,6 +10,44 @@ const CTA_PARAGRAPH = `---
 
 *If you are a business owner in the renewable sector or a local Surrey installer looking to reach more customers, let's talk about how to grow your reach. Contact [PJ Media Magnet Ltd](https://searcheraa.com/) today to discover how our expert SEO and content strategies can put your business at the forefront of the green energy revolution.*`;
 
+const DEFAULT_APP_ORIGIN = "https://organic-flow-pilot.lovable.app";
+
+const normalizeDomain = (domain?: string | null) =>
+  domain ? domain.replace(/^https?:\/\//, "").replace(/\/$/, "") : null;
+
+const resolveAbsoluteUrl = (value: string | null | undefined, preferredDomain?: string | null) => {
+  if (!value) return null;
+
+  const domain = normalizeDomain(preferredDomain);
+  const preferredOrigin = domain ? `https://${domain}` : DEFAULT_APP_ORIGIN;
+
+  if (value.startsWith("/")) {
+    return `${preferredOrigin}${value}`;
+  }
+
+  try {
+    const parsed = new URL(value);
+    const isLovableHost = parsed.hostname.endsWith(".lovable.app");
+    const isStorageHost = parsed.hostname.includes(".supabase.co");
+
+    if (isStorageHost) return value;
+
+    if (isLovableHost) {
+      return `${preferredOrigin}${parsed.pathname}${parsed.search}${parsed.hash}`;
+    }
+
+    return value;
+  } catch {
+    return value;
+  }
+};
+
+const normalizeMarkdownLinks = (content: string, preferredDomain?: string | null) =>
+  content.replace(/(!?\[[^\]]*\]\()([^)]+)(\))/g, (_match, prefix, url, suffix) => {
+    const normalizedUrl = resolveAbsoluteUrl(url, preferredDomain);
+    return `${prefix}${normalizedUrl || url}${suffix}`;
+  });
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -37,13 +75,11 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "contentItemId and draftContent required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Load content item for brand context
     const { data: item } = await supabase.from("content_items").select("brand_id, keyword, title").eq("id", contentItemId).eq("user_id", userId).maybeSingle();
     if (!item) {
       return new Response(JSON.stringify({ error: "Content item not found" }), { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Load brand
     let brand: any = null;
     if (item.brand_id) {
       const { data } = await supabase.from("brands").select("*").eq("id", item.brand_id).eq("user_id", userId).maybeSingle();
@@ -55,19 +91,18 @@ serve(async (req) => {
     }
 
     const resolvedBrandId = item.brand_id || brand?.id;
+    const preferredDomain = brand?.domain || null;
+    const normalizedDraftContent = normalizeMarkdownLinks(draftContent, preferredDomain);
 
-    // Fetch internal link candidates: sitemap pages
     let sitemapQuery = supabase.from("sitemap_pages").select("url, title").eq("user_id", userId).limit(50);
     if (resolvedBrandId) sitemapQuery = sitemapQuery.eq("brand_id", resolvedBrandId);
     let { data: sitemapPages } = await sitemapQuery;
 
-    // Fallback if brand-specific returned nothing
     if ((!sitemapPages || sitemapPages.length === 0) && resolvedBrandId) {
       const { data: fallback } = await supabase.from("sitemap_pages").select("url, title").eq("user_id", userId).limit(50);
       sitemapPages = fallback;
     }
 
-    // Fetch published content items with live URLs/slugs
     const { data: existingContent } = await supabase
       .from("content_items")
       .select("title, keyword, slug, url")
@@ -77,22 +112,19 @@ serve(async (req) => {
       .or("url.not.is.null,slug.not.is.null")
       .limit(20);
 
-    // Merge candidates
     const seen = new Set<string>();
     const candidates: { title: string; url: string; keyword?: string }[] = [];
 
     for (const sp of sitemapPages || []) {
-      if (sp.url && !seen.has(sp.url)) {
-        seen.add(sp.url);
-        candidates.push({ title: sp.title || sp.url, url: sp.url });
+      const resolvedUrl = resolveAbsoluteUrl(sp.url, preferredDomain);
+      if (resolvedUrl && !seen.has(resolvedUrl)) {
+        seen.add(resolvedUrl);
+        candidates.push({ title: sp.title || resolvedUrl, url: resolvedUrl });
       }
     }
+
     for (const c of (existingContent || []) as any[]) {
-      const u = c.url || (c.slug
-        ? (brand?.domain
-            ? `https://${brand.domain.replace(/^https?:\/\//, '').replace(/\/$/, '')}/blog/${c.slug}`
-            : `https://organic-flow-pilot.lovable.app/blog/${c.slug}`)
-        : null);
+      const u = resolveAbsoluteUrl(c.url || (c.slug ? `/blog/${c.slug}` : null), preferredDomain);
       if (u && !seen.has(u)) {
         seen.add(u);
         candidates.push({ title: c.title, url: u, keyword: c.keyword });
@@ -126,7 +158,7 @@ RULES:
     const userPrompt = `Here is the article to upgrade with internal links:
 
 ---
-${draftContent}
+${normalizedDraftContent}
 ---
 
 AVAILABLE INTERNAL LINK CANDIDATES:
@@ -165,12 +197,11 @@ Insert up to 7-8 of these links into the article using natural anchor text. Retu
       return new Response(JSON.stringify({ error: "AI returned empty or too-short content" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Strip any malformed CTA the AI may have rewritten, then always append the correct one
+    upgradedContent = normalizeMarkdownLinks(upgradedContent, preferredDomain);
     upgradedContent = upgradedContent.replace(/\n---\n[\s\S]*PJ Media Magnet[\s\S]*$/i, "").trimEnd();
     upgradedContent = upgradedContent.replace(/\n\n\*[^*]*PJ Media Magnet[^*]*\*\s*$/i, "").trimEnd();
     upgradedContent = upgradedContent.trimEnd() + "\n\n" + CTA_PARAGRAPH;
 
-    // Save to DB
     await supabase.from("content_items").update({
       draft_content: upgradedContent,
     }).eq("id", contentItemId).eq("user_id", userId);

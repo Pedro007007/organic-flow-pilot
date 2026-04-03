@@ -32,7 +32,14 @@ import {
   Link,
   EyeOff,
   Trash2,
+  MessageSquarePlus,
 } from "lucide-react";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   AlertDialog,
   AlertDialogAction,

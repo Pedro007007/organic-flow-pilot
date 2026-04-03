@@ -422,7 +422,7 @@ ${body}
     downloadBlob(new Blob([plain], { type: "text/plain" }), `${fileBaseName}.txt`);
   };
 
-  const isBusy = saving || generating || optimizing || publishing || generatingImage || researchingSERP || sectionRewriting || regeneratingImageIndex !== null || upgradingLinks || unpublishing || deleting;
+  const isBusy = saving || generating || optimizing || publishing || generatingImage || researchingSERP || sectionRewriting || regeneratingImageIndex !== null || upgradingLinks || unpublishing || deleting || generatingFaqs;
 
   const handleUnpublish = async () => {
     setUnpublishing(true);

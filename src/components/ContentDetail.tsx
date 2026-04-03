@@ -64,6 +64,7 @@ import OptimizationTab from "@/components/OptimizationTab";
 import RepurposeTab from "@/components/RepurposeTab";
 import AeoTab from "@/components/AeoTab";
 import ContentDetailGuide from "@/components/ContentDetailGuide";
+import HistoryVersions from "@/components/HistoryVersions";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface ContentDetailProps {

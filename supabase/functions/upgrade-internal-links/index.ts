@@ -210,10 +210,12 @@ Insert up to ${requestedMaxLinks} of these links into the article using natural 
       return new Response(JSON.stringify({ error: "AI returned empty or too-short content" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    const ctaParagraph = buildCtaParagraph(brand);
     upgradedContent = normalizeMarkdownLinks(upgradedContent, preferredDomain);
-    upgradedContent = upgradedContent.replace(/\n---\n[\s\S]*PJ Media Magnet[\s\S]*$/i, "").trimEnd();
-    upgradedContent = upgradedContent.replace(/\n\n\*[^*]*PJ Media Magnet[^*]*\*\s*$/i, "").trimEnd();
-    upgradedContent = upgradedContent.trimEnd() + "\n\n" + CTA_PARAGRAPH;
+    // Strip any trailing CTA (old hardcoded or AI-generated), then append brand-specific CTA
+    upgradedContent = upgradedContent.replace(/\n---\n[\s\S]*(?:contact|reach out|get in touch)[\s\S]*$/i, "").trimEnd();
+    upgradedContent = upgradedContent.replace(/\n\n\*[^*]*(?:contact|reach out|get in touch)[^*]*\*\s*$/i, "").trimEnd();
+    upgradedContent = upgradedContent.trimEnd() + "\n\n" + ctaParagraph;
 
     await supabase.from("content_items").update({
       draft_content: upgradedContent,

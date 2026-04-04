@@ -15,7 +15,7 @@ const opportunityColors: Record<string, string> = {
   Low: "hsl(var(--success))",
 };
 
-const KeywordOpportunities = ({ data, primaryColor, accentColor }: KeywordOpportunitiesProps) => {
+const KeywordOpportunities = forwardRef<HTMLDivElement, KeywordOpportunitiesProps>(({ data, primaryColor, accentColor }, ref) => {
   const keywords = data.keyword_opportunities || [];
 
   return (

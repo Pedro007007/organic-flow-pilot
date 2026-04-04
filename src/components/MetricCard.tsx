@@ -11,7 +11,7 @@ const MetricCard = ({ metric, index }: MetricCardProps) => {
 
   return (
     <div
-      className="group relative overflow-hidden rounded-xl border border-border/50 bg-card/70 backdrop-blur-xl p-5 shadow-sm transition-all duration-500 ease-out hover:shadow-lg hover:-translate-y-1.5 animate-slide-in"
+      className="group relative overflow-hidden rounded-2xl border border-border/50 bg-card/70 backdrop-blur-xl p-5 shadow-lg hover:shadow-xl hover:-translate-y-1.5 transition-all duration-500 ease-out animate-slide-in"
       style={{ animationDelay: `${index * 80}ms` }}
     >
       {/* Glass highlight */}

@@ -119,7 +119,7 @@ function SidebarContent({ activeSection, onNavigate }: SidebarNavProps) {
           {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           {theme === "dark" ? "Light Mode" : "Dark Mode"}
         </button>
-        <div className="rounded-md bg-muted/50 px-3 py-2">
+        <div className="rounded-lg bg-muted/30 backdrop-blur-sm px-3 py-2 border border-border/20">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Status</p>
           <div className="mt-1 flex items-center gap-1.5">
             <div className="h-1.5 w-1.5 rounded-full bg-success animate-pulse-glow" />

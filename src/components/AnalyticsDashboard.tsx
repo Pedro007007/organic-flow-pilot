@@ -117,7 +117,7 @@ const AnalyticsDashboard = () => {
 
   if (!hasData) {
     return (
-      <div className="rounded-lg border border-border bg-card p-8 text-center">
+      <div className="rounded-xl border border-border/40 bg-card/30 backdrop-blur-xl p-8 text-center shadow-md">
         <p className="text-sm text-muted-foreground">
           No analytics data yet. Run agents to populate keywords, content, and performance snapshots.
         </p>

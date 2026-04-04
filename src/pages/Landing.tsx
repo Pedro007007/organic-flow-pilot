@@ -56,7 +56,7 @@ const Landing = () => {
     <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
         <Link to="/" className="flex items-center gap-2">
-          <img src={searcheraLogo} alt="Searchera" className="h-[100px] object-contain" />
+          <img src={searcheraLogo} alt="Searchera" className="h-[160px] object-contain" />
         </Link>
         <nav className="hidden md:flex items-center gap-8 text-sm font-bold text-gray-600">
           <a href="#features" className="hover:text-gray-900 transition-colors">Features</a>

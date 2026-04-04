@@ -224,7 +224,7 @@ const Auth = () => {
             )}
             <Button
               type="submit"
-              className="w-full bg-gradient-to-r from-purple-500 via-pink-500 to-purple-400 hover:from-purple-600 hover:via-pink-600 hover:to-purple-500 text-white border-0"
+              className="w-full btn-3d border-0 h-11"
               disabled={loading}
             >
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}

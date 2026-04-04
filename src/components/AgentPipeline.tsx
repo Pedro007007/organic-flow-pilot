@@ -32,6 +32,8 @@ interface AgentPipelineProps {
 
 const AgentPipeline = ({ agents }: AgentPipelineProps) => {
   const { toast } = useToast();
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [runningAgents, setRunningAgents] = useState<Set<string>>(new Set());
 
   const handleRunAgent = async (agent: AgentStatus) => {

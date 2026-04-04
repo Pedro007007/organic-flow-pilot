@@ -179,7 +179,7 @@ const RankingsTracker = () => {
           <p className="text-2xl font-bold text-foreground">#{avgPosition || "—"}</p>
           <Progress value={avgPosition > 0 ? Math.max(100 - avgPosition, 10) : 0} className="h-1.5" />
         </div>
-        <div className="rounded-xl border border-border bg-card p-5 space-y-2">
+        <div className="group relative overflow-hidden rounded-xl border border-border/40 bg-card/30 backdrop-blur-xl p-5 space-y-2 shadow-md transition-all duration-500 hover:shadow-xl hover:-translate-y-1">
           <div className="flex items-center gap-2">
             <Eye className="h-4 w-4 text-info" />
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">AI Citations</p>

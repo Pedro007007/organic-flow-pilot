@@ -293,6 +293,7 @@ const Landing = () => {
             <img src={searcheraLogo} alt="Searchera" className="h-[90px] object-contain" />
           </Link>
           <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500 font-bold">
+            <Link to="/about" className="hover:text-gray-900 transition-colors">About</Link>
             <Link to="/blog" className="hover:text-gray-900 transition-colors">Blog</Link>
             <a href="/privacy.html" className="hover:text-gray-900 transition-colors">Privacy Policy</a>
             <Link to="/terms" className="hover:text-gray-900 transition-colors">Terms & Conditions</Link>

@@ -17,6 +17,7 @@ import Guide from "./pages/Guide";
 import Blog from "./pages/Blog";
 import DanielaLeads from "./pages/DanielaLeads";
 import BlogPost from "./pages/BlogPost";
+import About from "./pages/About";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,7 @@ const App = () => (
               <Route path="/blog" element={<Blog />} />
               <Route path="/blog/:slug" element={<BlogPost />} />
               <Route path="/terms" element={<Terms />} />
+              <Route path="/about" element={<About />} />
               <Route path="/dashboard" element={<ProtectedRoute><Index /></ProtectedRoute>} />
               <Route path="/report/:reportId" element={<PublicReport />} />
               <Route path="/guide" element={<ProtectedRoute><Guide /></ProtectedRoute>} />

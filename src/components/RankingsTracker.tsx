@@ -115,7 +115,7 @@ const RankingsTracker = () => {
       {/* How It Works Guide */}
       <Collapsible>
         <CollapsibleTrigger asChild>
-          <button className="w-full flex items-center justify-between rounded-xl border border-border bg-card p-4 hover:bg-muted/40 transition-colors group">
+          <button className="w-full flex items-center justify-between rounded-xl border border-border/40 bg-card/30 backdrop-blur-xl p-4 hover:bg-muted/20 transition-all duration-300 group shadow-sm">
             <div className="flex items-center gap-2">
               <HelpCircle className="h-4 w-4 text-primary" />
               <span className="text-sm font-semibold text-foreground">How does the Rankings Tracker work?</span>

@@ -87,7 +87,18 @@ function ChatbotLeadsButton() {
 function SidebarContentInner({ activeSection, onNavigate }: SidebarNavProps) {
   const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { subscribed, tier, loading: subLoading } = useSubscription();
+
+  // Check if user is admin for SaaS dashboard access
+  const [isAdmin, setIsAdmin] = useState(false);
+  useState(() => {
+    if (!user) return;
+    import("@/integrations/supabase/client").then(({ supabase }) => {
+      supabase.from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").limit(1)
+        .then(({ data }) => setIsAdmin((data?.length || 0) > 0));
+    });
+  });
 
   return (
     <>

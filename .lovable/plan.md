@@ -1,42 +1,34 @@
 
 
-## Fix: Smart Internal Link Resolution in Blog Posts
+## Problem Analysis
 
-### Problem
-The `upgrade-internal-links` edge function inserts two types of links:
-1. **Sitemap pages** — full URLs like `https://yourdomain.com/page` (work correctly)
-2. **Published articles** — relative paths like `/blog/slug` which navigate within the Searchera app, not the user's external website
+The app uses dark mode globally. This means `text-foreground` is near-white (`hsl(210, 20%, 96%)`), making all text invisible on the light silver right panel and the white left panel. The logo is also designed for dark backgrounds and disappears on light ones.
 
-When the content is exported or published on the user's external domain, relative `/blog/slug` links break because those paths don't exist on their website.
+## Plan
 
-### Solution
-Update the `upgrade-internal-links` edge function to use **full absolute URLs** for published content items, using the brand's domain when available.
+### 1. Fix text and logo visibility on both panels
+Replace all Tailwind theme color classes (`text-foreground`, `text-foreground/60`, etc.) with hardcoded dark colors so they are always readable regardless of the global theme.
 
-### Changes
+**Left panel**: Use explicit dark text colors like `text-gray-900`, `text-gray-700`, `text-gray-500` instead of `text-foreground`.
 
-**File: `supabase/functions/upgrade-internal-links/index.ts`** (lines 90-95)
+**Right panel**: Same approach - use `text-gray-900` for headings, `text-gray-600` for subtitles, `text-gray-800` for labels. The "Back to home" link, toggle links, and footer links all need explicit dark colors.
 
-Change how published content item URLs are constructed:
+**Logo**: Increase size to `h-[160px]` on the left panel. No filter needed since both panels are light. Use `drop-shadow-md` for subtle depth.
 
-```typescript
-// Current (broken for external sites):
-const u = c.url || (c.slug ? `/blog/${c.slug}` : null);
+### 2. Add email verification enforcement
+After login, check if the user's email is confirmed. If not, block access and show a message with a "Resend verification email" option.
 
-// New (smart detection):
-// If the item has a full external URL, use it
-// If only a slug exists, build full URL using brand domain or app domain
-const u = c.url || (c.slug
-  ? (brand?.domain
-      ? `https://${brand.domain.replace(/^https?:\/\//, '').replace(/\/$/, '')}/blog/${c.slug}`
-      : `https://organic-flow-pilot.lovable.app/blog/${c.slug}`)
-  : null);
-```
+**Changes to `src/pages/Auth.tsx`**:
+- After `signInWithPassword` succeeds, check `session.user.email_confirmed_at`
+- If null/undefined, sign the user out immediately, show a toast explaining they need to verify their email first
+- Add a "Resend verification" button that calls `supabase.auth.resend({ type: 'signup', email })`
 
-This ensures:
-- Sitemap page links remain as-is (already full URLs)
-- Content items with a custom `url` field use that URL directly
-- Content items with only a `slug` get a full URL built from the brand domain
-- Fallback to the published app URL if no brand domain is set
+**File**: `src/pages/Auth.tsx` only - all changes in one file.
 
-Single file change, no database migration needed.
+### Technical Details
+
+- No database changes needed - email verification is handled by the auth system
+- The project already sends confirmation emails on signup (`emailRedirectTo` is set)
+- Auto-confirm is NOT enabled (correct behavior - users must verify)
+- The `resend` API allows re-sending the confirmation if the user didn't receive it
 

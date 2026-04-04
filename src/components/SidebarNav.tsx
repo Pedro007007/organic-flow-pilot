@@ -82,7 +82,7 @@ function SidebarContent({ activeSection, onNavigate }: SidebarNavProps) {
   const { theme, setTheme } = useTheme();
   return (
     <>
-      <div className="flex items-center gap-2.5 border-b border-border px-5 py-4">
+      <div className="flex items-center gap-2.5 border-b border-border/30 px-5 py-4">
         <img src={searcheraLogo} alt="Searchera" className="h-7 w-7 rounded-md object-contain" />
         <div>
           <h1 className="text-sm font-bold text-foreground tracking-tight">Searchera</h1>

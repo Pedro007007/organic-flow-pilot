@@ -325,6 +325,8 @@ const Index = () => {
         {activeSection === "checklist" && !isSectionLocked("checklist") && <SeoChecklist />}
 
         {activeSection === "brands" && !isSectionLocked("brands") && <BrandManagement />}
+
+        {activeSection === "saas-admin" && <SaasOwnerDashboard />}
       </main>
     </div>
   );

@@ -31,6 +31,7 @@ const Index = () => {
   const [activeSection, setActiveSection] = useState("dashboard");
   const [selectedContentId, setSelectedContentId] = useState<string | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [dashTab, setDashTab] = useState("overview");
   const { signOut, user } = useAuth();
   const isMobile = useIsMobile();
 

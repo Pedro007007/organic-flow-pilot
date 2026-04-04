@@ -17,6 +17,7 @@ import Guide from "./pages/Guide";
 import Blog from "./pages/Blog";
 import DanielaLeads from "./pages/DanielaLeads";
 import BlogPost from "./pages/BlogPost";
+import About from "./pages/About";
 
 const queryClient = new QueryClient();
 

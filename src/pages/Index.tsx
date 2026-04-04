@@ -99,6 +99,7 @@ const Index = () => {
     checklist: "SEO Checklist",
     brands: "Brand Management",
     referrals: "Referral Program",
+    "saas-admin": "SaaS Owner Dashboard",
   };
 
   return (

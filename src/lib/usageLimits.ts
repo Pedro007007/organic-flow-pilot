@@ -1,7 +1,7 @@
 import { type TierKey } from "@/hooks/useSubscription";
 
 // Usage limits per subscription tier
-export const USAGE_LIMITS: Record<TierKey | "free", {
+export const USAGE_LIMITS: Record<TierKey | "none", {
   maxKeywords: number;
   maxContentArticles: number; // per month
   maxBrands: number;

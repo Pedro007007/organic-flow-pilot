@@ -6,8 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DollarSign, Users, TrendingUp, TrendingDown, RefreshCw,
-  Loader2, Crown, AlertTriangle, BarChart3, ArrowUpRight,
-  ArrowDownRight, Calendar, Mail, CreditCard
+  Loader2, Crown, AlertTriangle, BarChart3, Download,
+  Calendar, Mail, CreditCard
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,

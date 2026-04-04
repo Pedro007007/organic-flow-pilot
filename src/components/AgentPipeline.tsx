@@ -84,7 +84,20 @@ const AgentPipeline = ({ agents }: AgentPipelineProps) => {
 
       const res = await supabase.functions.invoke(fnName, { body });
       if (res.error) throw res.error;
-      toast({ title: `${agent.name} completed`, description: "Check results in the dashboard" });
+
+      // Invalidate relevant caches so new data shows immediately
+      if (fnName === "keyword-discovery") {
+        queryClient.invalidateQueries({ queryKey: ["keywords"] });
+        queryClient.invalidateQueries({ queryKey: ["analytics_keywords"] });
+        const count = res.data?.keywords_found ?? 0;
+        toast({ title: `${agent.name} completed`, description: `Discovered ${count} new keywords based on your brand profiles. Check the Keywords page.` });
+      } else if (fnName === "content-generate" || fnName === "content-strategy") {
+        queryClient.invalidateQueries({ queryKey: ["content_items"] });
+        toast({ title: `${agent.name} completed`, description: "Check results in the Content Pipeline" });
+      } else {
+        toast({ title: `${agent.name} completed`, description: "Check results in the dashboard" });
+      }
+      queryClient.invalidateQueries({ queryKey: ["agent_runs"] });
     } catch (err: any) {
       toast({ title: `${agent.name} failed`, description: err.message, variant: "destructive" });
     } finally {

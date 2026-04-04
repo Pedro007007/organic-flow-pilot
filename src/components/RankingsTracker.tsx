@@ -212,7 +212,7 @@ const RankingsTracker = () => {
           ))}
         </div>
       ) : view === "table" ? (
-        <div className="rounded-xl border border-border bg-card overflow-hidden">
+        <div className="rounded-xl border border-border/40 bg-card/30 backdrop-blur-xl overflow-hidden shadow-md">
           <Table>
             <TableHeader>
               <TableRow>

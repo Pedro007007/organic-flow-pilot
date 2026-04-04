@@ -28,8 +28,21 @@ import { useAuth } from "@/hooks/useAuth";
 const Index = () => {
   const [activeSection, setActiveSection] = useState("dashboard");
   const [selectedContentId, setSelectedContentId] = useState<string | null>(null);
-  const { signOut } = useAuth();
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const { signOut, user } = useAuth();
   const isMobile = useIsMobile();
+
+  // Show onboarding for new users (no content yet, haven't dismissed)
+  useEffect(() => {
+    if (!user) return;
+    const dismissed = localStorage.getItem(`searchera_onboarding_${user.id}`);
+    if (!dismissed) setShowOnboarding(true);
+  }, [user]);
+
+  const handleOnboardingComplete = () => {
+    if (user) localStorage.setItem(`searchera_onboarding_${user.id}`, "done");
+    setShowOnboarding(false);
+  };
 
   const { data: metrics, isLoading: metricsLoading } = usePerformanceMetrics();
   const { data: keywords, isLoading: keywordsLoading } = useKeywords();

@@ -127,6 +127,7 @@ export type Database = {
       brands: {
         Row: {
           created_at: string
+          cta_text: string | null
           domain: string | null
           id: string
           image_defaults: Json | null
@@ -143,6 +144,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          cta_text?: string | null
           domain?: string | null
           id?: string
           image_defaults?: Json | null
@@ -159,6 +161,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          cta_text?: string | null
           domain?: string | null
           id?: string
           image_defaults?: Json | null

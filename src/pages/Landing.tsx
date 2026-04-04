@@ -56,7 +56,7 @@ const Landing = () => {
     <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
         <Link to="/" className="flex items-center gap-2">
-          <img src={searcheraLogo} alt="Searchera" className="h-[100px] object-contain" />
+          <img src={searcheraLogo} alt="Searchera" className="h-[160px] object-contain" />
         </Link>
         <nav className="hidden md:flex items-center gap-8 text-sm font-bold text-gray-600">
           <a href="#features" className="hover:text-gray-900 transition-colors">Features</a>
@@ -104,7 +104,7 @@ const Landing = () => {
                     Start Free Trial <ArrowRight className="ml-1 h-4 w-4" />
                   </Link>
                 </Button>
-                <Button variant="outline" size="lg" className="border-gray-300 text-gray-700 hover:bg-gray-50 h-12 px-8 text-base font-bold" asChild>
+                <Button variant="outline" size="lg" className="border-foreground/20 text-foreground hover:bg-accent h-12 px-8 text-base font-bold" asChild>
                   <a href="#how-it-works">
                     Learn More
                   </a>
@@ -291,7 +291,7 @@ const Landing = () => {
       <div className="mx-auto max-w-6xl px-6 py-12">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           <Link to="/" className="flex items-center gap-2">
-            <img src={searcheraLogo} alt="Searchera" className="h-[90px] object-contain" />
+            <img src={searcheraLogo} alt="Searchera" className="h-[140px] object-contain" />
           </Link>
           <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500 font-bold">
             <Link to="/about" className="hover:text-gray-900 transition-colors">About</Link>

@@ -141,7 +141,7 @@ const KeywordTable = ({ keywords }: KeywordTableProps) => {
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-border text-left">
+            <tr className="border-b border-border/30 text-left">
               <th className="px-5 py-3"><SortHeader label="Keyword" sortKeyName="keyword" /></th>
               <th className="px-3 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Intent</th>
               <th className="px-3 py-3 text-right"><SortHeader label="Impressions" sortKeyName="impressions" /></th>

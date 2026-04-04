@@ -78,7 +78,7 @@ const Auth = () => {
         <div>
           {/* Logo */}
           <div className="mb-10">
-            <img src={searcheraLogo} alt="Searchera" className="h-[80px] object-contain" />
+            <img src={searcheraLogo} alt="Searchera" className="h-[80px] object-contain drop-shadow-lg" style={{ filter: "brightness(0) invert(1)" }} />
           </div>
 
           {/* Headline */}
@@ -136,7 +136,7 @@ const Auth = () => {
       </div>
 
       {/* Right Panel - Auth Form */}
-      <div className="flex-1 flex items-center justify-center px-6 relative">
+      <div className="flex-1 flex items-center justify-center px-6 relative bg-card/60 backdrop-blur-xl">
         <button
           onClick={() => navigate("/")}
           className="absolute top-6 left-6 text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 text-sm"

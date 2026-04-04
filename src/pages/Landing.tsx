@@ -64,6 +64,7 @@ const Landing = () => {
           <a href="#testimonials" className="hover:text-gray-900 transition-colors">Testimonials</a>
            <Link to="/blog" className="hover:text-gray-900 transition-colors">Blog</Link>
            <Link to="/about" className="hover:text-gray-900 transition-colors">About</Link>
+           <Link to="/contact" className="hover:text-gray-900 transition-colors">Contact</Link>
         </nav>
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="sm" className="text-gray-700 hover:text-gray-900 font-bold" asChild>
@@ -298,7 +299,7 @@ const Landing = () => {
             <Link to="/blog" className="hover:text-gray-900 transition-colors">Blog</Link>
             <a href="/privacy.html" className="hover:text-gray-900 transition-colors">Privacy Policy</a>
             <Link to="/terms" className="hover:text-gray-900 transition-colors">Terms & Conditions</Link>
-            <a href="mailto:support@searchera.io" className="hover:text-gray-900 transition-colors">Contact</a>
+            <Link to="/contact" className="hover:text-gray-900 transition-colors">Contact</Link>
           </div>
         </div>
         <div className="mt-8 pt-6 border-t border-gray-100 text-center text-xs text-gray-400 font-semibold">

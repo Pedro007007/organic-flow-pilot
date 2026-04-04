@@ -125,7 +125,7 @@ const Index = () => {
                   </div>
                 </div>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                  <button onClick={() => setActiveSection("content")} className="flex items-center gap-2 rounded-md border border-border bg-card px-4 py-3 text-left hover:bg-muted/50 transition-colors">
+                  <button onClick={() => setActiveSection("content")} className="flex items-center gap-2 rounded-xl border border-border/40 bg-card/30 backdrop-blur-xl px-4 py-3 text-left hover:bg-muted/20 hover:-translate-y-0.5 transition-all duration-300 shadow-sm hover:shadow-md">
                     <FileText className="h-4 w-4 text-primary" />
                     <div>
                       <p className="text-xs font-semibold text-foreground">Create Content</p>

@@ -6,9 +6,14 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const CTA_PARAGRAPH = `---
-
-*If you are a business owner in the renewable sector or a local Surrey installer looking to reach more customers, let's talk about how to grow your reach. Contact [PJ Media Magnet Ltd](https://searcheraa.com/) today to discover how our expert SEO and content strategies can put your business at the forefront of the green energy revolution.*`;
+const buildCtaParagraph = (brand: any) => {
+  if (brand?.cta_text) return brand.cta_text;
+  const brandName = brand?.name || "us";
+  const brandDomain = brand?.domain ? (brand.domain.startsWith("http") ? brand.domain : `https://${brand.domain}`) : null;
+  return brandDomain
+    ? `---\n\n*Ready to grow your online presence? Contact [${brandName}](${brandDomain}) today to discover how our expert SEO and content strategies can help your business reach more customers.*`
+    : `---\n\n*Ready to grow your online presence? Contact ${brandName} today to discover how our expert SEO and content strategies can help your business reach more customers.*`;
+};
 
 const DEFAULT_APP_ORIGIN = "https://organic-flow-pilot.lovable.app";
 
@@ -157,7 +162,7 @@ ${sectionRule}
 - Do NOT duplicate any links that are already present in the article
 - Do NOT remove, rewrite, or alter any existing content, images, headings, or formatting
 - Do NOT add new paragraphs or content — only insert hyperlinks into existing text
-- Do NOT modify, rewrite, or remove the final CTA paragraph (the one mentioning "PJ Media Magnet Ltd" and searcheraa.com). Leave it exactly as-is.
+- Do NOT modify, rewrite, or remove the final CTA paragraph at the end of the article. Leave it exactly as-is.
 - Use markdown link format: [anchor text](url)
 - Choose anchors that flow naturally in the sentence
 - Every link must be contextually relevant to the surrounding text
@@ -205,10 +210,12 @@ Insert up to ${requestedMaxLinks} of these links into the article using natural 
       return new Response(JSON.stringify({ error: "AI returned empty or too-short content" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    const ctaParagraph = buildCtaParagraph(brand);
     upgradedContent = normalizeMarkdownLinks(upgradedContent, preferredDomain);
-    upgradedContent = upgradedContent.replace(/\n---\n[\s\S]*PJ Media Magnet[\s\S]*$/i, "").trimEnd();
-    upgradedContent = upgradedContent.replace(/\n\n\*[^*]*PJ Media Magnet[^*]*\*\s*$/i, "").trimEnd();
-    upgradedContent = upgradedContent.trimEnd() + "\n\n" + CTA_PARAGRAPH;
+    // Strip any trailing CTA (old hardcoded or AI-generated), then append brand-specific CTA
+    upgradedContent = upgradedContent.replace(/\n---\n[\s\S]*(?:contact|reach out|get in touch)[\s\S]*$/i, "").trimEnd();
+    upgradedContent = upgradedContent.replace(/\n\n\*[^*]*(?:contact|reach out|get in touch)[^*]*\*\s*$/i, "").trimEnd();
+    upgradedContent = upgradedContent.trimEnd() + "\n\n" + ctaParagraph;
 
     await supabase.from("content_items").update({
       draft_content: upgradedContent,

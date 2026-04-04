@@ -21,6 +21,7 @@ import ReportSettings from "@/components/ReportSettings";
 import LeadsManagement from "@/components/LeadsManagement";
 import BrandManagement from "@/components/BrandManagement";
 import LlmSearchLab from "@/components/LlmSearchLab";
+import SaasOwnerDashboard from "@/components/SaasOwnerDashboard";
 import { usePerformanceMetrics, useKeywords, useContentItems, useAgentRuns } from "@/hooks/useDashboardData";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -98,6 +99,7 @@ const Index = () => {
     checklist: "SEO Checklist",
     brands: "Brand Management",
     referrals: "Referral Program",
+    "saas-admin": "SaaS Owner Dashboard",
   };
 
   return (
@@ -323,6 +325,8 @@ const Index = () => {
         {activeSection === "checklist" && !isSectionLocked("checklist") && <SeoChecklist />}
 
         {activeSection === "brands" && !isSectionLocked("brands") && <BrandManagement />}
+
+        {activeSection === "saas-admin" && <SaasOwnerDashboard />}
       </main>
     </div>
   );

@@ -189,8 +189,16 @@ const Index = () => {
               </div>
             </div>
             <KeywordTable keywords={displayKeywords} />
+
+            {/* Changelog + Engagement */}
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <Changelog />
+              <ReferralProgram />
+            </div>
           </div>
         )}
+
+        {activeSection === "referrals" && <ReferralProgram />}
 
         {activeSection === "keywords" && (
           <KeywordTable keywords={displayKeywords} />

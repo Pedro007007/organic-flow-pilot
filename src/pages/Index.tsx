@@ -87,6 +87,7 @@ const Index = () => {
     leads: "Lead Capture",
     checklist: "SEO Checklist",
     brands: "Brand Management",
+    referrals: "Referral Program",
   };
 
   return (

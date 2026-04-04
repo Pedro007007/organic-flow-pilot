@@ -98,7 +98,7 @@ const RankingsTracker = () => {
   return (
     <div className="space-y-8">
       {/* Hero Header */}
-      <div className="rounded-xl border border-border bg-card p-8 text-center space-y-4">
+      <div className="relative overflow-hidden rounded-xl border border-border/40 bg-card/30 backdrop-blur-xl p-8 text-center space-y-4 shadow-lg transition-all duration-300 hover:shadow-xl">
         <div className="flex items-center justify-center gap-2">
           <BarChart3 className="h-6 w-6 text-primary" />
           <h1 className="text-xl font-bold text-foreground">AI SEO & Organic Rankings Tracker</h1>

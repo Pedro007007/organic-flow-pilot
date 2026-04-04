@@ -264,43 +264,65 @@ const Index = () => {
           </div>
         )}
 
+        {/* Gated section overlay */}
+        {activeSection !== "dashboard" && activeSection !== "content-detail" && isSectionLocked(activeSection) && (
+          <div className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="rounded-2xl border border-border/50 bg-card/70 backdrop-blur-xl p-8 max-w-md shadow-lg">
+              <Lock className="h-10 w-10 text-muted-foreground/40 mx-auto mb-4" />
+              <h2 className="text-lg font-bold text-foreground mb-2">
+                {getRequiredTier(activeSection) ? `${getTierLabel(getRequiredTier(activeSection)!)} Plan Required` : "Upgrade Required"}
+              </h2>
+              <p className="text-sm text-muted-foreground mb-4">
+                This feature is available on the {getRequiredTier(activeSection) ? getTierLabel(getRequiredTier(activeSection)!) : ""} plan and above. Upgrade to unlock full access.
+              </p>
+              <button
+                onClick={() => navigate("/pricing")}
+                className="rounded-lg bg-primary px-6 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90 transition-colors"
+              >
+                View Plans & Upgrade
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Unlocked sections */}
         {activeSection === "referrals" && <ReferralProgram />}
 
-        {activeSection === "keywords" && (
+        {activeSection === "keywords" && !isSectionLocked("keywords") && (
           <KeywordTable keywords={displayKeywords} />
         )}
 
-        {activeSection === "content" && (
+        {activeSection === "content" && !isSectionLocked("content") && (
           <ContentPipeline content={displayContent} onSelectItem={handleSelectContent} />
         )}
 
-        {activeSection === "agents" && (
+        {activeSection === "agents" && !isSectionLocked("agents") && (
           <AgentPipeline agents={displayAgents} />
         )}
 
-        {activeSection === "calendar" && (
+        {activeSection === "calendar" && !isSectionLocked("calendar") && (
           <ContentCalendar content={displayContent} onSelectItem={handleSelectContent} />
         )}
 
-        {activeSection === "analytics" && <AnalyticsDashboard />}
+        {activeSection === "analytics" && !isSectionLocked("analytics") && <AnalyticsDashboard />}
 
-        {activeSection === "team" && <TeamManagement />}
+        {activeSection === "team" && !isSectionLocked("team") && <TeamManagement />}
 
         {activeSection === "settings" && <SettingsPage />}
 
-        {activeSection === "rankings" && <RankingsTracker />}
+        {activeSection === "rankings" && !isSectionLocked("rankings") && <RankingsTracker />}
 
-        {activeSection === "llm-search" && <LlmSearchLab />}
+        {activeSection === "llm-search" && !isSectionLocked("llm-search") && <LlmSearchLab />}
 
-        {activeSection === "scanner" && <BusinessScanner />}
+        {activeSection === "scanner" && !isSectionLocked("scanner") && <BusinessScanner />}
 
-        {activeSection === "reports" && <ReportSettings />}
+        {activeSection === "reports" && !isSectionLocked("reports") && <ReportSettings />}
 
-        {activeSection === "leads" && <LeadsManagement />}
+        {activeSection === "leads" && !isSectionLocked("leads") && <LeadsManagement />}
 
-        {activeSection === "checklist" && <SeoChecklist />}
+        {activeSection === "checklist" && !isSectionLocked("checklist") && <SeoChecklist />}
 
-        {activeSection === "brands" && <BrandManagement />}
+        {activeSection === "brands" && !isSectionLocked("brands") && <BrandManagement />}
       </main>
     </div>
   );

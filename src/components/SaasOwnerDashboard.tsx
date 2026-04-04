@@ -95,9 +95,14 @@ export default function SaasOwnerDashboard() {
           <h2 className="text-lg font-bold text-foreground">SaaS Owner Dashboard</h2>
           <Badge variant="outline" className="text-[10px]">ADMIN ONLY</Badge>
         </div>
-        <Button variant="outline" size="sm" onClick={fetchAnalytics} disabled={loading}>
-          <RefreshCw className={`h-3.5 w-3.5 mr-2 ${loading ? "animate-spin" : ""}`} /> Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => exportCSV(data)}>
+            <Download className="h-3.5 w-3.5 mr-2" /> Export CSV
+          </Button>
+          <Button variant="outline" size="sm" onClick={fetchAnalytics} disabled={loading}>
+            <RefreshCw className={`h-3.5 w-3.5 mr-2 ${loading ? "animate-spin" : ""}`} /> Refresh
+          </Button>
+        </div>
       </div>
 
       {/* KPI Cards */}

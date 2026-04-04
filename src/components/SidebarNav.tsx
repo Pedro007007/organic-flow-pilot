@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useSubscription, SUBSCRIPTION_TIERS } from "@/hooks/useSubscription";
+import { hasFeatureAccess, getRequiredTier, getTierLabel } from "@/lib/featureGating";
 import {
   Search,
   LayoutDashboard,
@@ -21,6 +23,8 @@ import {
   MessageCircle,
   BookOpen,
   Gift,
+  Lock,
+  Crown,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import searcheraLogo from "@/assets/searchera-logo.png";

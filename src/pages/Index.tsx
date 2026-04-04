@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import OnboardingWizard from "@/components/OnboardingWizard";
+import Changelog from "@/components/Changelog";
+import ReferralProgram from "@/components/ReferralProgram";
 import SidebarNav from "@/components/SidebarNav";
 import MetricCard from "@/components/MetricCard";
 import AgentPipeline from "@/components/AgentPipeline";

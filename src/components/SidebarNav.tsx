@@ -82,7 +82,7 @@ function SidebarContent({ activeSection, onNavigate }: SidebarNavProps) {
   const { theme, setTheme } = useTheme();
   return (
     <>
-      <div className="flex items-center gap-2.5 border-b border-border px-5 py-4">
+      <div className="flex items-center gap-2.5 border-b border-border/30 px-5 py-4">
         <img src={searcheraLogo} alt="Searchera" className="h-7 w-7 rounded-md object-contain" />
         <div>
           <h1 className="text-sm font-bold text-foreground tracking-tight">Searchera</h1>
@@ -109,7 +109,7 @@ function SidebarContent({ activeSection, onNavigate }: SidebarNavProps) {
           );
         })}
       </nav>
-      <div className="border-t border-border px-4 py-3 space-y-3">
+      <div className="border-t border-border/30 px-4 py-3 space-y-3">
         <GuideButton />
         <ChatbotLeadsButton />
         <button
@@ -119,7 +119,7 @@ function SidebarContent({ activeSection, onNavigate }: SidebarNavProps) {
           {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
           {theme === "dark" ? "Light Mode" : "Dark Mode"}
         </button>
-        <div className="rounded-md bg-muted/50 px-3 py-2">
+        <div className="rounded-lg bg-muted/30 backdrop-blur-sm px-3 py-2 border border-border/20">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Status</p>
           <div className="mt-1 flex items-center gap-1.5">
             <div className="h-1.5 w-1.5 rounded-full bg-success animate-pulse-glow" />
@@ -161,7 +161,7 @@ const SidebarNav = ({ activeSection, onNavigate }: SidebarNavProps) => {
   }
 
   return (
-    <aside className="fixed left-0 top-0 z-40 flex h-screen w-56 flex-col border-r border-border bg-sidebar">
+    <aside className="fixed left-0 top-0 z-40 flex h-screen w-56 flex-col border-r border-border/40 bg-sidebar/80 backdrop-blur-xl">
       <SidebarContent activeSection={activeSection} onNavigate={onNavigate} />
     </aside>
   );

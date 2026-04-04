@@ -85,14 +85,14 @@ const KeywordTable = ({ keywords }: KeywordTableProps) => {
   );
 
   return (
-    <div className="rounded-lg border border-border bg-card">
-      <div className="border-b border-border px-5 py-4">
-        <h2 className="text-sm font-semibold text-foreground">Keyword Opportunities</h2>
+    <div className="rounded-xl border border-border/40 bg-card/30 backdrop-blur-xl shadow-md overflow-hidden">
+      <div className="border-b border-border/30 px-5 py-4">
+        <h2 className="text-sm font-bold text-foreground tracking-wide">Keyword Opportunities</h2>
         <p className="text-xs text-muted-foreground mt-0.5">Ranked by opportunity score from GSC data</p>
       </div>
 
       {/* Filters */}
-      <div className="border-b border-border px-5 py-3 flex flex-wrap items-center gap-3">
+      <div className="border-b border-border/30 px-5 py-3 flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[180px] max-w-xs">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <Input
@@ -141,7 +141,7 @@ const KeywordTable = ({ keywords }: KeywordTableProps) => {
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="border-b border-border text-left">
+            <tr className="border-b border-border/30 text-left">
               <th className="px-5 py-3"><SortHeader label="Keyword" sortKeyName="keyword" /></th>
               <th className="px-3 py-3 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Intent</th>
               <th className="px-3 py-3 text-right"><SortHeader label="Impressions" sortKeyName="impressions" /></th>
@@ -152,7 +152,7 @@ const KeywordTable = ({ keywords }: KeywordTableProps) => {
           </thead>
           <tbody>
             {filtered.map((kw) => (
-              <tr key={kw.id} className="border-b border-border/50 transition-colors hover:bg-muted/30">
+              <tr key={kw.id} className="border-b border-border/20 transition-all duration-300 hover:bg-muted/20">
                 <td className="px-5 py-3">
                   <p className="text-sm font-medium text-foreground">{kw.keyword}</p>
                   <p className="text-[11px] text-muted-foreground mt-0.5">{kw.contentType}</p>

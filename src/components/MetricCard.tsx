@@ -11,25 +11,31 @@ const MetricCard = ({ metric, index }: MetricCardProps) => {
 
   return (
     <div
-      className="rounded-lg border border-border bg-card p-5 animate-slide-in"
+      className="group relative overflow-hidden rounded-xl border border-border/40 bg-card/30 backdrop-blur-xl p-5 shadow-md transition-all duration-500 ease-out hover:shadow-xl hover:-translate-y-1.5 animate-slide-in"
       style={{ animationDelay: `${index * 80}ms` }}
     >
-      <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-        {metric.label}
-      </p>
-      <p className="mt-2 text-3xl font-bold tracking-tight text-foreground font-mono">
-        {metric.value}
-      </p>
-      <div className="mt-2 flex items-center gap-1.5">
-        {isPositive ? (
-          <TrendingUp className="h-3.5 w-3.5 text-success" />
-        ) : (
-          <TrendingDown className="h-3.5 w-3.5 text-success" />
-        )}
-        <span className="text-xs font-medium text-success">
-          {isPositive ? "+" : ""}{metric.change}%
-        </span>
-        <span className="text-xs text-foreground/80">{metric.changeLabel}</span>
+      {/* Glass highlight */}
+      <div className="absolute inset-0 bg-gradient-to-br from-foreground/[0.02] via-transparent to-transparent pointer-events-none" />
+      <div className="absolute -top-12 -right-12 w-24 h-24 rounded-full bg-primary/5 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
+      <div className="relative z-10">
+        <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          {metric.label}
+        </p>
+        <p className="mt-2 text-3xl font-bold tracking-tight text-foreground font-mono drop-shadow-sm">
+          {metric.value}
+        </p>
+        <div className="mt-2 flex items-center gap-1.5">
+          {isPositive ? (
+            <TrendingUp className="h-3.5 w-3.5 text-success" />
+          ) : (
+            <TrendingDown className="h-3.5 w-3.5 text-success" />
+          )}
+          <span className="text-xs font-medium text-success">
+            {isPositive ? "+" : ""}{metric.change}%
+          </span>
+          <span className="text-xs text-foreground/80">{metric.changeLabel}</span>
+        </div>
       </div>
     </div>
   );

@@ -314,10 +314,10 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
   };
 
   return (
-    <div className="rounded-lg border border-border bg-card">
-      <div className="border-b border-border px-5 py-4 flex items-center justify-between">
+    <div className="rounded-xl border border-border/40 bg-card/30 backdrop-blur-xl shadow-md overflow-hidden">
+      <div className="border-b border-border/30 px-5 py-4 flex items-center justify-between">
         <div>
-          <h2 className="text-sm font-semibold text-foreground">Content Pipeline</h2>
+          <h2 className="text-sm font-bold text-foreground tracking-wide">Content Pipeline</h2>
           <p className="text-xs text-muted-foreground mt-0.5">Track content through all agent stages</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
@@ -414,7 +414,7 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
       )}
 
       {/* Filters & Bulk Actions */}
-      <div className="border-b border-border px-5 py-3 flex flex-wrap items-center gap-3">
+      <div className="border-b border-border/30 px-5 py-3 flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[180px] max-w-xs">
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search content..." className="pl-8 h-8 text-sm bg-background border-border" />
@@ -478,7 +478,7 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
         </Button>
       </div>
 
-      <div className="divide-y divide-border/50">
+      <div className="divide-y divide-border/30">
         {/* Select all row */}
         {filtered.length > 0 && (
           <div className="px-5 py-2 flex items-center gap-2">
@@ -498,7 +498,7 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
           return (
             <div
               key={item.id}
-              className={`group flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-muted/30 ${isSelected ? "bg-primary/5" : ""}`}
+              className={`group flex items-center gap-4 px-5 py-3.5 transition-all duration-300 hover:bg-muted/20 ${isSelected ? "bg-primary/5" : ""}`}
             >
               <button
                 onClick={(e) => { e.stopPropagation(); toggleSelect(item.id); }}

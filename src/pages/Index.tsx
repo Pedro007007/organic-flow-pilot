@@ -114,7 +114,7 @@ const Index = () => {
           <div className="space-y-6">
             {/* Welcome card for new users */}
             {!hasRealContent && (
-              <div className="rounded-lg border border-primary/20 bg-primary/5 p-6">
+              <div className="relative overflow-hidden rounded-xl border border-primary/20 bg-primary/5 backdrop-blur-xl p-6 shadow-lg transition-all duration-300 hover:shadow-xl">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/15">
                     <Zap className="h-5 w-5 text-primary" />
@@ -125,21 +125,21 @@ const Index = () => {
                   </div>
                 </div>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                  <button onClick={() => setActiveSection("content")} className="flex items-center gap-2 rounded-md border border-border bg-card px-4 py-3 text-left hover:bg-muted/50 transition-colors">
+                  <button onClick={() => setActiveSection("content")} className="flex items-center gap-2 rounded-xl border border-border/40 bg-card/30 backdrop-blur-xl px-4 py-3 text-left hover:bg-muted/20 hover:-translate-y-0.5 transition-all duration-300 shadow-sm hover:shadow-md">
                     <FileText className="h-4 w-4 text-primary" />
                     <div>
                       <p className="text-xs font-semibold text-foreground">Create Content</p>
                       <p className="text-[10px] text-muted-foreground">Write your first article</p>
                     </div>
                   </button>
-                  <button onClick={() => setActiveSection("keywords")} className="flex items-center gap-2 rounded-md border border-border bg-card px-4 py-3 text-left hover:bg-muted/50 transition-colors">
+                  <button onClick={() => setActiveSection("keywords")} className="flex items-center gap-2 rounded-xl border border-border/40 bg-card/30 backdrop-blur-xl px-4 py-3 text-left hover:bg-muted/20 hover:-translate-y-0.5 transition-all duration-300 shadow-sm hover:shadow-md">
                     <Search className="h-4 w-4 text-primary" />
                     <div>
                       <p className="text-xs font-semibold text-foreground">Discover Keywords</p>
                       <p className="text-[10px] text-muted-foreground">Find ranking opportunities</p>
                     </div>
                   </button>
-                  <button onClick={() => setActiveSection("agents")} className="flex items-center gap-2 rounded-md border border-border bg-card px-4 py-3 text-left hover:bg-muted/50 transition-colors">
+                  <button onClick={() => setActiveSection("agents")} className="flex items-center gap-2 rounded-xl border border-border/40 bg-card/30 backdrop-blur-xl px-4 py-3 text-left hover:bg-muted/20 hover:-translate-y-0.5 transition-all duration-300 shadow-sm hover:shadow-md">
                     <Bot className="h-4 w-4 text-primary" />
                     <div>
                       <p className="text-xs font-semibold text-foreground">Run Agents</p>

@@ -98,7 +98,7 @@ const RankingsTracker = () => {
   return (
     <div className="space-y-8">
       {/* Hero Header */}
-      <div className="rounded-xl border border-border bg-card p-8 text-center space-y-4">
+      <div className="relative overflow-hidden rounded-xl border border-border/40 bg-card/30 backdrop-blur-xl p-8 text-center space-y-4 shadow-lg transition-all duration-300 hover:shadow-xl">
         <div className="flex items-center justify-center gap-2">
           <BarChart3 className="h-6 w-6 text-primary" />
           <h1 className="text-xl font-bold text-foreground">AI SEO & Organic Rankings Tracker</h1>
@@ -115,7 +115,7 @@ const RankingsTracker = () => {
       {/* How It Works Guide */}
       <Collapsible>
         <CollapsibleTrigger asChild>
-          <button className="w-full flex items-center justify-between rounded-xl border border-border bg-card p-4 hover:bg-muted/40 transition-colors group">
+          <button className="w-full flex items-center justify-between rounded-xl border border-border/40 bg-card/30 backdrop-blur-xl p-4 hover:bg-muted/20 transition-all duration-300 group shadow-sm">
             <div className="flex items-center gap-2">
               <HelpCircle className="h-4 w-4 text-primary" />
               <span className="text-sm font-semibold text-foreground">How does the Rankings Tracker work?</span>
@@ -123,7 +123,7 @@ const RankingsTracker = () => {
             <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
           </button>
         </CollapsibleTrigger>
-        <CollapsibleContent className="rounded-xl border border-border bg-card mt-2 p-6 space-y-5">
+        <CollapsibleContent className="rounded-xl border border-border/40 bg-card/30 backdrop-blur-xl mt-2 p-6 space-y-5 shadow-md">
           <div className="space-y-3">
             <h3 className="text-sm font-bold text-foreground">📡 Data Flow</h3>
             <ol className="text-xs text-muted-foreground space-y-1.5 list-decimal list-inside leading-relaxed">
@@ -163,7 +163,7 @@ const RankingsTracker = () => {
 
       {/* Score Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="rounded-xl border border-border bg-card p-5 space-y-2">
+        <div className="group relative overflow-hidden rounded-xl border border-border/40 bg-card/30 backdrop-blur-xl p-5 space-y-2 shadow-md transition-all duration-500 hover:shadow-xl hover:-translate-y-1">
           <div className="flex items-center gap-2">
             <Search className="h-4 w-4 text-primary" />
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Tracked URLs</p>
@@ -171,7 +171,7 @@ const RankingsTracker = () => {
           <p className="text-2xl font-bold text-foreground">{latestRankings.length}</p>
           <Progress value={Math.min(latestRankings.length * 10, 100)} className="h-1.5" />
         </div>
-        <div className="rounded-xl border border-border bg-card p-5 space-y-2">
+        <div className="group relative overflow-hidden rounded-xl border border-border/40 bg-card/30 backdrop-blur-xl p-5 space-y-2 shadow-md transition-all duration-500 hover:shadow-xl hover:-translate-y-1">
           <div className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4 text-success" />
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Avg Position</p>
@@ -179,7 +179,7 @@ const RankingsTracker = () => {
           <p className="text-2xl font-bold text-foreground">#{avgPosition || "—"}</p>
           <Progress value={avgPosition > 0 ? Math.max(100 - avgPosition, 10) : 0} className="h-1.5" />
         </div>
-        <div className="rounded-xl border border-border bg-card p-5 space-y-2">
+        <div className="group relative overflow-hidden rounded-xl border border-border/40 bg-card/30 backdrop-blur-xl p-5 space-y-2 shadow-md transition-all duration-500 hover:shadow-xl hover:-translate-y-1">
           <div className="flex items-center gap-2">
             <Eye className="h-4 w-4 text-info" />
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">AI Citations</p>
@@ -201,7 +201,7 @@ const RankingsTracker = () => {
             { icon: Globe, title: "Connect Search Console", desc: "Link your Google Search Console to pull real ranking data and track position changes over time.", cta: "Connect GSC" },
             { icon: Zap, title: "AI Citation Tracking", desc: "See which of your pages are being cited by AI engines like Google AI Overviews, ChatGPT, and Perplexity.", cta: "Start Tracking" },
           ].map((card) => (
-            <div key={card.title} className="rounded-xl border border-border bg-card p-6 space-y-3">
+            <div key={card.title} className="group relative overflow-hidden rounded-xl border border-border/40 bg-card/30 backdrop-blur-xl p-6 space-y-3 shadow-md transition-all duration-500 hover:shadow-xl hover:-translate-y-1">
               <div className="flex items-center gap-2">
                 <card.icon className="h-5 w-5 text-primary" />
                 <h3 className="text-sm font-bold text-foreground">{card.title}</h3>
@@ -212,7 +212,7 @@ const RankingsTracker = () => {
           ))}
         </div>
       ) : view === "table" ? (
-        <div className="rounded-xl border border-border bg-card overflow-hidden">
+        <div className="rounded-xl border border-border/40 bg-card/30 backdrop-blur-xl overflow-hidden shadow-md">
           <Table>
             <TableHeader>
               <TableRow>
@@ -248,7 +248,7 @@ const RankingsTracker = () => {
           </Table>
         </div>
       ) : (
-        <div className="rounded-xl border border-border bg-card p-6">
+        <div className="rounded-xl border border-border/40 bg-card/30 backdrop-blur-xl p-6 shadow-md">
           <p className="text-xs text-muted-foreground mb-4">Average Position Over Time (lower is better)</p>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={chartData}>
@@ -263,7 +263,7 @@ const RankingsTracker = () => {
       )}
 
       {/* CTA */}
-      <div className="flex items-center justify-between rounded-lg border-l-4 border-l-primary bg-card border border-border p-5">
+      <div className="flex items-center justify-between rounded-xl border-l-4 border-l-primary bg-card/30 backdrop-blur-xl border border-border/40 p-5 shadow-md transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
         <div>
           <p className="text-sm font-bold text-foreground">Want to Improve Your Rankings?</p>
           <p className="text-xs text-muted-foreground mt-0.5">Optimize your content for both traditional search and AI engines to maximize visibility.</p>

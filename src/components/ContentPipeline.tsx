@@ -498,7 +498,7 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
           return (
             <div
               key={item.id}
-              className={`group flex items-center gap-4 px-5 py-3.5 transition-colors hover:bg-muted/30 ${isSelected ? "bg-primary/5" : ""}`}
+              className={`group flex items-center gap-4 px-5 py-3.5 transition-all duration-300 hover:bg-muted/20 ${isSelected ? "bg-primary/5" : ""}`}
             >
               <button
                 onClick={(e) => { e.stopPropagation(); toggleSelect(item.id); }}

@@ -152,7 +152,7 @@ const KeywordTable = ({ keywords }: KeywordTableProps) => {
           </thead>
           <tbody>
             {filtered.map((kw) => (
-              <tr key={kw.id} className="border-b border-border/50 transition-colors hover:bg-muted/30">
+              <tr key={kw.id} className="border-b border-border/20 transition-all duration-300 hover:bg-muted/20">
                 <td className="px-5 py-3">
                   <p className="text-sm font-medium text-foreground">{kw.keyword}</p>
                   <p className="text-[11px] text-muted-foreground mt-0.5">{kw.contentType}</p>

@@ -9,7 +9,7 @@ interface CompetitorGapProps {
   primaryColor: string;
 }
 
-const CompetitorGap = ({ data, domain, primaryColor }: CompetitorGapProps) => {
+const CompetitorGap = forwardRef<HTMLDivElement, CompetitorGapProps>(({ data, domain, primaryColor }, ref) => {
   const gap = data.competitor_gap || {};
 
   const comparisons = [

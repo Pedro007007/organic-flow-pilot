@@ -104,7 +104,7 @@ const Landing = () => {
                     Start Free Trial <ArrowRight className="ml-1 h-4 w-4" />
                   </Link>
                 </Button>
-                <Button variant="outline" size="lg" className="border-gray-300 text-gray-700 hover:bg-gray-50 h-12 px-8 text-base font-bold" asChild>
+                <Button variant="outline" size="lg" className="border-foreground/20 text-foreground hover:bg-accent h-12 px-8 text-base font-bold" asChild>
                   <a href="#how-it-works">
                     Learn More
                   </a>

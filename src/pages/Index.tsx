@@ -24,9 +24,12 @@ import LlmSearchLab from "@/components/LlmSearchLab";
 import { usePerformanceMetrics, useKeywords, useContentItems, useAgentRuns } from "@/hooks/useDashboardData";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useSubscription } from "@/hooks/useSubscription";
+import { hasFeatureAccess, getRequiredTier, getTierLabel } from "@/lib/featureGating";
 
-import { Activity, Loader2, Zap, FileText, Search, Bot, BarChart3, Key, Gift, Users, Sparkles } from "lucide-react";
+import { Activity, Loader2, Zap, FileText, Search, Bot, BarChart3, Key, Gift, Users, Sparkles, Lock } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState("dashboard");

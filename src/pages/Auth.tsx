@@ -77,8 +77,8 @@ const Auth = () => {
       <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-10" style={{ background: "hsl(235 65% 25%)" }}>
         <div>
           <div className="flex items-center gap-3 mb-24">
-            <img src={searcheraLogo} alt="Searchera" className="h-10 w-10 rounded-lg object-contain bg-white/10 p-1" />
-            <span className="text-xl font-bold tracking-tight text-white">SEARCHERA</span>
+            <img src={searcheraLogo} alt="Searchera" className="h-16 w-16 rounded-lg object-contain bg-white/10 p-1.5" />
+            <span className="text-2xl font-bold tracking-tight text-white">SEARCHERA</span>
           </div>
 
           <h1 className="text-4xl font-bold text-white leading-tight mb-4">

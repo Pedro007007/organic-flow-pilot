@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import { DollarSign } from "lucide-react";
 

@@ -20,6 +20,7 @@ import {
   Sparkles,
   MessageCircle,
   BookOpen,
+  Gift,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import searcheraLogo from "@/assets/searchera-logo.png";

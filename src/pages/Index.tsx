@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import OnboardingWizard from "@/components/OnboardingWizard";
 import SidebarNav from "@/components/SidebarNav";
 import MetricCard from "@/components/MetricCard";
 import AgentPipeline from "@/components/AgentPipeline";
@@ -27,8 +28,21 @@ import { useAuth } from "@/hooks/useAuth";
 const Index = () => {
   const [activeSection, setActiveSection] = useState("dashboard");
   const [selectedContentId, setSelectedContentId] = useState<string | null>(null);
-  const { signOut } = useAuth();
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const { signOut, user } = useAuth();
   const isMobile = useIsMobile();
+
+  // Show onboarding for new users (no content yet, haven't dismissed)
+  useEffect(() => {
+    if (!user) return;
+    const dismissed = localStorage.getItem(`searchera_onboarding_${user.id}`);
+    if (!dismissed) setShowOnboarding(true);
+  }, [user]);
+
+  const handleOnboardingComplete = () => {
+    if (user) localStorage.setItem(`searchera_onboarding_${user.id}`, "done");
+    setShowOnboarding(false);
+  };
 
   const { data: metrics, isLoading: metricsLoading } = usePerformanceMetrics();
   const { data: keywords, isLoading: keywordsLoading } = useKeywords();
@@ -112,8 +126,16 @@ const Index = () => {
         {/* Dashboard view */}
         {activeSection === "dashboard" && (
           <div className="space-y-6">
-            {/* Welcome card for new users */}
-            {!hasRealContent && (
+            {/* Onboarding wizard for new users */}
+            {showOnboarding && (
+              <OnboardingWizard
+                onComplete={handleOnboardingComplete}
+                onNavigate={(s) => { setActiveSection(s); setSelectedContentId(null); }}
+              />
+            )}
+
+            {/* Welcome card for returning users without content */}
+            {!showOnboarding && !hasRealContent && (
               <div className="relative overflow-hidden rounded-xl border border-primary/20 bg-primary/5 backdrop-blur-xl p-6 shadow-sm transition-all duration-300 hover:shadow-md">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/15">

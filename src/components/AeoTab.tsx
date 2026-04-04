@@ -137,7 +137,9 @@ const AeoTab = ({ contentId, hasContent, onContentUpdated }: AeoTabProps) => {
     for (const dim of lowDims) {
       await handleFixDimension(dim.key, dim.label);
     }
-    toast({ title: "All fixes applied", description: "Re-score to measure improvements." });
+    toast({ title: "All fixes applied", description: "Re-scoring automatically…" });
+    // Auto re-score after all fixes
+    await handleScore();
   };
 
   const lowCount = score ? dimensions.filter((d) => (score.scores[d.key] || 0) < THRESHOLD).length : 0;

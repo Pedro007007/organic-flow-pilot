@@ -155,8 +155,10 @@ const ReferralProgram = () => {
               <h5 className="text-[11px] font-bold text-foreground uppercase tracking-wider mb-2">How It Works</h5>
               <ol className="space-y-1.5 text-[11px] text-muted-foreground leading-relaxed list-decimal list-inside">
                 <li>Share your unique referral link or code with friends, colleagues, or your network.</li>
-                <li>When someone signs up using your link and creates a verified account, they count as a <strong className="text-foreground">qualified referral</strong>.</li>
-                <li>Once your referral completes email verification and remains active for at least 7 days, your reward tier unlocks automatically.</li>
+                <li>When someone signs up using your link and subscribes to a <strong className="text-foreground">paid plan</strong> (Quarterly, 6-Month, or Annual), they count as a <strong className="text-foreground">qualified referral</strong>.</li>
+                <li>A referral is <strong className="text-foreground">not</strong> qualified simply by creating or verifying an account — they must become an active paying subscriber on any billing cycle.</li>
+                <li>Once your referral's first subscription payment is confirmed and they remain active for at least 14 days, your reward tier unlocks automatically.</li>
+                <li>You will be <strong className="text-foreground">notified via email</strong> when a reward tier is unlocked, and a badge will appear on your dashboard confirming the reward.</li>
                 <li>Rewards are cumulative — reaching 5 referrals earns you <strong className="text-foreground">all three tiers</strong>, not just the highest.</li>
               </ol>
             </div>
@@ -166,8 +168,10 @@ const ReferralProgram = () => {
               <h5 className="text-[11px] font-bold text-foreground uppercase tracking-wider mb-2">Eligibility & Qualification</h5>
               <ul className="space-y-1.5 text-[11px] text-muted-foreground leading-relaxed list-disc list-inside">
                 <li>Both the referrer and the referred user must hold active, verified Searchera accounts.</li>
+                <li><strong className="text-foreground">A referral only qualifies when the referred user subscribes to a paid plan</strong> — Quarterly (3 months), 6-Month, or Annual (12 months). Free accounts and unverified sign-ups do not count.</li>
+                <li>The referred user's first subscription payment must be successfully processed and non-refunded for at least 14 calendar days before the referral is counted.</li>
+                <li>If the referred user cancels, requests a refund, or issues a chargeback within 14 days of subscribing, the referral is voided and any associated reward is revoked.</li>
                 <li>Self-referrals, duplicate accounts, or fraudulent sign-ups are strictly prohibited and will result in disqualification.</li>
-                <li>A referral is only counted once the referred user has completed email verification and logged in at least once within 7 days of registration.</li>
                 <li>Referrals made before joining the programme cannot be applied retroactively.</li>
               </ul>
             </div>
@@ -178,17 +182,28 @@ const ReferralProgram = () => {
               <div className="space-y-2">
                 <div className="flex items-start gap-2 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-2.5">
                   <Badge variant="outline" className="text-[9px] border-emerald-500/30 text-emerald-600 bg-emerald-500/10 shrink-0 mt-0.5">Tier 1</Badge>
-                  <p className="text-[11px] text-muted-foreground"><strong className="text-foreground">1 referral → 30-day extended free trial.</strong> Your trial period is extended by 30 calendar days from the date the referral qualifies. Cannot be stacked with other trial extensions.</p>
+                  <p className="text-[11px] text-muted-foreground"><strong className="text-foreground">1 paid referral → 30-day extended free trial.</strong> Your trial period is extended by 30 calendar days from the date the referral's subscription is confirmed. Cannot be stacked with other trial extensions. You will receive an email confirmation and a dashboard notification when activated.</p>
                 </div>
                 <div className="flex items-start gap-2 rounded-lg border border-blue-500/20 bg-blue-500/5 p-2.5">
                   <Badge variant="outline" className="text-[9px] border-blue-500/30 text-blue-600 bg-blue-500/10 shrink-0 mt-0.5">Tier 2</Badge>
-                  <p className="text-[11px] text-muted-foreground"><strong className="text-foreground">3 referrals → Priority AI agent processing.</strong> Your AI agent jobs are placed in a priority queue for faster execution. This benefit remains active for as long as you maintain 3+ qualified referrals.</p>
+                  <p className="text-[11px] text-muted-foreground"><strong className="text-foreground">3 paid referrals → Priority AI agent processing.</strong> Your AI agent jobs are placed in a priority queue for faster execution. This benefit remains active for as long as you maintain 3+ qualified paid referrals. Notification sent via email and marked on your dashboard.</p>
                 </div>
                 <div className="flex items-start gap-2 rounded-lg border border-amber-500/20 bg-amber-500/5 p-2.5">
                   <Badge variant="outline" className="text-[9px] border-amber-500/30 text-amber-600 bg-amber-500/10 shrink-0 mt-0.5">Tier 3</Badge>
-                  <p className="text-[11px] text-muted-foreground"><strong className="text-foreground">5 referrals → 1 month Pro plan free.</strong> A one-time credit equivalent to one month of the Pro plan is applied to your account. If you are already on Pro, your next billing cycle is waived. If on Free, you receive 30 days of Pro access.</p>
+                  <p className="text-[11px] text-muted-foreground"><strong className="text-foreground">5 paid referrals → 1 month Pro plan free.</strong> A one-time credit equivalent to one month of the Pro plan is applied to your account. If you are already on Pro, your next billing cycle is waived. If on Free, you receive 30 days of Pro access. Confirmation sent via email and displayed on your dashboard.</p>
                 </div>
               </div>
+            </div>
+
+            {/* Notifications */}
+            <div>
+              <h5 className="text-[11px] font-bold text-foreground uppercase tracking-wider mb-2">Notifications & Tracking</h5>
+              <ul className="space-y-1.5 text-[11px] text-muted-foreground leading-relaxed list-disc list-inside">
+                <li>When a referred user subscribes to a paid plan, you will receive an <strong className="text-foreground">email notification</strong> confirming the referral is pending the 14-day qualification period.</li>
+                <li>Once the 14-day period passes without cancellation or refund, you will receive a second email confirming the reward has been <strong className="text-foreground">activated</strong>.</li>
+                <li>All active rewards are displayed on your <strong className="text-foreground">dashboard Rewards tab</strong> with a visible badge and unlock date.</li>
+                <li>If a referral is voided (refund, chargeback, or cancellation within 14 days), you will be notified via email and the reward will be removed from your dashboard.</li>
+              </ul>
             </div>
 
             {/* General Terms */}
@@ -197,8 +212,9 @@ const ReferralProgram = () => {
               <ul className="space-y-1.5 text-[11px] text-muted-foreground leading-relaxed list-disc list-inside">
                 <li>Searchera reserves the right to modify, suspend, or terminate the referral programme at any time with 30 days' notice to active participants.</li>
                 <li>Rewards have no cash value and are non-transferable.</li>
-                <li>Any attempt to manipulate the referral system (bots, fake accounts, incentivised sign-ups) will result in permanent account suspension and forfeiture of all rewards.</li>
+                <li>Any attempt to manipulate the referral system (bots, fake accounts, incentivised sign-ups, or coerced subscriptions) will result in permanent account suspension and forfeiture of all rewards.</li>
                 <li>Searchera's decision on referral qualification and reward eligibility is final.</li>
+                <li>Subscription payments are processed via Stripe. Searchera is not responsible for payment processing delays outside its control.</li>
                 <li>This programme is governed by the laws of England and Wales. Disputes shall be subject to the exclusive jurisdiction of the courts of England and Wales.</li>
                 <li>By participating, you confirm you have read, understood, and agree to these terms.</li>
               </ul>

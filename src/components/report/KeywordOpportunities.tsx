@@ -19,7 +19,7 @@ const KeywordOpportunities = forwardRef<HTMLDivElement, KeywordOpportunitiesProp
   const keywords = data.keyword_opportunities || [];
 
   return (
-    <div className="space-y-6">
+    <div ref={ref} className="space-y-6">
       <div className="text-center space-y-1">
         <h2 className="text-lg font-bold text-foreground">Keyword Opportunity Analysis</h2>
         <p className="text-xs text-muted-foreground">Revenue-focused keyword gaps — this shows MONEY, not just traffic</p>

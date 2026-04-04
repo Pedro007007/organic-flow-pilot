@@ -78,7 +78,7 @@ const Auth = () => {
         <div>
           {/* Logo */}
           <div className="mb-10">
-            <img src={searcheraLogo} alt="Searchera" className="h-[80px] object-contain drop-shadow-lg" style={{ filter: "brightness(0) invert(1)" }} />
+            <img src={searcheraLogo} alt="Searchera" className="h-[80px] object-contain drop-shadow-lg" />
           </div>
 
           {/* Headline */}

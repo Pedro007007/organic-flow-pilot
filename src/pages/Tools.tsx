@@ -299,7 +299,7 @@ const Tools = () => {
                 Get AI-powered keyword discovery, automated content generation, ranking tracking, and AI citation monitoring — all in one platform.
               </p>
               <Button size="lg" className="mt-6 bg-white text-blue-700 hover:bg-blue-50 border-0 shadow-xl h-12 px-8 text-base font-black" asChild>
-                <Link to="/auth">Start Free Trial <ArrowRight className="ml-1 h-4 w-4" /></Link>
+                <Link to="/auth">Get Started <ArrowRight className="ml-1 h-4 w-4" /></Link>
               </Button>
             </div>
           </div>

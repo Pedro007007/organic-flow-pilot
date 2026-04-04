@@ -208,7 +208,7 @@ const SidebarNav = ({ activeSection, onNavigate }: SidebarNavProps) => {
 
   return (
     <aside className="fixed left-0 top-0 z-40 flex h-screen w-56 flex-col border-r border-border/50 bg-sidebar/90 backdrop-blur-xl">
-      <SidebarContent activeSection={activeSection} onNavigate={onNavigate} />
+      <SidebarContentInner activeSection={activeSection} onNavigate={onNavigate} />
     </aside>
   );
 };

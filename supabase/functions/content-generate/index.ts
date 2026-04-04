@@ -420,7 +420,6 @@ Output format: Markdown with proper H1, H2, H3 headings.`;
       await supabase.from("content_items").update({
         draft_content: content,
         status: "writing",
-        brand_id: brandId || brand?.id || null,
         seo_title: seoMetadata.seo_title || null,
         meta_description: seoMetadata.meta_description || null,
         slug: seoMetadata.slug || null,

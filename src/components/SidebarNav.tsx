@@ -126,7 +126,7 @@ function SidebarContentInner({ activeSection, onNavigate }: SidebarNavProps) {
           }`}
         >
           <Crown className="h-3.5 w-3.5" />
-          {subLoading ? "..." : subscribed && tier ? `${SUBSCRIPTION_TIERS[tier].name} Plan` : "Free Plan — Upgrade"}
+          {subLoading ? "..." : subscribed && tier ? `${SUBSCRIPTION_TIERS[tier].name} Plan` : "No Plan — Subscribe"}
         </button>
       </div>
 

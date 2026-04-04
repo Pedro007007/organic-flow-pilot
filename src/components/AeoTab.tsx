@@ -108,7 +108,7 @@ const AeoTab = ({ contentId, hasContent, onContentUpdated }: AeoTabProps) => {
     }
   };
 
-  const handleFixDimension = async (dimension: string, label: string) => {
+  const handleFixDimension = async (dimension: string, label: string, skipRescore = false) => {
     setFixingDim(dimension);
     try {
       const res = await supabase.functions.invoke("aeo-fix", {
@@ -118,8 +118,14 @@ const AeoTab = ({ contentId, hasContent, onContentUpdated }: AeoTabProps) => {
         const errBody = res.error?.context ? await (res.error.context as any).json?.() : null;
         throw new Error(errBody?.error || res.error.message || "Fix failed");
       }
-      toast({ title: `${label} improved`, description: "Content updated. Re-score to see the new rating." });
+      toast({ title: `${label} improved`, description: "Content updated." });
       onContentUpdated?.();
+      // Auto re-score after individual fix unless called from fixAll
+      if (!skipRescore) {
+        setFixingDim(null);
+        await handleScore();
+        return;
+      }
     } catch (err: any) {
       toast({ title: `${label} fix failed`, description: err.message, variant: "destructive" });
     } finally {
@@ -135,10 +141,9 @@ const AeoTab = ({ contentId, hasContent, onContentUpdated }: AeoTabProps) => {
       return;
     }
     for (const dim of lowDims) {
-      await handleFixDimension(dim.key, dim.label);
+      await handleFixDimension(dim.key, dim.label, true);
     }
     toast({ title: "All fixes applied", description: "Re-scoring automatically…" });
-    // Auto re-score after all fixes
     await handleScore();
   };
 

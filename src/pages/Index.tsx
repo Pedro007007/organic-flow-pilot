@@ -22,6 +22,7 @@ import LeadsManagement from "@/components/LeadsManagement";
 import BrandManagement from "@/components/BrandManagement";
 import LlmSearchLab from "@/components/LlmSearchLab";
 import SaasOwnerDashboard from "@/components/SaasOwnerDashboard";
+import UsageLimitsCard from "@/components/UsageLimitsCard";
 import { usePerformanceMetrics, useKeywords, useContentItems, useAgentRuns } from "@/hooks/useDashboardData";
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -187,12 +188,15 @@ const Index = () => {
               </div>
             )}
 
-            {/* Metrics always visible */}
+            {/* Metrics + Usage */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {displayMetrics.map((metric, i) => (
                 <MetricCard key={metric.label} metric={metric} index={i} />
               ))}
             </div>
+
+            {/* Usage Limits */}
+            <UsageLimitsCard />
 
             {/* Dashboard Tab Bar */}
             <div className="flex items-center gap-1 rounded-2xl border border-border/50 bg-card/70 backdrop-blur-xl p-1.5 shadow-sm overflow-x-auto">

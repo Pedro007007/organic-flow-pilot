@@ -6,8 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DollarSign, Users, TrendingUp, TrendingDown, RefreshCw,
-  Loader2, Crown, AlertTriangle, BarChart3, ArrowUpRight,
-  ArrowDownRight, Calendar, Mail, CreditCard
+  Loader2, Crown, AlertTriangle, BarChart3, Download,
+  Calendar, Mail, CreditCard
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -38,6 +38,23 @@ interface SaasData {
 }
 
 const PIE_COLORS = ["#10b981", "#3b82f6", "#ef4444", "#f59e0b", "#8b5cf6"];
+
+function exportCSV(data: SaasData) {
+  const header = "Customer,Email,Plan,Amount,Interval,Status,Since,Renews\n";
+  const rows = data.subscribers.map(s =>
+    `"${s.customer_name || ""}","${s.customer_email || ""}","${s.plan}",${s.amount},"${s.interval}","${s.cancel_at_period_end ? "Cancelling" : "Active"}","${new Date(s.created).toLocaleDateString()}","${new Date(s.current_period_end).toLocaleDateString()}"`
+  ).join("\n");
+
+  const summary = `\n\nSummary\nMRR,$${data.mrr.toFixed(2)}\nARR,$${data.arr.toFixed(0)}\nActive Subscriptions,${data.active_subscriptions}\nChurn Rate (30d),${data.churn_rate}%\nCustomer LTV,$${data.ltv.toFixed(0)}\n`;
+
+  const blob = new Blob([header + rows + summary], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `searchera-saas-report-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 export default function SaasOwnerDashboard() {
   const { user } = useAuth();
@@ -95,9 +112,14 @@ export default function SaasOwnerDashboard() {
           <h2 className="text-lg font-bold text-foreground">SaaS Owner Dashboard</h2>
           <Badge variant="outline" className="text-[10px]">ADMIN ONLY</Badge>
         </div>
-        <Button variant="outline" size="sm" onClick={fetchAnalytics} disabled={loading}>
-          <RefreshCw className={`h-3.5 w-3.5 mr-2 ${loading ? "animate-spin" : ""}`} /> Refresh
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => exportCSV(data)}>
+            <Download className="h-3.5 w-3.5 mr-2" /> Export CSV
+          </Button>
+          <Button variant="outline" size="sm" onClick={fetchAnalytics} disabled={loading}>
+            <RefreshCw className={`h-3.5 w-3.5 mr-2 ${loading ? "animate-spin" : ""}`} /> Refresh
+          </Button>
+        </div>
       </div>
 
       {/* KPI Cards */}

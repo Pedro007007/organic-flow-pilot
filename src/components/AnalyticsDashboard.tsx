@@ -217,12 +217,16 @@ const AnalyticsDashboard = () => {
 
 function SummaryCard({ icon: Icon, label, value }: { icon: any; label: string; value: number }) {
   return (
-    <div className="rounded-lg border border-border bg-card p-4">
-      <div className="flex items-center gap-2">
-        <Icon className="h-4 w-4 text-primary" />
-        <span className="text-xs font-medium text-muted-foreground">{label}</span>
+    <div className="group relative overflow-hidden rounded-xl border border-border/40 bg-card/30 backdrop-blur-xl p-4 shadow-md transition-all duration-500 hover:shadow-xl hover:-translate-y-1">
+      <div className="absolute inset-0 bg-gradient-to-br from-foreground/[0.02] via-transparent to-transparent pointer-events-none" />
+      <div className="absolute -top-10 -right-10 w-20 h-20 rounded-full bg-primary/5 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+      <div className="relative z-10">
+        <div className="flex items-center gap-2">
+          <Icon className="h-4 w-4 text-primary" />
+          <span className="text-xs font-medium text-muted-foreground">{label}</span>
+        </div>
+        <p className="mt-1 text-2xl font-bold text-foreground font-mono drop-shadow-sm">{value}</p>
       </div>
-      <p className="mt-1 text-2xl font-bold text-foreground font-mono">{value}</p>
     </div>
   );
 }

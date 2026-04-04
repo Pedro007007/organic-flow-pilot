@@ -62,7 +62,8 @@ const Landing = () => {
           <a href="#features" className="hover:text-gray-900 transition-colors">Features</a>
           <a href="#how-it-works" className="hover:text-gray-900 transition-colors">How It Works</a>
           <a href="#testimonials" className="hover:text-gray-900 transition-colors">Testimonials</a>
-          <Link to="/blog" className="hover:text-gray-900 transition-colors">Blog</Link>
+           <Link to="/blog" className="hover:text-gray-900 transition-colors">Blog</Link>
+           <Link to="/about" className="hover:text-gray-900 transition-colors">About</Link>
         </nav>
         <div className="flex items-center gap-3">
           <Button variant="ghost" size="sm" className="text-gray-700 hover:text-gray-900 font-bold" asChild>

@@ -72,33 +72,36 @@ const Auth = () => {
   };
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-background">
       {/* Left Panel - Marketing */}
-      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-10" style={{ background: "hsl(0 0% 100%)" }}>
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-10 border-r border-border">
         <div>
-          <div className="flex items-center gap-3 mb-24">
-            <img src={searcheraLogo} alt="Searchera" className="h-[160px] object-contain" />
+          {/* Logo */}
+          <div className="mb-10">
+            <img src={searcheraLogo} alt="Searchera" className="h-[80px] object-contain" />
           </div>
 
-          <h1 className="text-4xl font-bold text-foreground leading-tight mb-4">
+          {/* Headline */}
+          <h1 className="text-3xl font-bold text-foreground leading-tight mb-3">
             Turn any website into a{" "}
-            <span className="bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
               winning strategy
             </span>
           </h1>
-          <p className="text-muted-foreground text-base mb-10 max-w-md">
+          <p className="text-muted-foreground text-sm mb-8 max-w-md">
             Scan, optimise, and publish — grow your organic traffic with AI-powered SEO content.
           </p>
 
-          <ul className="space-y-3 mb-12">
+          {/* Features */}
+          <ul className="space-y-2.5">
             {[
               "AI-powered content generation in seconds",
               "Beautiful, shareable SEO reports",
               "Track rankings and AI citations",
               "Automated content pipeline",
             ].map((item) => (
-              <li key={item} className="flex items-center gap-3 text-muted-foreground text-sm">
-                <span className="h-2 w-2 rounded-full bg-purple-500 shrink-0" />
+              <li key={item} className="flex items-center gap-2.5 text-muted-foreground text-sm">
+                <span className="h-1.5 w-1.5 rounded-full bg-primary shrink-0" />
                 {item}
               </li>
             ))}
@@ -106,33 +109,34 @@ const Auth = () => {
         </div>
 
         {/* Testimonial */}
-        <div className="rounded-xl p-5 border border-border bg-muted/40">
-          <p className="text-muted-foreground text-sm italic mb-4">
-            "Searchera helped me rank 3 new pages in my first month. The AI content tools are incredibly fast and always produce quality results."
-          </p>
-          <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white text-sm font-bold">
-              JM
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-foreground text-sm font-medium">James Mitchell</span>
-                <div className="flex gap-0.5">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
-                  ))}
-                </div>
+        <div>
+          <div className="rounded-xl p-5 border border-border bg-muted/30">
+            <p className="text-muted-foreground text-sm italic mb-3">
+              "Searchera helped me rank 3 new pages in my first month. The AI content tools are incredibly fast and always produce quality results."
+            </p>
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white text-xs font-bold">
+                JM
               </div>
-              <span className="text-muted-foreground text-xs">Digital Marketing Manager</span>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-foreground text-sm font-medium">James Mitchell</span>
+                  <div className="flex gap-0.5">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                    ))}
+                  </div>
+                </div>
+                <span className="text-muted-foreground text-xs">Digital Marketing Manager</span>
+              </div>
             </div>
           </div>
+          <p className="text-muted-foreground/40 text-xs mt-4">© 2026 Searchera</p>
         </div>
-
-        <p className="text-muted-foreground/50 text-xs mt-6">© 2026 Searchera</p>
       </div>
 
       {/* Right Panel - Auth Form */}
-      <div className="flex-1 flex items-center justify-center bg-background px-6 relative">
+      <div className="flex-1 flex items-center justify-center px-6 relative">
         <button
           onClick={() => navigate("/")}
           className="absolute top-6 left-6 text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 text-sm"
@@ -142,7 +146,12 @@ const Auth = () => {
           <span>Back to home</span>
         </button>
 
-        <div className="w-full max-w-sm space-y-8">
+        <div className="w-full max-w-sm space-y-6">
+          {/* Mobile logo */}
+          <div className="lg:hidden flex justify-center mb-2">
+            <img src={searcheraLogo} alt="Searchera" className="h-[60px] object-contain" />
+          </div>
+
           {/* Header */}
           <div>
             <h2 className="text-2xl font-bold text-foreground">
@@ -158,9 +167,9 @@ const Auth = () => {
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-4">
             {!isLogin && !forgotMode && (
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label htmlFor="displayName">Display Name</Label>
                 <Input
                   id="displayName"
@@ -172,7 +181,7 @@ const Auth = () => {
                 />
               </div>
             )}
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label htmlFor="email">Email</Label>
               <Input
                 id="email"
@@ -185,7 +194,7 @@ const Auth = () => {
               />
             </div>
             {!forgotMode && (
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="password">Password</Label>
                   {isLogin && (

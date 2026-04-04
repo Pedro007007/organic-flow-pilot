@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import confetti from "canvas-confetti";
 import OnboardingWizard from "@/components/OnboardingWizard";
 import Changelog from "@/components/Changelog";
 import ReferralProgram from "@/components/ReferralProgram";

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import OnboardingWizard from "@/components/OnboardingWizard";
 import SidebarNav from "@/components/SidebarNav";
 import MetricCard from "@/components/MetricCard";
 import AgentPipeline from "@/components/AgentPipeline";

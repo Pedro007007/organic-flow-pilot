@@ -20,6 +20,7 @@ import {
   Sparkles,
   MessageCircle,
   BookOpen,
+  Gift,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import searcheraLogo from "@/assets/searchera-logo.png";
@@ -46,6 +47,7 @@ const navItems = [
   { id: "leads", label: "Leads", icon: Users },
   { id: "checklist", label: "Checklist", icon: ListChecks },
   { id: "brands", label: "Brands", icon: Tag },
+  { id: "referrals", label: "Referrals", icon: Gift },
   { id: "team", label: "Team", icon: Users },
   { id: "settings", label: "Settings", icon: Settings },
 ];

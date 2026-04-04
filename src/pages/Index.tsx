@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import OnboardingWizard from "@/components/OnboardingWizard";
+import Changelog from "@/components/Changelog";
+import ReferralProgram from "@/components/ReferralProgram";
 import SidebarNav from "@/components/SidebarNav";
 import MetricCard from "@/components/MetricCard";
 import AgentPipeline from "@/components/AgentPipeline";
@@ -85,6 +87,7 @@ const Index = () => {
     leads: "Lead Capture",
     checklist: "SEO Checklist",
     brands: "Brand Management",
+    referrals: "Referral Program",
   };
 
   return (
@@ -186,8 +189,16 @@ const Index = () => {
               </div>
             </div>
             <KeywordTable keywords={displayKeywords} />
+
+            {/* Changelog + Engagement */}
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+              <Changelog />
+              <ReferralProgram />
+            </div>
           </div>
         )}
+
+        {activeSection === "referrals" && <ReferralProgram />}
 
         {activeSection === "keywords" && (
           <KeywordTable keywords={displayKeywords} />

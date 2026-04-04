@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import confetti from "canvas-confetti";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -95,7 +96,32 @@ const Auth = () => {
           },
         });
         if (error) throw error;
-        toast({ title: "Check your email", description: "We've sent you a confirmation link." });
+
+        // 🎉 Confetti celebration on signup!
+        confetti({
+          particleCount: 150,
+          spread: 80,
+          origin: { y: 0.6 },
+          colors: ['#3b82f6', '#14b8a6', '#f43f5e', '#f59e0b', '#8b5cf6'],
+        });
+        setTimeout(() => {
+          confetti({
+            particleCount: 80,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0 },
+            colors: ['#3b82f6', '#14b8a6'],
+          });
+          confetti({
+            particleCount: 80,
+            angle: 120,
+            spread: 55,
+            origin: { x: 1 },
+            colors: ['#f43f5e', '#f59e0b'],
+          });
+        }, 300);
+
+        toast({ title: "🎉 Welcome to Searchera!", description: "Check your email for a confirmation link." });
       }
     } catch (err: any) {
       toast({ title: "Error", description: err.message, variant: "destructive" });

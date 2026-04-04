@@ -99,11 +99,11 @@ function SidebarContent({ activeSection, onNavigate }: SidebarNavProps) {
               onClick={() => onNavigate(item.id)}
               className={`group flex w-full items-center gap-2.5 rounded-lg border px-3 py-2 text-sm font-medium transition-all duration-200 ${
                 isActive
-                  ? `bg-gradient-to-r ${item.gradient} ${item.border} text-foreground shadow-sm`
+                  ? `bg-primary/10 border-primary/20 text-primary shadow-sm`
                   : `border-transparent text-sidebar-foreground hover:border-border hover:bg-muted/40 hover:text-foreground`
               }`}
             >
-              <Icon className="h-4 w-4" />
+              <Icon className={`h-4 w-4 ${isActive ? 'text-primary' : ''}`} />
               {item.label}
             </button>
           );

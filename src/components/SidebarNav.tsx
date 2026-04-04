@@ -33,21 +33,21 @@ interface SidebarNavProps {
 }
 
 const navItems = [
-  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard, gradient: "from-purple-500/20 via-pink-400/15 to-blue-400/20", border: "border-purple-400/30" },
-  { id: "keywords", label: "Keywords", icon: Search, gradient: "from-amber-400/20 via-orange-300/15 to-yellow-300/20", border: "border-amber-400/30" },
-  { id: "content", label: "Content", icon: FileText, gradient: "from-emerald-500/20 via-teal-400/15 to-cyan-400/20", border: "border-emerald-400/30" },
-  { id: "rankings", label: "Rankings", icon: TrendingUp, gradient: "from-blue-500/20 via-indigo-400/15 to-violet-400/20", border: "border-blue-400/30" },
-  { id: "llm-search", label: "LLM Search", icon: Sparkles, gradient: "from-rose-500/20 via-pink-400/15 to-fuchsia-400/20", border: "border-rose-400/30" },
-  { id: "calendar", label: "Calendar", icon: CalendarDays, gradient: "from-sky-500/20 via-cyan-400/15 to-teal-400/20", border: "border-sky-400/30" },
-  { id: "agents", label: "Agents", icon: Bot, gradient: "from-purple-500/20 via-pink-400/15 to-blue-400/20", border: "border-purple-400/30" },
-  { id: "analytics", label: "Analytics", icon: BarChart3, gradient: "from-amber-400/20 via-orange-300/15 to-yellow-300/20", border: "border-amber-400/30" },
-  { id: "scanner", label: "Scanner", icon: Globe, gradient: "from-emerald-500/20 via-teal-400/15 to-cyan-400/20", border: "border-emerald-400/30" },
-  { id: "reports", label: "Reports", icon: FileBarChart, gradient: "from-blue-500/20 via-indigo-400/15 to-violet-400/20", border: "border-blue-400/30" },
-  { id: "leads", label: "Leads", icon: Users, gradient: "from-rose-500/20 via-pink-400/15 to-fuchsia-400/20", border: "border-rose-400/30" },
-  { id: "checklist", label: "Checklist", icon: ListChecks, gradient: "from-sky-500/20 via-cyan-400/15 to-teal-400/20", border: "border-sky-400/30" },
-  { id: "brands", label: "Brands", icon: Tag, gradient: "from-purple-500/20 via-pink-400/15 to-blue-400/20", border: "border-purple-400/30" },
-  { id: "team", label: "Team", icon: Users, gradient: "from-amber-400/20 via-orange-300/15 to-yellow-300/20", border: "border-amber-400/30" },
-  { id: "settings", label: "Settings", icon: Settings, gradient: "from-emerald-500/20 via-teal-400/15 to-cyan-400/20", border: "border-emerald-400/30" },
+  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { id: "keywords", label: "Keywords", icon: Search },
+  { id: "content", label: "Content", icon: FileText },
+  { id: "rankings", label: "Rankings", icon: TrendingUp },
+  { id: "llm-search", label: "LLM Search", icon: Sparkles },
+  { id: "calendar", label: "Calendar", icon: CalendarDays },
+  { id: "agents", label: "Agents", icon: Bot },
+  { id: "analytics", label: "Analytics", icon: BarChart3 },
+  { id: "scanner", label: "Scanner", icon: Globe },
+  { id: "reports", label: "Reports", icon: FileBarChart },
+  { id: "leads", label: "Leads", icon: Users },
+  { id: "checklist", label: "Checklist", icon: ListChecks },
+  { id: "brands", label: "Brands", icon: Tag },
+  { id: "team", label: "Team", icon: Users },
+  { id: "settings", label: "Settings", icon: Settings },
 ];
 
 function GuideButton() {

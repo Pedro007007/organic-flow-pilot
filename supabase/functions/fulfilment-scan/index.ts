@@ -2,7 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 Deno.serve(async (req) => {
@@ -74,9 +74,12 @@ ${criteria.map((c: any) => `- ID: ${c.id} | "${c.criterion}" (${c.category})`).j
 
 Return JSON: { "results": [{ "id": "...", "passed": true/false, "details": "brief reason" }] }`;
 
-    const aiRes = await fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/ai-gateway`, {
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
+
+    const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}` },
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${LOVABLE_API_KEY}` },
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [{ role: "user", content: prompt }],
@@ -84,7 +87,9 @@ Return JSON: { "results": [{ "id": "...", "passed": true/false, "details": "brie
     });
 
     const aiData = await aiRes.json();
+    console.log("AI response status:", aiRes.status, "body keys:", Object.keys(aiData));
     const text = aiData?.choices?.[0]?.message?.content || "";
+    if (!text) console.error("Empty AI response:", JSON.stringify(aiData).substring(0, 500));
 
     let results: any[] = [];
     try {

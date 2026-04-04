@@ -109,8 +109,20 @@ serve(async (req) => {
 
     // Fetch brand settings for image defaults
     let brand: any = null;
-    if (brandId) {
-      const { data } = await supabaseAuth.from("brands").select("*").eq("id", brandId).eq("user_id", userId).maybeSingle();
+    let resolvedBrandId = brandId || null;
+
+    if (!resolvedBrandId && contentItemId) {
+      const { data: item } = await supabaseAuth
+        .from("content_items")
+        .select("brand_id")
+        .eq("id", contentItemId)
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (item?.brand_id) resolvedBrandId = item.brand_id;
+    }
+
+    if (resolvedBrandId) {
+      const { data } = await supabaseAuth.from("brands").select("*").eq("id", resolvedBrandId).eq("user_id", userId).maybeSingle();
       brand = data;
     }
     if (!brand) {

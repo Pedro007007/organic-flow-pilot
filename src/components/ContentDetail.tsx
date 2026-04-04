@@ -478,8 +478,8 @@ ${body}
   const handleGenerateImage = async () => {
     setGeneratingImage(true);
     try {
-      const res = await supabase.functions.invoke("generate-hero-image", {
-        body: { contentItemId: item.id, keyword: item.keyword, title: item.title, customPrompt: imagePromptDescription || undefined, aspectRatio: heroAspectRatio, style: heroStyle === "_default" ? undefined : heroStyle, model: heroModel },
+        const res = await supabase.functions.invoke("generate-hero-image", {
+          body: { contentItemId: item.id, keyword: item.keyword, title: item.title, brandId: item.brand_id || undefined, customPrompt: imagePromptDescription || undefined, aspectRatio: heroAspectRatio, style: heroStyle === "_default" ? undefined : heroStyle, model: heroModel },
       });
       if (res.error) throw res.error;
       const queued = res.data?.queued === true;

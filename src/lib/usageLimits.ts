@@ -12,11 +12,11 @@ export const USAGE_LIMITS: Record<TierKey | "none", {
   whitelabelReports: boolean;
   apiAccess: boolean;
 }> = {
-  free: {
-    maxKeywords: 10,
-    maxContentArticles: 2,
-    maxBrands: 1,
-    maxTeamMembers: 1,
+  none: {
+    maxKeywords: 0,
+    maxContentArticles: 0,
+    maxBrands: 0,
+    maxTeamMembers: 0,
     llmSearchLab: false,
     competitorScanner: false,
     contentRepurposing: false,

@@ -1,7 +1,7 @@
 import { type TierKey } from "@/hooks/useSubscription";
 
 // Usage limits per subscription tier
-export const USAGE_LIMITS: Record<TierKey | "free", {
+export const USAGE_LIMITS: Record<TierKey | "none", {
   maxKeywords: number;
   maxContentArticles: number; // per month
   maxBrands: number;
@@ -12,11 +12,11 @@ export const USAGE_LIMITS: Record<TierKey | "free", {
   whitelabelReports: boolean;
   apiAccess: boolean;
 }> = {
-  free: {
-    maxKeywords: 10,
-    maxContentArticles: 2,
-    maxBrands: 1,
-    maxTeamMembers: 1,
+  none: {
+    maxKeywords: 0,
+    maxContentArticles: 0,
+    maxBrands: 0,
+    maxTeamMembers: 0,
     llmSearchLab: false,
     competitorScanner: false,
     contentRepurposing: false,
@@ -59,7 +59,7 @@ export const USAGE_LIMITS: Record<TierKey | "free", {
 };
 
 export function getUsageLimits(tier: TierKey | null, isSubscribed: boolean) {
-  if (!isSubscribed || !tier) return USAGE_LIMITS.free;
+  if (!isSubscribed || !tier) return USAGE_LIMITS.none;
   return USAGE_LIMITS[tier];
 }
 

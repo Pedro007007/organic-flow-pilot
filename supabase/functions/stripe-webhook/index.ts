@@ -179,7 +179,7 @@ serve(async (req) => {
             `<div style="font-family:sans-serif;max-width:500px;margin:0 auto;padding:20px;">
               <h1 style="color:#ef4444;font-size:24px;">Subscription Ended</h1>
               <p>Hi ${customer.name || "there"},</p>
-              <p>Your subscription has been cancelled. You'll retain access to free-tier features.</p>
+              <p>Your subscription has been cancelled. Your access has been suspended until you resubscribe.</p>
               <p>We'd love to have you back. <a href="https://organic-flow-pilot.lovable.app/pricing" style="color:#6366f1;">Resubscribe anytime</a>.</p>
               <p style="color:#6b7280;font-size:12px;margin-top:30px;">— The Searchera Team</p>
             </div>`

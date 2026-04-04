@@ -369,12 +369,12 @@ const About = () => {
               asChild
             >
               <Link to="/auth">
-                Get Started Free <ArrowRight className="ml-1 h-4 w-4" />
+                Get Started <ArrowRight className="ml-1 h-4 w-4" />
               </Link>
             </Button>
           </div>
           <p className="mt-4 text-sm text-blue-200 font-semibold">
-            No credit card required
+            Plans from $699/mo
           </p>
         </div>
       </section>

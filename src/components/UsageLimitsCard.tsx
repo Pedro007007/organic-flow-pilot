@@ -60,7 +60,7 @@ export default function UsageLimitsCard() {
           <Shield className="h-4 w-4 text-primary" />
           Usage & Limits
           <Badge variant="outline" className="text-[10px] ml-auto">
-            {tier ? tier.toUpperCase() : "FREE"} PLAN
+            {tier ? tier.toUpperCase() : "NO PLAN"}
           </Badge>
         </CardTitle>
       </CardHeader>

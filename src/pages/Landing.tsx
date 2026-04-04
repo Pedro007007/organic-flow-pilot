@@ -72,7 +72,7 @@ const Landing = () => {
             <Link to="/auth">Sign In</Link>
           </Button>
           <Button size="sm" className="bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-700 hover:to-teal-600 text-white border-0 shadow-lg shadow-blue-500/25 font-bold" asChild>
-            <Link to="/auth">Get Started Free</Link>
+            <Link to="/auth">Get Started</Link>
           </Button>
         </div>
       </div>
@@ -103,7 +103,7 @@ const Landing = () => {
               <div className="mt-10 flex flex-wrap items-start gap-4">
                 <Button size="lg" className="bg-[length:200%_auto] animate-gradient bg-gradient-to-r from-blue-600 via-green-400 to-blue-600 text-white border-0 shadow-xl shadow-green-500/30 h-12 px-8 text-base font-bold hover:opacity-90" asChild>
                   <Link to="/auth">
-                    Start Free Trial <ArrowRight className="ml-1 h-4 w-4" />
+                    Get Started <ArrowRight className="ml-1 h-4 w-4" />
                   </Link>
                 </Button>
                 <Button variant="outline" size="lg" className="border-foreground/20 text-foreground hover:bg-accent h-12 px-8 text-base font-bold" asChild>
@@ -112,7 +112,7 @@ const Landing = () => {
                   </a>
                 </Button>
               </div>
-              <p className="mt-4 text-sm text-gray-600 font-bold">No credit card required · Free to start · Cancel anytime</p>
+              <p className="mt-4 text-sm text-gray-600 font-bold">Plans from $699/mo · Cancel anytime</p>
             </div>
 
             {/* Right: Video */}
@@ -279,11 +279,11 @@ const Landing = () => {
           <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
             <Button size="lg" className="bg-white text-blue-700 hover:bg-blue-50 border-0 shadow-xl h-12 px-8 text-base font-black" asChild>
               <Link to="/auth">
-                Get Started Free <ArrowRight className="ml-1 h-4 w-4" />
+                Get Started <ArrowRight className="ml-1 h-4 w-4" />
               </Link>
             </Button>
           </div>
-          <p className="mt-4 text-sm text-blue-200 font-semibold">No credit card required</p>
+          <p className="mt-4 text-sm text-blue-200 font-semibold">Plans from $699/mo</p>
         </div>
       </section>
     </main>

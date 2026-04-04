@@ -23,7 +23,7 @@ const Contact = () => {
               <Link to="/auth">Sign In</Link>
             </Button>
             <Button size="sm" className="bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-700 hover:to-teal-600 text-white border-0 shadow-lg shadow-blue-500/25 font-bold" asChild>
-              <Link to="/auth">Get Started Free</Link>
+              <Link to="/auth">Get Started</Link>
             </Button>
           </div>
         </div>
@@ -85,9 +85,9 @@ const Contact = () => {
             {/* CTA */}
             <div className="mt-16 rounded-2xl bg-gradient-to-r from-blue-600 to-teal-500 p-10 text-center">
               <h2 className="text-2xl font-black text-white sm:text-3xl">Ready to grow your organic traffic?</h2>
-              <p className="mt-3 text-blue-100 font-medium max-w-xl mx-auto">Start your free trial today and see results in days, not months.</p>
+              <p className="mt-3 text-blue-100 font-medium max-w-xl mx-auto">Get started today and see results in days, not months.</p>
               <Button size="lg" className="mt-8 bg-white text-blue-700 hover:bg-blue-50 border-0 shadow-xl h-12 px-8 text-base font-black" asChild>
-                <Link to="/auth">Get Started Free</Link>
+                <Link to="/auth">Get Started</Link>
               </Button>
             </div>
           </div>

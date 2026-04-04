@@ -84,8 +84,11 @@ function ChatbotLeadsButton() {
   );
 }
 
-function SidebarContent({ activeSection, onNavigate }: SidebarNavProps) {
+function SidebarContentInner({ activeSection, onNavigate }: SidebarNavProps) {
   const { theme, setTheme } = useTheme();
+  const navigate = useNavigate();
+  const { subscribed, tier, loading: subLoading } = useSubscription();
+
   return (
     <>
       <div className="flex items-center gap-2.5 border-b border-border/30 px-5 py-4">
@@ -95,22 +98,59 @@ function SidebarContent({ activeSection, onNavigate }: SidebarNavProps) {
           <p className="text-[10px] text-muted-foreground font-medium">AI SEO Growth Engine</p>
         </div>
       </div>
+
+      {/* Plan Badge */}
+      <div className="px-3 pt-3">
+        <button
+          onClick={() => navigate("/pricing")}
+          className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold transition-all duration-200 ${
+            subscribed && tier
+              ? tier === "enterprise"
+                ? "bg-red-500/10 text-red-400 border border-red-500/20"
+                : tier === "pro"
+                  ? "bg-blue-500/10 text-blue-400 border border-blue-500/20"
+                  : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+              : "bg-muted/40 text-muted-foreground border border-border/30 hover:border-primary/30 hover:text-primary"
+          }`}
+        >
+          <Crown className="h-3.5 w-3.5" />
+          {subLoading ? "..." : subscribed && tier ? `${SUBSCRIPTION_TIERS[tier].name} Plan` : "Free Plan — Upgrade"}
+        </button>
+      </div>
+
       <nav className="flex-1 space-y-1 px-3 py-3 overflow-y-auto">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeSection === item.id;
+          const hasAccess = hasFeatureAccess(item.id, tier, subscribed);
+          const requiredTier = getRequiredTier(item.id);
+
           return (
             <button
               key={item.id}
-              onClick={() => onNavigate(item.id)}
+              onClick={() => {
+                if (hasAccess) {
+                  onNavigate(item.id);
+                } else {
+                  navigate("/pricing");
+                }
+              }}
               className={`group flex w-full items-center gap-2.5 rounded-lg border px-3 py-2 text-sm font-medium transition-all duration-200 ${
-                isActive
-                  ? `bg-primary/10 border-primary/20 text-primary shadow-sm`
-                  : `border-transparent text-sidebar-foreground hover:border-border hover:bg-muted/40 hover:text-foreground`
+                !hasAccess
+                  ? "border-transparent text-muted-foreground/50 hover:bg-muted/20 cursor-pointer"
+                  : isActive
+                    ? "bg-primary/10 border-primary/20 text-primary shadow-sm"
+                    : "border-transparent text-sidebar-foreground hover:border-border hover:bg-muted/40 hover:text-foreground"
               }`}
             >
-              <Icon className={`h-4 w-4 ${isActive ? 'text-primary' : ''}`} />
-              {item.label}
+              <Icon className={`h-4 w-4 ${isActive ? 'text-primary' : !hasAccess ? 'text-muted-foreground/40' : ''}`} />
+              <span className="flex-1 text-left">{item.label}</span>
+              {!hasAccess && requiredTier && (
+                <span className="flex items-center gap-1">
+                  <Lock className="h-3 w-3 text-muted-foreground/40" />
+                  <span className="text-[9px] uppercase tracking-wider text-muted-foreground/40">{getTierLabel(requiredTier)}</span>
+                </span>
+              )}
             </button>
           );
         })}

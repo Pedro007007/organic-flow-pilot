@@ -81,7 +81,7 @@ ${bodyHtml}
               <Link to="/auth">Sign In</Link>
             </Button>
             <Button size="sm" className="bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-700 hover:to-teal-600 text-white border-0 shadow-lg shadow-blue-500/25 font-bold" asChild>
-              <Link to="/auth">Get Started Free</Link>
+              <Link to="/auth">Get Started</Link>
             </Button>
           </div>
         </div>

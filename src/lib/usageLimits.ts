@@ -59,7 +59,7 @@ export const USAGE_LIMITS: Record<TierKey | "none", {
 };
 
 export function getUsageLimits(tier: TierKey | null, isSubscribed: boolean) {
-  if (!isSubscribed || !tier) return USAGE_LIMITS.free;
+  if (!isSubscribed || !tier) return USAGE_LIMITS.none;
   return USAGE_LIMITS[tier];
 }
 

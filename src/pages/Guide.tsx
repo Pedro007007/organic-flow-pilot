@@ -44,7 +44,7 @@ const guideSections: GuideSection[] = [
     color: "from-purple-500 to-pink-500", category: "getting-started",
     summary: "Create your account and land on the Performance Overview dashboard.",
     details: [
-      "Click 'Get Started Free' to sign up with your email.",
+      "Click 'Get Started' to sign up with your email.",
       "Verify your email and log in — you'll be redirected to the Dashboard.",
       "The Performance Overview shows key metrics: traffic, rankings, content count, and agent activity.",
     ],

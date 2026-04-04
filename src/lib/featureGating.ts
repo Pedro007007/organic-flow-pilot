@@ -33,7 +33,7 @@ export function hasFeatureAccess(
   isSubscribed: boolean
 ): boolean {
   const requiredTier = FEATURE_ACCESS[sectionId];
-  // Free features accessible to all
+  // Base features accessible to all subscribers
   if (requiredTier === null) return true;
   // If not subscribed, no access to paid features
   if (!isSubscribed || !currentTier) return false;

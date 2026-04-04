@@ -144,7 +144,7 @@ const Blog = () => {
             <p className="mt-4 text-lg text-blue-100 max-w-xl mx-auto font-medium">Put these SEO & AEO strategies into action with Searchera's AI-powered platform.</p>
             <Button size="lg" className="mt-8 bg-white text-blue-700 hover:bg-blue-50 border-0 shadow-xl h-12 px-8 text-base font-black" asChild>
               <Link to="/auth">
-                Get Started Free <ArrowRight className="ml-1 h-4 w-4" />
+                Get Started <ArrowRight className="ml-1 h-4 w-4" />
               </Link>
             </Button>
           </div>

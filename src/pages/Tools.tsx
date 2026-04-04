@@ -251,13 +251,13 @@ const Tools = () => {
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,rgba(59,130,246,0.08),transparent_50%)]" />
           <div className="relative mx-auto max-w-4xl px-6 text-center">
             <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-4 py-1.5 text-sm font-bold text-blue-700 mb-6">
-              <Zap className="h-3.5 w-3.5" /> 100% Free · No Login Required
+              <Zap className="h-3.5 w-3.5" /> Instant Analysis · No Login Required
             </div>
             <h1 className="text-4xl font-black tracking-tight sm:text-5xl">
-              Free <span className="bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent">SEO Tools</span>
+              SEO <span className="bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent">Tools</span>
             </h1>
             <p className="mt-4 text-lg text-gray-600 font-semibold max-w-2xl mx-auto">
-              Instantly check your meta tags and analyze keyword density — no account needed.
+              Instantly check your meta tags and analyze keyword density.
             </p>
           </div>
         </section>

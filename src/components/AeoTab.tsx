@@ -141,10 +141,9 @@ const AeoTab = ({ contentId, hasContent, onContentUpdated }: AeoTabProps) => {
       return;
     }
     for (const dim of lowDims) {
-      await handleFixDimension(dim.key, dim.label);
+      await handleFixDimension(dim.key, dim.label, true);
     }
     toast({ title: "All fixes applied", description: "Re-scoring automatically…" });
-    // Auto re-score after all fixes
     await handleScore();
   };
 

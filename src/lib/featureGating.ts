@@ -1,7 +1,7 @@
 import { type TierKey } from "@/hooks/useSubscription";
 
 // Define which sidebar sections are available per tier
-// null = available to all (free), otherwise minimum tier required
+// null = available to all subscribers, otherwise minimum tier required
 const FEATURE_ACCESS: Record<string, TierKey | null> = {
   dashboard: null,
   keywords: null,

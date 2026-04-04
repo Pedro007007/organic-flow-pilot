@@ -201,7 +201,7 @@ const RankingsTracker = () => {
             { icon: Globe, title: "Connect Search Console", desc: "Link your Google Search Console to pull real ranking data and track position changes over time.", cta: "Connect GSC" },
             { icon: Zap, title: "AI Citation Tracking", desc: "See which of your pages are being cited by AI engines like Google AI Overviews, ChatGPT, and Perplexity.", cta: "Start Tracking" },
           ].map((card) => (
-            <div key={card.title} className="rounded-xl border border-border bg-card p-6 space-y-3">
+            <div key={card.title} className="group relative overflow-hidden rounded-xl border border-border/40 bg-card/30 backdrop-blur-xl p-6 space-y-3 shadow-md transition-all duration-500 hover:shadow-xl hover:-translate-y-1">
               <div className="flex items-center gap-2">
                 <card.icon className="h-5 w-5 text-primary" />
                 <h3 className="text-sm font-bold text-foreground">{card.title}</h3>

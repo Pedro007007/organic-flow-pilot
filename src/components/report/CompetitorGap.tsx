@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { TrendingDown, Users } from "lucide-react";

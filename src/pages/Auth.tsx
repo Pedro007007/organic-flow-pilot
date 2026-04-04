@@ -74,20 +74,19 @@ const Auth = () => {
   return (
     <div className="flex min-h-screen">
       {/* Left Panel - Marketing */}
-      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-10" style={{ background: "hsl(235 65% 25%)" }}>
+      <div className="hidden lg:flex lg:w-1/2 flex-col justify-between p-10" style={{ background: "hsl(0 0% 100%)" }}>
         <div>
           <div className="flex items-center gap-3 mb-24">
-            <img src={searcheraLogo} alt="Searchera" className="h-16 w-16 rounded-lg object-contain bg-white/10 p-1.5" />
-            <span className="text-2xl font-bold tracking-tight text-white">SEARCHERA</span>
+            <img src={searcheraLogo} alt="Searchera" className="h-[160px] object-contain" />
           </div>
 
-          <h1 className="text-4xl font-bold text-white leading-tight mb-4">
+          <h1 className="text-4xl font-bold text-foreground leading-tight mb-4">
             Turn any website into a{" "}
-            <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
               winning strategy
             </span>
           </h1>
-          <p className="text-blue-200/70 text-base mb-10 max-w-md">
+          <p className="text-muted-foreground text-base mb-10 max-w-md">
             Scan, optimise, and publish — grow your organic traffic with AI-powered SEO content.
           </p>
 
@@ -98,8 +97,8 @@ const Auth = () => {
               "Track rankings and AI citations",
               "Automated content pipeline",
             ].map((item) => (
-              <li key={item} className="flex items-center gap-3 text-blue-100/80 text-sm">
-                <span className="h-2 w-2 rounded-full bg-purple-400 shrink-0" />
+              <li key={item} className="flex items-center gap-3 text-muted-foreground text-sm">
+                <span className="h-2 w-2 rounded-full bg-purple-500 shrink-0" />
                 {item}
               </li>
             ))}
@@ -107,8 +106,8 @@ const Auth = () => {
         </div>
 
         {/* Testimonial */}
-        <div className="rounded-xl p-5" style={{ background: "hsl(235 55% 20%)" }}>
-          <p className="text-blue-100/80 text-sm italic mb-4">
+        <div className="rounded-xl p-5 border border-border bg-muted/40">
+          <p className="text-muted-foreground text-sm italic mb-4">
             "Searchera helped me rank 3 new pages in my first month. The AI content tools are incredibly fast and always produce quality results."
           </p>
           <div className="flex items-center gap-3">
@@ -117,19 +116,19 @@ const Auth = () => {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-white text-sm font-medium">James Mitchell</span>
+                <span className="text-foreground text-sm font-medium">James Mitchell</span>
                 <div className="flex gap-0.5">
                   {[...Array(5)].map((_, i) => (
                     <Star key={i} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
                   ))}
                 </div>
               </div>
-              <span className="text-blue-200/60 text-xs">Digital Marketing Manager</span>
+              <span className="text-muted-foreground text-xs">Digital Marketing Manager</span>
             </div>
           </div>
         </div>
 
-        <p className="text-blue-200/40 text-xs mt-6">© 2026 Searchera</p>
+        <p className="text-muted-foreground/50 text-xs mt-6">© 2026 Searchera</p>
       </div>
 
       {/* Right Panel - Auth Form */}

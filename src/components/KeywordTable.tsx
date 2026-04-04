@@ -85,9 +85,9 @@ const KeywordTable = ({ keywords }: KeywordTableProps) => {
   );
 
   return (
-    <div className="rounded-lg border border-border bg-card">
-      <div className="border-b border-border px-5 py-4">
-        <h2 className="text-sm font-semibold text-foreground">Keyword Opportunities</h2>
+    <div className="rounded-xl border border-border/40 bg-card/30 backdrop-blur-xl shadow-md overflow-hidden">
+      <div className="border-b border-border/30 px-5 py-4">
+        <h2 className="text-sm font-bold text-foreground tracking-wide">Keyword Opportunities</h2>
         <p className="text-xs text-muted-foreground mt-0.5">Ranked by opportunity score from GSC data</p>
       </div>
 

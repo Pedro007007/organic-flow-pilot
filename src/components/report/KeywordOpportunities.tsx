@@ -66,6 +66,8 @@ const KeywordOpportunities = forwardRef<HTMLDivElement, KeywordOpportunitiesProp
       </div>
     </div>
   );
-};
+});
+
+KeywordOpportunities.displayName = "KeywordOpportunities";
 
 export default KeywordOpportunities;

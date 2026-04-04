@@ -314,10 +314,10 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
   };
 
   return (
-    <div className="rounded-lg border border-border bg-card">
-      <div className="border-b border-border px-5 py-4 flex items-center justify-between">
+    <div className="rounded-xl border border-border/40 bg-card/30 backdrop-blur-xl shadow-md overflow-hidden">
+      <div className="border-b border-border/30 px-5 py-4 flex items-center justify-between">
         <div>
-          <h2 className="text-sm font-semibold text-foreground">Content Pipeline</h2>
+          <h2 className="text-sm font-bold text-foreground tracking-wide">Content Pipeline</h2>
           <p className="text-xs text-muted-foreground mt-0.5">Track content through all agent stages</p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>

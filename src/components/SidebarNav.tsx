@@ -165,6 +165,25 @@ function SidebarContentInner({ activeSection, onNavigate }: SidebarNavProps) {
             </button>
           );
         })}
+
+        {/* Admin-only SaaS Dashboard */}
+        {isAdmin && (
+          <>
+            <div className="my-2 border-t border-border/20" />
+            <button
+              onClick={() => onNavigate("saas-admin")}
+              className={`group flex w-full items-center gap-2.5 rounded-lg border px-3 py-2 text-sm font-medium transition-all duration-200 ${
+                activeSection === "saas-admin"
+                  ? "bg-amber-500/10 border-amber-500/20 text-amber-400 shadow-sm"
+                  : "border-transparent text-amber-500/70 hover:border-amber-500/20 hover:bg-amber-500/5 hover:text-amber-400"
+              }`}
+            >
+              <Crown className={`h-4 w-4 ${activeSection === "saas-admin" ? "text-amber-400" : ""}`} />
+              <span className="flex-1 text-left">SaaS Admin</span>
+              <Badge variant="outline" className="text-[8px] px-1 py-0 border-amber-500/30 text-amber-500/70">OWNER</Badge>
+            </button>
+          </>
+        )}
       </nav>
       <div className="border-t border-border/30 px-4 py-3 space-y-3">
         <GuideButton />

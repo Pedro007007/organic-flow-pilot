@@ -123,7 +123,7 @@ const RankingsTracker = () => {
             <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
           </button>
         </CollapsibleTrigger>
-        <CollapsibleContent className="rounded-xl border border-border bg-card mt-2 p-6 space-y-5">
+        <CollapsibleContent className="rounded-xl border border-border/40 bg-card/30 backdrop-blur-xl mt-2 p-6 space-y-5 shadow-md">
           <div className="space-y-3">
             <h3 className="text-sm font-bold text-foreground">📡 Data Flow</h3>
             <ol className="text-xs text-muted-foreground space-y-1.5 list-decimal list-inside leading-relaxed">

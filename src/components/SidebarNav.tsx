@@ -83,7 +83,7 @@ function SidebarContent({ activeSection, onNavigate }: SidebarNavProps) {
   return (
     <>
       <div className="flex items-center gap-2.5 border-b border-border/30 px-5 py-4">
-        <img src={searcheraLogo} alt="Searchera" className="h-7 w-7 rounded-md object-contain" />
+        <img src={searcheraLogo} alt="Searchera" className="h-12 w-12 rounded-md object-contain" />
         <div>
           <h1 className="text-sm font-bold text-foreground tracking-tight">Searchera</h1>
           <p className="text-[10px] text-muted-foreground font-medium">AI SEO Growth Engine</p>

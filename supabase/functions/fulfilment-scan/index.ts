@@ -87,7 +87,9 @@ Return JSON: { "results": [{ "id": "...", "passed": true/false, "details": "brie
     });
 
     const aiData = await aiRes.json();
+    console.log("AI response status:", aiRes.status, "body keys:", Object.keys(aiData));
     const text = aiData?.choices?.[0]?.message?.content || "";
+    if (!text) console.error("Empty AI response:", JSON.stringify(aiData).substring(0, 500));
 
     let results: any[] = [];
     try {

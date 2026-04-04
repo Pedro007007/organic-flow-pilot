@@ -92,13 +92,13 @@ function SidebarContentInner({ activeSection, onNavigate }: SidebarNavProps) {
 
   // Check if user is admin for SaaS dashboard access
   const [isAdmin, setIsAdmin] = useState(false);
-  useState(() => {
+  useEffect(() => {
     if (!user) return;
     import("@/integrations/supabase/client").then(({ supabase }) => {
       supabase.from("user_roles").select("role").eq("user_id", user.id).eq("role", "admin").limit(1)
         .then(({ data }) => setIsAdmin((data?.length || 0) > 0));
     });
-  });
+  }, [user]);
 
   return (
     <>

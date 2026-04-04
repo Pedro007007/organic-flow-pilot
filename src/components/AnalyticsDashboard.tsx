@@ -233,11 +233,12 @@ function SummaryCard({ icon: Icon, label, value }: { icon: any; label: string; v
 
 function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="rounded-lg border border-border bg-card">
-      <div className="border-b border-border px-5 py-4">
-        <h3 className="text-sm font-bold text-foreground">{title}</h3>
+    <div className="relative overflow-hidden rounded-xl border border-border/40 bg-card/30 backdrop-blur-xl shadow-md transition-all duration-300 hover:shadow-lg">
+      <div className="absolute inset-0 bg-gradient-to-br from-foreground/[0.01] via-transparent to-transparent pointer-events-none" />
+      <div className="border-b border-border/30 px-5 py-4 relative z-10">
+        <h3 className="text-sm font-bold text-foreground tracking-wide">{title}</h3>
       </div>
-      <div className="p-5">{children}</div>
+      <div className="p-5 relative z-10">{children}</div>
     </div>
   );
 }

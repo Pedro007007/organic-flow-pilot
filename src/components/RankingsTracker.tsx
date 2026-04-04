@@ -263,7 +263,7 @@ const RankingsTracker = () => {
       )}
 
       {/* CTA */}
-      <div className="flex items-center justify-between rounded-lg border-l-4 border-l-primary bg-card border border-border p-5">
+      <div className="flex items-center justify-between rounded-xl border-l-4 border-l-primary bg-card/30 backdrop-blur-xl border border-border/40 p-5 shadow-md transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5">
         <div>
           <p className="text-sm font-bold text-foreground">Want to Improve Your Rankings?</p>
           <p className="text-xs text-muted-foreground mt-0.5">Optimize your content for both traditional search and AI engines to maximize visibility.</p>

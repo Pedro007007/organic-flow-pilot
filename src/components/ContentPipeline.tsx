@@ -478,7 +478,7 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
         </Button>
       </div>
 
-      <div className="divide-y divide-border/50">
+      <div className="divide-y divide-border/30">
         {/* Select all row */}
         {filtered.length > 0 && (
           <div className="px-5 py-2 flex items-center gap-2">

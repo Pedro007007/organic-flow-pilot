@@ -198,7 +198,7 @@ const SidebarNav = ({ activeSection, onNavigate }: SidebarNavProps) => {
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetContent side="left" className="w-56 p-0 bg-sidebar border-border">
             <div className="flex h-full flex-col">
-              <SidebarContent activeSection={activeSection} onNavigate={handleNavigate} />
+              <SidebarContentInner activeSection={activeSection} onNavigate={handleNavigate} />
             </div>
           </SheetContent>
         </Sheet>

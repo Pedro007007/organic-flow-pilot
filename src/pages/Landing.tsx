@@ -292,7 +292,7 @@ const Landing = () => {
       <div className="mx-auto max-w-6xl px-6 py-12">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           <Link to="/" className="flex items-center gap-2">
-            <img src={searcheraLogo} alt="Searchera" className="h-[140px] object-contain" />
+            <img src={searcheraLogo} alt="Searchera" className="h-[84px] object-contain" />
           </Link>
           <div className="flex flex-wrap items-center gap-6 text-sm text-gray-500 font-bold">
             <Link to="/about" className="hover:text-gray-900 transition-colors">About</Link>

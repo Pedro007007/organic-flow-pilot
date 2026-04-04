@@ -13,55 +13,13 @@ interface ChangelogEntry {
 }
 
 const changelog: ChangelogEntry[] = [
-  {
-    version: "2.4.0",
-    date: "2026-04-04",
-    type: "feature",
-    title: "Onboarding Wizard",
-    description: "New 3-step guided onboarding helps you connect GSC, set up your brand, and run keyword discovery in minutes.",
-  },
-  {
-    version: "2.3.0",
-    date: "2026-04-01",
-    type: "feature",
-    title: "AI Citation Tracker",
-    description: "Monitor your brand mentions across ChatGPT, Perplexity, and Google AI Overviews in real time.",
-  },
-  {
-    version: "2.2.1",
-    date: "2026-03-28",
-    type: "improvement",
-    title: "Content Pipeline Upgrades",
-    description: "Faster content generation with improved SERP research, better internal linking, and enhanced schema markup.",
-  },
-  {
-    version: "2.2.0",
-    date: "2026-03-20",
-    type: "feature",
-    title: "LLM Search Lab",
-    description: "Discover how AI search engines interpret your content with our new LLM Search simulation tool.",
-  },
-  {
-    version: "2.1.0",
-    date: "2026-03-12",
-    type: "feature",
-    title: "SEO & AEO Fulfilment Engine",
-    description: "Automated quality checks ensure every piece of content meets on-page SEO, technical SEO, schema markup, and AEO standards.",
-  },
-  {
-    version: "2.0.1",
-    date: "2026-03-05",
-    type: "fix",
-    title: "Dashboard Performance Fix",
-    description: "Resolved metric loading delays and improved real-time subscription stability for large datasets.",
-  },
-  {
-    version: "2.0.0",
-    date: "2026-02-28",
-    type: "feature",
-    title: "Autonomous Agent Pipeline",
-    description: "7-stage AI agent pipeline automates keyword discovery, content strategy, generation, optimization, and publishing.",
-  },
+  { version: "2.4.0", date: "2026-04-04", type: "feature", title: "Onboarding Wizard", description: "New 3-step guided onboarding helps you connect GSC, set up your brand, and run keyword discovery in minutes." },
+  { version: "2.3.0", date: "2026-04-01", type: "feature", title: "AI Citation Tracker", description: "Monitor your brand mentions across ChatGPT, Perplexity, and Google AI Overviews in real time." },
+  { version: "2.2.1", date: "2026-03-28", type: "improvement", title: "Content Pipeline Upgrades", description: "Faster content generation with improved SERP research, better internal linking, and enhanced schema markup." },
+  { version: "2.2.0", date: "2026-03-20", type: "feature", title: "LLM Search Lab", description: "Discover how AI search engines interpret your content with our new LLM Search simulation tool." },
+  { version: "2.1.0", date: "2026-03-12", type: "feature", title: "SEO & AEO Fulfilment Engine", description: "Automated quality checks ensure every piece of content meets on-page SEO, technical SEO, schema markup, and AEO standards." },
+  { version: "2.0.1", date: "2026-03-05", type: "fix", title: "Dashboard Performance Fix", description: "Resolved metric loading delays and improved real-time subscription stability for large datasets." },
+  { version: "2.0.0", date: "2026-02-28", type: "feature", title: "Autonomous Agent Pipeline", description: "7-stage AI agent pipeline automates keyword discovery, content strategy, generation, optimization, and publishing." },
 ];
 
 const typeConfig = {
@@ -73,17 +31,16 @@ const typeConfig = {
 const Changelog = () => {
   const [expanded, setExpanded] = useState(true);
   const [showAll, setShowAll] = useState(false);
-
   const visibleEntries = showAll ? changelog : changelog.slice(0, 4);
 
   return (
-    <div className="rounded-xl border border-border/50 bg-card/70 backdrop-blur-xl shadow-sm">
+    <div className="rounded-2xl border border-border/50 bg-card/70 backdrop-blur-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-500">
       <button
         onClick={() => setExpanded(!expanded)}
-        className="flex w-full items-center justify-between px-5 py-4 hover:bg-muted/20 transition-colors rounded-t-xl"
+        className="flex w-full items-center justify-between px-5 py-4 hover:bg-muted/20 transition-colors rounded-t-2xl"
       >
         <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/15">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/15 shadow-sm">
             <Sparkles className="h-4 w-4 text-primary" />
           </div>
           <div className="text-left">
@@ -91,11 +48,7 @@ const Changelog = () => {
             <p className="text-xs text-muted-foreground">Latest updates & features</p>
           </div>
         </div>
-        {expanded ? (
-          <ChevronUp className="h-4 w-4 text-muted-foreground" />
-        ) : (
-          <ChevronDown className="h-4 w-4 text-muted-foreground" />
-        )}
+        {expanded ? <ChevronUp className="h-4 w-4 text-muted-foreground" /> : <ChevronDown className="h-4 w-4 text-muted-foreground" />}
       </button>
 
       {expanded && (
@@ -108,10 +61,10 @@ const Changelog = () => {
                 return (
                   <div
                     key={`${entry.version}-${i}`}
-                    className="group flex gap-3 rounded-lg border border-border/30 bg-muted/10 p-3 hover:bg-muted/20 transition-colors"
+                    className="group flex gap-3 rounded-xl border border-border/30 bg-gradient-to-r from-muted/15 to-transparent p-3 hover:shadow-md hover:-translate-y-0.5 transition-all duration-400"
                   >
                     <div className="mt-0.5">
-                      <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/10">
+                      <div className="flex h-7 w-7 items-center justify-center rounded-md bg-primary/10 shadow-sm">
                         <Icon className="h-3.5 w-3.5 text-primary" />
                       </div>
                     </div>

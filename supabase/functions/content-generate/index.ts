@@ -348,6 +348,9 @@ Output format: Markdown with proper H1, H2, H3 headings.`;
     content = content.replace(/\n\n\*[^*]*(?:contact|reach out|get in touch)[^*]*\*\s*$/i, "").trimEnd();
     content = content.trimEnd() + "\n\n" + ctaParagraph;
 
+    // Normalize all markdown links to use the brand's domain (fixes relative paths and cross-brand URLs)
+    content = normalizeMarkdownLinks(content, preferredDomain);
+
     // Generate Technical SEO metadata via tool calling
     let seoMetadata: { seo_title: string; meta_description: string; slug: string; schema_types: string[] } = {
       seo_title: "",

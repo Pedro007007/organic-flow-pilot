@@ -132,7 +132,7 @@ const Index = () => {
                       <p className="text-[10px] text-muted-foreground">Write your first article</p>
                     </div>
                   </button>
-                  <button onClick={() => setActiveSection("keywords")} className="flex items-center gap-2 rounded-md border border-border bg-card px-4 py-3 text-left hover:bg-muted/50 transition-colors">
+                  <button onClick={() => setActiveSection("keywords")} className="flex items-center gap-2 rounded-xl border border-border/40 bg-card/30 backdrop-blur-xl px-4 py-3 text-left hover:bg-muted/20 hover:-translate-y-0.5 transition-all duration-300 shadow-sm hover:shadow-md">
                     <Search className="h-4 w-4 text-primary" />
                     <div>
                       <p className="text-xs font-semibold text-foreground">Discover Keywords</p>

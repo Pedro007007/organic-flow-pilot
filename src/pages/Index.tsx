@@ -129,7 +129,7 @@ const Index = () => {
 
         {/* Dashboard view */}
         {activeSection === "dashboard" && (
-          <div className="space-y-6">
+          <div className="space-y-5">
             {/* Onboarding wizard for new users */}
             {showOnboarding && (
               <OnboardingWizard
@@ -176,26 +176,66 @@ const Index = () => {
               </div>
             )}
 
+            {/* Metrics always visible */}
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {displayMetrics.map((metric, i) => (
                 <MetricCard key={metric.label} metric={metric} index={i} />
               ))}
             </div>
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-              <div className="lg:col-span-1">
-                <AgentPipeline agents={displayAgents} />
-              </div>
-              <div className="lg:col-span-2">
-                <ContentPipeline content={displayContent} onSelectItem={handleSelectContent} />
-              </div>
-            </div>
-            <KeywordTable keywords={displayKeywords} />
 
-            {/* Changelog + Engagement */}
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-              <Changelog />
-              <ReferralProgram />
+            {/* Dashboard Tab Bar */}
+            <div className="flex items-center gap-1 rounded-2xl border border-border/50 bg-card/70 backdrop-blur-xl p-1.5 shadow-sm overflow-x-auto">
+              {[
+                { id: "overview", label: "Overview", icon: BarChart3 },
+                { id: "keywords", label: "Keywords", icon: Key },
+                { id: "rewards", label: "Rewards", icon: Gift },
+                { id: "invite", label: "Invite Friends", icon: Users },
+                { id: "updates", label: "What's New", icon: Sparkles },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setDashTab(tab.id)}
+                  className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-semibold whitespace-nowrap transition-all duration-300 ${
+                    dashTab === tab.id
+                      ? "bg-primary text-primary-foreground shadow-md"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
+                  }`}
+                >
+                  <tab.icon className="h-3.5 w-3.5" />
+                  {tab.label}
+                </button>
+              ))}
             </div>
+
+            {/* Tab Content */}
+            {dashTab === "overview" && (
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                  <div className="lg:col-span-1">
+                    <AgentPipeline agents={displayAgents} />
+                  </div>
+                  <div className="lg:col-span-2">
+                    <ContentPipeline content={displayContent} onSelectItem={handleSelectContent} />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {dashTab === "keywords" && (
+              <KeywordTable keywords={displayKeywords} />
+            )}
+
+            {dashTab === "rewards" && (
+              <ReferralProgram />
+            )}
+
+            {dashTab === "invite" && (
+              <ReferralProgram />
+            )}
+
+            {dashTab === "updates" && (
+              <Changelog />
+            )}
           </div>
         )}
 

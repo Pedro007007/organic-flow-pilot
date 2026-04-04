@@ -18,6 +18,7 @@ import Blog from "./pages/Blog";
 import DanielaLeads from "./pages/DanielaLeads";
 import BlogPost from "./pages/BlogPost";
 import About from "./pages/About";
+import Contact from "./pages/Contact";
 
 const queryClient = new QueryClient();
 

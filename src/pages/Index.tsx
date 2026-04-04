@@ -38,6 +38,11 @@ const Index = () => {
   const [dashTab, setDashTab] = useState("overview");
   const { signOut, user } = useAuth();
   const isMobile = useIsMobile();
+  const navigate = useNavigate();
+  const { subscribed, tier } = useSubscription();
+
+  // Gate check: redirect locked sections back to dashboard
+  const isSectionLocked = (section: string) => !hasFeatureAccess(section, tier, subscribed);
 
   // Show onboarding for new users (no content yet, haven't dismissed)
   useEffect(() => {

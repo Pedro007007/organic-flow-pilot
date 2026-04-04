@@ -279,11 +279,11 @@ const Landing = () => {
           <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
             <Button size="lg" className="bg-white text-blue-700 hover:bg-blue-50 border-0 shadow-xl h-12 px-8 text-base font-black" asChild>
               <Link to="/auth">
-                Get Started Free <ArrowRight className="ml-1 h-4 w-4" />
+                Get Started <ArrowRight className="ml-1 h-4 w-4" />
               </Link>
             </Button>
           </div>
-          <p className="mt-4 text-sm text-blue-200 font-semibold">No credit card required</p>
+          <p className="mt-4 text-sm text-blue-200 font-semibold">Plans from $699/mo</p>
         </div>
       </section>
     </main>

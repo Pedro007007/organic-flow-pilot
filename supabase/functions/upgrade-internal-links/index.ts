@@ -162,7 +162,7 @@ ${sectionRule}
 - Do NOT duplicate any links that are already present in the article
 - Do NOT remove, rewrite, or alter any existing content, images, headings, or formatting
 - Do NOT add new paragraphs or content — only insert hyperlinks into existing text
-- Do NOT modify, rewrite, or remove the final CTA paragraph (the one mentioning "PJ Media Magnet Ltd" and searcheraa.com). Leave it exactly as-is.
+- Do NOT modify, rewrite, or remove the final CTA paragraph at the end of the article. Leave it exactly as-is.
 - Use markdown link format: [anchor text](url)
 - Choose anchors that flow naturally in the sentence
 - Every link must be contextually relevant to the surrounding text

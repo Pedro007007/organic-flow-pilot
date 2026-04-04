@@ -166,26 +166,48 @@ const AnalyticsDashboard = () => {
         {/* Content by status */}
         {contentByStatus.length > 0 && (
           <ChartCard title="Content by Stage">
-            <ResponsiveContainer width="100%" height={260}>
-              <PieChart>
-                <Pie data={contentByStatus} cx="50%" cy="50%" innerRadius={60} outerRadius={100} dataKey="value" label={({ name, value }) => `${name} (${value})`}>
-                  {contentByStatus.map((_, i) => (
-                    <Cell key={i} fill={COLORS[i % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Legend
-                  wrapperStyle={{ fontSize: 11, color: "hsl(215, 15%, 55%)" }}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "hsl(220, 30%, 9%)",
-                    border: "1px solid hsl(220, 25%, 16%)",
-                    borderRadius: 8,
-                    fontSize: 12,
-                  }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              <ResponsiveContainer width="100%" height={220} className="flex-shrink-0 sm:max-w-[260px]">
+                <PieChart>
+                  <Pie
+                    data={contentByStatus}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={55}
+                    outerRadius={90}
+                    dataKey="value"
+                    paddingAngle={2}
+                    strokeWidth={0}
+                  >
+                    {contentByStatus.map((_, i) => (
+                      <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--card))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: 8,
+                      fontSize: 12,
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="flex flex-wrap sm:flex-col gap-2 justify-center">
+                {contentByStatus.map((entry, i) => (
+                  <div key={entry.name} className="flex items-center gap-2 text-xs">
+                    <span
+                      className="inline-block h-2.5 w-2.5 rounded-sm flex-shrink-0"
+                      style={{ backgroundColor: COLORS[i % COLORS.length] }}
+                    />
+                    <span className="text-muted-foreground capitalize whitespace-nowrap">
+                      {entry.name}
+                    </span>
+                    <span className="font-mono font-semibold text-foreground">{entry.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
           </ChartCard>
         )}
       </div>

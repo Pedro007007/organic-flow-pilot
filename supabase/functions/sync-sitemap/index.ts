@@ -28,7 +28,9 @@ serve(async (req) => {
     }
     const userId = data.claims.sub;
 
-    const { brandId, sitemapUrl } = await req.json();
+    const body = await req.json();
+    const brandId = body.brandId;
+    const sitemapUrl = (body.sitemapUrl || "").trim();
     if (!brandId || !sitemapUrl) {
       return new Response(JSON.stringify({ error: "brandId and sitemapUrl are required" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }

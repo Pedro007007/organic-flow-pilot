@@ -6,6 +6,42 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const DEFAULT_APP_ORIGIN = "https://organic-flow-pilot.lovable.app";
+
+const normalizeDomain = (domain?: string | null) =>
+  domain ? domain.replace(/^https?:\/\//, "").replace(/\/$/, "") : null;
+
+const sanitizeMarkdownUrlValue = (value: string) => value.trim().replace(/\s+/g, "");
+
+const resolveAbsoluteUrl = (value: string | null | undefined, preferredDomain?: string | null) => {
+  if (!value) return null;
+  const sanitizedValue = sanitizeMarkdownUrlValue(value);
+  const domain = normalizeDomain(preferredDomain);
+  const preferredOrigin = domain ? `https://${domain}` : DEFAULT_APP_ORIGIN;
+
+  if (sanitizedValue.startsWith("/")) {
+    return `${preferredOrigin}${sanitizedValue}`;
+  }
+  try {
+    const parsed = new URL(sanitizedValue);
+    const isLovableHost = parsed.hostname.endsWith(".lovable.app");
+    const isStorageHost = parsed.hostname.includes(".supabase.co");
+    if (isStorageHost) return sanitizedValue;
+    if (isLovableHost) {
+      return `${preferredOrigin}${parsed.pathname}${parsed.search}${parsed.hash}`;
+    }
+    return sanitizedValue;
+  } catch {
+    return sanitizedValue;
+  }
+};
+
+const normalizeMarkdownLinks = (content: string, preferredDomain?: string | null) =>
+  content.replace(/(!?\[[^\]]*\]\()([^)]+)(\))/g, (_match, prefix, url, suffix) => {
+    const normalizedUrl = resolveAbsoluteUrl(url, preferredDomain);
+    return `${prefix}${normalizedUrl || sanitizeMarkdownUrlValue(url)}${suffix}`;
+  });
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -88,6 +124,7 @@ serve(async (req) => {
 
     // Fetch sitemap pages for richer internal link candidates
     const resolvedBrandId = brandId || brand?.id;
+    const preferredDomain = brand?.domain || null;
     let sitemapQuery = supabase
       .from("sitemap_pages")
       .select("url, title")
@@ -109,17 +146,20 @@ serve(async (req) => {
     }
 
     // Merge: sitemap pages first (real live URLs), then content items, deduplicated
+    // Resolve all URLs to absolute using the brand's domain
     const seen = new Set<string>();
     const linkCandidates: { title: string; url: string; keyword?: string }[] = [];
 
     for (const sp of sitemapPages || []) {
-      if (sp.url && !seen.has(sp.url)) {
-        seen.add(sp.url);
-        linkCandidates.push({ title: sp.title || sp.url, url: sp.url });
+      const resolvedUrl = resolveAbsoluteUrl(sp.url, preferredDomain);
+      if (resolvedUrl && !seen.has(resolvedUrl)) {
+        seen.add(resolvedUrl);
+        linkCandidates.push({ title: sp.title || resolvedUrl, url: resolvedUrl });
       }
     }
     for (const c of (existingContent || []) as any[]) {
-      const u = c.url || (c.slug ? `/blog/${c.slug}` : null);
+      const raw = c.url || (c.slug ? `/blog/${c.slug}` : null);
+      const u = resolveAbsoluteUrl(raw, preferredDomain);
       if (u && !seen.has(u)) {
         seen.add(u);
         linkCandidates.push({ title: c.title, url: u, keyword: c.keyword });
@@ -307,6 +347,9 @@ Output format: Markdown with proper H1, H2, H3 headings.`;
     content = content.replace(/\n---\n[\s\S]*(?:contact|reach out|get in touch)[\s\S]*$/i, "").trimEnd();
     content = content.replace(/\n\n\*[^*]*(?:contact|reach out|get in touch)[^*]*\*\s*$/i, "").trimEnd();
     content = content.trimEnd() + "\n\n" + ctaParagraph;
+
+    // Normalize all markdown links to use the brand's domain (fixes relative paths and cross-brand URLs)
+    content = normalizeMarkdownLinks(content, preferredDomain);
 
     // Generate Technical SEO metadata via tool calling
     let seoMetadata: { seo_title: string; meta_description: string; slug: string; schema_types: string[] } = {

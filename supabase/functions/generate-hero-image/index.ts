@@ -407,7 +407,6 @@ Ultra high resolution, ${dimensionHint}.${customPrompt ? `\n\nCLIENT CREATIVE DI
     if (contentItemId && !isBodyImage) {
       await supabaseAuth.from("content_items").update({
         hero_image_url: heroImageUrl,
-        brand_id: brandId || brand?.id || null,
       }).eq("id", contentItemId).eq("user_id", userId);
     }
 

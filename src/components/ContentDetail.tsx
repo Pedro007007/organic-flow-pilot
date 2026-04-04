@@ -521,8 +521,8 @@ ${body}
     try {
       const prompt = bodyImagePrompts[slotIndex] || undefined;
       const bs = getBodySettings(slotIndex);
-      const res = await supabase.functions.invoke("generate-hero-image", {
-        body: { contentItemId: item.id, keyword: item.keyword, title: item.title, customPrompt: prompt, imageType: "body", aspectRatio: bs.aspectRatio, style: bs.style === "_default" ? undefined : bs.style, model: bs.model },
+        const res = await supabase.functions.invoke("generate-hero-image", {
+          body: { contentItemId: item.id, keyword: item.keyword, title: item.title, brandId: item.brand_id || undefined, customPrompt: prompt, imageType: "body", aspectRatio: bs.aspectRatio, style: bs.style === "_default" ? undefined : bs.style, model: bs.model },
       });
       if (res.error) throw res.error;
 

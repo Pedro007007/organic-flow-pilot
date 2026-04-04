@@ -5,22 +5,17 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Loader2, Brain, Sparkles, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { Loader2, Brain, Sparkles, AlertTriangle, CheckCircle2, Wrench, Zap } from "lucide-react";
 
 interface AeoTabProps {
   contentId: string;
   hasContent: boolean;
+  onContentUpdated?: () => void;
 }
 
 interface AeoScore {
   overall_score: number;
-  scores: {
-    faq_coverage: number;
-    answer_blocks: number;
-    entity_clarity: number;
-    schema_richness: number;
-    conciseness: number;
-  };
+  scores: Record<string, number>;
   recommendations: Array<{
     dimension: string;
     issue: string;
@@ -28,6 +23,8 @@ interface AeoScore {
     priority: string;
   }>;
 }
+
+const THRESHOLD = 80;
 
 const dimensions = [
   { key: "faq_coverage", label: "FAQ Coverage", weight: "25%", icon: "❓" },
@@ -43,14 +40,20 @@ const priorityColors: Record<string, string> = {
   low: "bg-info/15 text-info border-info/30",
 };
 
-const AeoTab = ({ contentId, hasContent }: AeoTabProps) => {
+const scoreColor = (val: number) => {
+  if (val >= 80) return "text-success";
+  if (val >= 50) return "text-warning";
+  return "text-destructive";
+};
+
+const AeoTab = ({ contentId, hasContent, onContentUpdated }: AeoTabProps) => {
   const { toast } = useToast();
   const [scoring, setScoring] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [fixingDim, setFixingDim] = useState<string | null>(null);
   const [score, setScore] = useState<AeoScore | null>(null);
   const [fetched, setFetched] = useState(false);
 
-  // Fetch existing score
   if (!fetched) {
     setFetched(true);
     supabase
@@ -74,9 +77,7 @@ const AeoTab = ({ contentId, hasContent }: AeoTabProps) => {
   const handleScore = async () => {
     setScoring(true);
     try {
-      const res = await supabase.functions.invoke("aeo-score", {
-        body: { contentItemId: contentId },
-      });
+      const res = await supabase.functions.invoke("aeo-score", { body: { contentItemId: contentId } });
       if (res.error) {
         const errBody = res.error?.context ? await (res.error.context as any).json?.() : null;
         throw new Error(errBody?.error || res.error.message || "Scoring failed");
@@ -93,14 +94,13 @@ const AeoTab = ({ contentId, hasContent }: AeoTabProps) => {
   const handleGenerateBlocks = async () => {
     setGenerating(true);
     try {
-      const res = await supabase.functions.invoke("generate-answer-blocks", {
-        body: { contentItemId: contentId },
-      });
+      const res = await supabase.functions.invoke("generate-answer-blocks", { body: { contentItemId: contentId } });
       if (res.error) {
         const errBody = res.error?.context ? await (res.error.context as any).json?.() : null;
         throw new Error(errBody?.error || res.error.message || "Generation failed");
       }
       toast({ title: "Answer blocks generated", description: "TL;DR, Key Takeaways, and FAQs appended to content" });
+      onContentUpdated?.();
     } catch (err: any) {
       toast({ title: "Generation failed", description: err.message, variant: "destructive" });
     } finally {
@@ -108,11 +108,40 @@ const AeoTab = ({ contentId, hasContent }: AeoTabProps) => {
     }
   };
 
-  const scoreColor = (val: number) => {
-    if (val >= 80) return "text-success";
-    if (val >= 50) return "text-warning";
-    return "text-destructive";
+  const handleFixDimension = async (dimension: string, label: string) => {
+    setFixingDim(dimension);
+    try {
+      const res = await supabase.functions.invoke("aeo-fix", {
+        body: { contentItemId: contentId, dimension },
+      });
+      if (res.error) {
+        const errBody = res.error?.context ? await (res.error.context as any).json?.() : null;
+        throw new Error(errBody?.error || res.error.message || "Fix failed");
+      }
+      toast({ title: `${label} improved`, description: "Content updated. Re-score to see the new rating." });
+      onContentUpdated?.();
+    } catch (err: any) {
+      toast({ title: `${label} fix failed`, description: err.message, variant: "destructive" });
+    } finally {
+      setFixingDim(null);
+    }
   };
+
+  const handleFixAll = async () => {
+    if (!score) return;
+    const lowDims = dimensions.filter((d) => (score.scores[d.key] || 0) < THRESHOLD);
+    if (lowDims.length === 0) {
+      toast({ title: "All dimensions above threshold", description: "Nothing to fix!" });
+      return;
+    }
+    for (const dim of lowDims) {
+      await handleFixDimension(dim.key, dim.label);
+    }
+    toast({ title: "All fixes applied", description: "Re-score to measure improvements." });
+  };
+
+  const lowCount = score ? dimensions.filter((d) => (score.scores[d.key] || 0) < THRESHOLD).length : 0;
+  const isBusy = scoring || generating || !!fixingDim;
 
   if (!hasContent) {
     return (
@@ -126,15 +155,21 @@ const AeoTab = ({ contentId, hasContent }: AeoTabProps) => {
   return (
     <div className="space-y-6">
       {/* Actions */}
-      <div className="flex items-center gap-2">
-        <Button onClick={handleScore} disabled={scoring || generating} size="sm">
+      <div className="flex items-center gap-2 flex-wrap">
+        <Button onClick={handleScore} disabled={isBusy} size="sm">
           {scoring ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Brain className="mr-1.5 h-3.5 w-3.5" />}
           {score ? "Re-score AEO" : "Run AEO Score"}
         </Button>
-        <Button onClick={handleGenerateBlocks} disabled={generating || scoring} size="sm" variant="outline">
+        <Button onClick={handleGenerateBlocks} disabled={isBusy} size="sm" variant="outline">
           {generating ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Sparkles className="mr-1.5 h-3.5 w-3.5" />}
           Generate Answer Blocks
         </Button>
+        {score && lowCount > 0 && (
+          <Button onClick={handleFixAll} disabled={isBusy} size="sm" variant="secondary" className="ml-auto">
+            {fixingDim ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Zap className="mr-1.5 h-3.5 w-3.5" />}
+            Fix All Below {THRESHOLD} ({lowCount})
+          </Button>
+        )}
       </div>
 
       {score && (
@@ -155,12 +190,14 @@ const AeoTab = ({ contentId, hasContent }: AeoTabProps) => {
             </p>
           </Card>
 
-          {/* Dimension breakdown */}
+          {/* Dimension breakdown with fix buttons */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
             {dimensions.map((dim) => {
-              const val = (score.scores as any)?.[dim.key] || 0;
+              const val = score.scores[dim.key] || 0;
+              const belowThreshold = val < THRESHOLD;
+              const isFixing = fixingDim === dim.key;
               return (
-                <Card key={dim.key} className="p-4">
+                <Card key={dim.key} className={`p-4 relative ${belowThreshold ? "border-warning/40" : ""}`}>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm">{dim.icon}</span>
                     <span className={`text-lg font-bold ${scoreColor(val)}`}>{val}</span>
@@ -168,6 +205,22 @@ const AeoTab = ({ contentId, hasContent }: AeoTabProps) => {
                   <p className="text-xs font-medium text-foreground">{dim.label}</p>
                   <p className="text-[10px] text-muted-foreground">{dim.weight} weight</p>
                   <Progress value={val} className="h-1 mt-2" />
+                  {belowThreshold && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="w-full mt-3 h-7 text-[11px] text-warning hover:text-warning hover:bg-warning/10 gap-1.5"
+                      disabled={isBusy}
+                      onClick={() => handleFixDimension(dim.key, dim.label)}
+                    >
+                      {isFixing ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <Wrench className="h-3 w-3" />
+                      )}
+                      {isFixing ? "Fixing…" : "AI Fix"}
+                    </Button>
+                  )}
                 </Card>
               );
             })}
@@ -187,7 +240,7 @@ const AeoTab = ({ contentId, hasContent }: AeoTabProps) => {
                         <CheckCircle2 className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
                       )}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
                           <span className="text-xs font-semibold text-foreground">{rec.issue}</span>
                           <Badge variant="outline" className={`text-[10px] ${priorityColors[rec.priority] || ""}`}>
                             {rec.priority}

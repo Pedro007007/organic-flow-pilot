@@ -114,7 +114,7 @@ const Index = () => {
           <div className="space-y-6">
             {/* Welcome card for new users */}
             {!hasRealContent && (
-              <div className="relative overflow-hidden rounded-xl border border-primary/20 bg-primary/5 backdrop-blur-xl p-6 shadow-lg transition-all duration-300 hover:shadow-xl">
+              <div className="relative overflow-hidden rounded-xl border border-primary/20 bg-primary/5 backdrop-blur-xl p-6 shadow-sm transition-all duration-300 hover:shadow-md">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/15">
                     <Zap className="h-5 w-5 text-primary" />

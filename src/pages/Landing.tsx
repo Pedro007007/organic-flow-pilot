@@ -112,7 +112,7 @@ const Landing = () => {
                   </a>
                 </Button>
               </div>
-              <p className="mt-4 text-sm text-gray-600 font-bold">No credit card required · Free to start · Cancel anytime</p>
+              <p className="mt-4 text-sm text-gray-600 font-bold">Plans from $699/mo · Cancel anytime</p>
             </div>
 
             {/* Right: Video */}

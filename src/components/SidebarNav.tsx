@@ -109,7 +109,7 @@ function SidebarContent({ activeSection, onNavigate }: SidebarNavProps) {
           );
         })}
       </nav>
-      <div className="border-t border-border px-4 py-3 space-y-3">
+      <div className="border-t border-border/30 px-4 py-3 space-y-3">
         <GuideButton />
         <ChatbotLeadsButton />
         <button

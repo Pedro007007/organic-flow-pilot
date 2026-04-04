@@ -136,7 +136,7 @@ const Auth = () => {
       </div>
 
       {/* Right Panel - Auth Form */}
-      <div className="flex-1 flex items-center justify-center px-6 relative bg-card/60 backdrop-blur-xl">
+      <div className="flex-1 flex items-center justify-center px-6 relative" style={{ background: "linear-gradient(135deg, hsl(210 20% 94%), hsl(220 15% 90%))", backdropFilter: "blur(20px)" }}>
         <button
           onClick={() => navigate("/")}
           className="absolute top-6 left-6 text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 text-sm"

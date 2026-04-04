@@ -19,7 +19,7 @@ const CompetitorGap = forwardRef<HTMLDivElement, CompetitorGapProps>(({ data, do
   ];
 
   return (
-    <div className="space-y-6">
+    <div ref={ref} className="space-y-6">
       <div className="text-center space-y-1">
         <h2 className="text-lg font-bold text-foreground">Competitor Gap Intelligence</h2>
         <p className="text-xs text-muted-foreground">{domain}</p>

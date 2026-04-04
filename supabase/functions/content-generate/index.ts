@@ -295,11 +295,17 @@ Output format: Markdown with proper H1, H2, H3 headings.`;
       content = content.replace("{{IMAGE_2}}", "");
     }
 
-    // Strip any AI-generated CTA mentioning the brand, then always append the correct one
-    const ctaParagraph = `---\n\n*If you are a business owner in the renewable sector or a local Surrey installer looking to reach more customers, let's talk about how to grow your reach. Contact [PJ Media Magnet Ltd](https://searcheraa.com/) today to discover how our expert SEO and content strategies can put your business at the forefront of the green energy revolution.*`;
-    content = content.replace(/\n---\n[\s\S]*PJ Media Magnet[\s\S]*$/i, "").trimEnd();
-    content = content.replace(/\n\n\*[^*]*PJ Media Magnet[^*]*\*\s*$/i, "").trimEnd();
-    content = content.replace(/\n\n[^\n]*(?:contact us|get in touch|reach out)[^\n]*PJ Media Magnet[^\n]*$/i, "").trimEnd();
+    // Build brand-aware CTA paragraph
+    const brandName = brand?.name || "us";
+    const brandDomain = brand?.domain ? (brand.domain.startsWith("http") ? brand.domain : `https://${brand.domain}`) : null;
+    const defaultCta = brandDomain
+      ? `---\n\n*Ready to grow your online presence? Contact [${brandName}](${brandDomain}) today to discover how our expert SEO and content strategies can help your business reach more customers.*`
+      : `---\n\n*Ready to grow your online presence? Contact ${brandName} today to discover how our expert SEO and content strategies can help your business reach more customers.*`;
+    const ctaParagraph = brand?.cta_text || defaultCta;
+
+    // Strip any trailing CTA paragraphs (old hardcoded or AI-generated), then append brand CTA
+    content = content.replace(/\n---\n[\s\S]*(?:contact|reach out|get in touch)[\s\S]*$/i, "").trimEnd();
+    content = content.replace(/\n\n\*[^*]*(?:contact|reach out|get in touch)[^*]*\*\s*$/i, "").trimEnd();
     content = content.trimEnd() + "\n\n" + ctaParagraph;
 
     // Generate Technical SEO metadata via tool calling

@@ -6,9 +6,14 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
-const CTA_PARAGRAPH = `---
-
-*If you are a business owner in the renewable sector or a local Surrey installer looking to reach more customers, let's talk about how to grow your reach. Contact [PJ Media Magnet Ltd](https://searcheraa.com/) today to discover how our expert SEO and content strategies can put your business at the forefront of the green energy revolution.*`;
+const buildCtaParagraph = (brand: any) => {
+  if (brand?.cta_text) return brand.cta_text;
+  const brandName = brand?.name || "us";
+  const brandDomain = brand?.domain ? (brand.domain.startsWith("http") ? brand.domain : `https://${brand.domain}`) : null;
+  return brandDomain
+    ? `---\n\n*Ready to grow your online presence? Contact [${brandName}](${brandDomain}) today to discover how our expert SEO and content strategies can help your business reach more customers.*`
+    : `---\n\n*Ready to grow your online presence? Contact ${brandName} today to discover how our expert SEO and content strategies can help your business reach more customers.*`;
+};
 
 const DEFAULT_APP_ORIGIN = "https://organic-flow-pilot.lovable.app";
 

@@ -79,15 +79,14 @@ const Auth = () => {
           <div className="flex items-center gap-3 mb-24">
             <img src={searcheraLogo} alt="Searchera" className="h-[160px] object-contain" />
           </div>
-          </div>
 
-          <h1 className="text-4xl font-bold text-white leading-tight mb-4">
+          <h1 className="text-4xl font-bold text-foreground leading-tight mb-4">
             Turn any website into a{" "}
-            <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
               winning strategy
             </span>
           </h1>
-          <p className="text-blue-200/70 text-base mb-10 max-w-md">
+          <p className="text-muted-foreground text-base mb-10 max-w-md">
             Scan, optimise, and publish — grow your organic traffic with AI-powered SEO content.
           </p>
 

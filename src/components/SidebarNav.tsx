@@ -29,6 +29,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import searcheraLogo from "@/assets/searchera-logo.png";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Badge } from "@/components/ui/badge";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useTheme } from "next-themes";
 

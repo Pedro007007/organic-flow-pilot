@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { TrendingDown, Users } from "lucide-react";
@@ -8,7 +9,7 @@ interface CompetitorGapProps {
   primaryColor: string;
 }
 
-const CompetitorGap = ({ data, domain, primaryColor }: CompetitorGapProps) => {
+const CompetitorGap = forwardRef<HTMLDivElement, CompetitorGapProps>(({ data, domain, primaryColor }, ref) => {
   const gap = data.competitor_gap || {};
 
   const comparisons = [
@@ -18,7 +19,7 @@ const CompetitorGap = ({ data, domain, primaryColor }: CompetitorGapProps) => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div ref={ref} className="space-y-6">
       <div className="text-center space-y-1">
         <h2 className="text-lg font-bold text-foreground">Competitor Gap Intelligence</h2>
         <p className="text-xs text-muted-foreground">{domain}</p>
@@ -78,6 +79,8 @@ const CompetitorGap = ({ data, domain, primaryColor }: CompetitorGapProps) => {
       )}
     </div>
   );
-};
+});
+
+CompetitorGap.displayName = "CompetitorGap";
 
 export default CompetitorGap;

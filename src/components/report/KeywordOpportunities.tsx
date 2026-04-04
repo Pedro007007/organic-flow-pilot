@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import { DollarSign } from "lucide-react";
 
@@ -14,11 +15,11 @@ const opportunityColors: Record<string, string> = {
   Low: "hsl(var(--success))",
 };
 
-const KeywordOpportunities = ({ data, primaryColor, accentColor }: KeywordOpportunitiesProps) => {
+const KeywordOpportunities = forwardRef<HTMLDivElement, KeywordOpportunitiesProps>(({ data, primaryColor, accentColor }, ref) => {
   const keywords = data.keyword_opportunities || [];
 
   return (
-    <div className="space-y-6">
+    <div ref={ref} className="space-y-6">
       <div className="text-center space-y-1">
         <h2 className="text-lg font-bold text-foreground">Keyword Opportunity Analysis</h2>
         <p className="text-xs text-muted-foreground">Revenue-focused keyword gaps — this shows MONEY, not just traffic</p>
@@ -65,6 +66,8 @@ const KeywordOpportunities = ({ data, primaryColor, accentColor }: KeywordOpport
       </div>
     </div>
   );
-};
+});
+
+KeywordOpportunities.displayName = "KeywordOpportunities";
 
 export default KeywordOpportunities;

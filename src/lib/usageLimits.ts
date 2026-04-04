@@ -25,7 +25,7 @@ export const USAGE_LIMITS: Record<TierKey | "none", {
   },
   basic: {
     maxKeywords: 50,
-    maxContentArticles: 5,
+    maxContentArticles: 20,
     maxBrands: 1,
     maxTeamMembers: 2,
     llmSearchLab: false,
@@ -36,7 +36,7 @@ export const USAGE_LIMITS: Record<TierKey | "none", {
   },
   pro: {
     maxKeywords: 500,
-    maxContentArticles: -1, // unlimited
+    maxContentArticles: 100,
     maxBrands: 5,
     maxTeamMembers: 10,
     llmSearchLab: true,

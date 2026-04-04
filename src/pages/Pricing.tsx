@@ -9,36 +9,52 @@ import { toast } from "sonner";
 
 const features: Record<TierKey, string[]> = {
   basic: [
-    "Up to 50 keywords tracked",
-    "5 content articles/month",
-    "Basic SEO checklist",
-    "Email support",
+    "10–20 blog articles/month",
+    "Basic AEO scoring",
+    "FAQ generation",
+    "Basic internal linking",
+    "Limited backlink tracking",
+    "50 keywords tracked",
     "1 brand profile",
-    "Weekly performance snapshots",
+    "SEO checklist",
+    "Email support",
   ],
   pro: [
-    "Up to 500 keywords tracked",
-    "Unlimited content articles",
-    "Full SEO + AEO scoring",
-    "Priority support",
+    "50–100 blog articles/month",
+    "Full AEO scoring + AI optimisation agent",
+    "AI FAQ expansion",
+    "Smart internal linking (XML sitemap)",
+    "Backlink management + placement control",
+    "Content versioning (V1, V2, V3 with scoring)",
+    "Repurposing system (blog → social/email)",
+    "500 keywords tracked",
     "5 brand profiles",
-    "Daily performance snapshots",
     "LLM Search Lab",
-    "Content repurposing",
     "Competitor scanning",
+    "CRM/email integrations",
+    "Priority support",
   ],
   enterprise: [
-    "Unlimited keywords",
-    "Unlimited everything",
-    "Dedicated account manager",
-    "Custom integrations",
-    "Unlimited brands",
-    "Real-time analytics",
+    "Unlimited high-volume content generation",
+    "Full AI agent system (SEO + AEO + email + reviews)",
+    "Custom workflows (bespoke builds)",
+    "Advanced backlink strategy",
+    "Multi-location SEO",
+    "Review automation system",
+    "Unlimited brands & keywords",
+    "Dedicated account manager / strategist",
+    "Monthly strategy calls",
+    "Custom integrations (CRM, API)",
     "White-label reports",
     "API access",
     "SLA guarantee",
-    "Custom onboarding",
   ],
+};
+
+const tierDescriptions: Record<TierKey, string> = {
+  basic: "For small businesses just getting started with SEO & AEO. Low barrier entry into the ecosystem.",
+  pro: "For businesses actively trying to grow. Full toolkit for real ROI and measurable organic growth.",
+  enterprise: "You're not buying a tool — you're gaining a growth partner. Done-with-you growth system.",
 };
 
 const tierIcons: Record<TierKey, React.ReactNode> = {
@@ -146,12 +162,15 @@ export default function Pricing() {
                       <Badge className={colors.badge}>{tier.label}</Badge>
                     </div>
                     <CardTitle className="text-2xl">{tier.name}</CardTitle>
-                    <div className="mt-2">
+                    <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                      {tierDescriptions[key]}
+                    </p>
+                    <div className="mt-3">
                       <span className="text-4xl font-bold">${tier.price.toLocaleString()}</span>
                       <span className="text-muted-foreground">/month</span>
                     </div>
                     {key === "enterprise" && (
-                      <p className="text-xs text-muted-foreground mt-1">From $3,000 — contact us for custom pricing</p>
+                      <p className="text-xs text-muted-foreground mt-1">Optional setup fee: £2K–£5K (one-time)</p>
                     )}
                   </CardHeader>
 

@@ -79,6 +79,8 @@ const CompetitorGap = forwardRef<HTMLDivElement, CompetitorGapProps>(({ data, do
       )}
     </div>
   );
-};
+});
+
+CompetitorGap.displayName = "CompetitorGap";
 
 export default CompetitorGap;

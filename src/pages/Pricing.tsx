@@ -1,0 +1,204 @@
+import { useAuth } from "@/hooks/useAuth";
+import { useSubscription, SUBSCRIPTION_TIERS, type TierKey } from "@/hooks/useSubscription";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Check, Crown, Rocket, Building2, Loader2, ArrowLeft, Sparkles } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+
+const features: Record<TierKey, string[]> = {
+  basic: [
+    "Up to 50 keywords tracked",
+    "5 content articles/month",
+    "Basic SEO checklist",
+    "Email support",
+    "1 brand profile",
+    "Weekly performance snapshots",
+  ],
+  pro: [
+    "Up to 500 keywords tracked",
+    "Unlimited content articles",
+    "Full SEO + AEO scoring",
+    "Priority support",
+    "5 brand profiles",
+    "Daily performance snapshots",
+    "LLM Search Lab",
+    "Content repurposing",
+    "Competitor scanning",
+  ],
+  enterprise: [
+    "Unlimited keywords",
+    "Unlimited everything",
+    "Dedicated account manager",
+    "Custom integrations",
+    "Unlimited brands",
+    "Real-time analytics",
+    "White-label reports",
+    "API access",
+    "SLA guarantee",
+    "Custom onboarding",
+  ],
+};
+
+const tierIcons: Record<TierKey, React.ReactNode> = {
+  basic: <Rocket className="h-6 w-6" />,
+  pro: <Crown className="h-6 w-6" />,
+  enterprise: <Building2 className="h-6 w-6" />,
+};
+
+const tierColors: Record<TierKey, { border: string; bg: string; text: string; badge: string; button: string }> = {
+  basic: {
+    border: "border-emerald-500/30",
+    bg: "bg-emerald-500/5",
+    text: "text-emerald-400",
+    badge: "bg-emerald-500/20 text-emerald-300",
+    button: "bg-emerald-600 hover:bg-emerald-700 text-white",
+  },
+  pro: {
+    border: "border-blue-500/30",
+    bg: "bg-blue-500/5",
+    text: "text-blue-400",
+    badge: "bg-blue-500/20 text-blue-300",
+    button: "bg-blue-600 hover:bg-blue-700 text-white",
+  },
+  enterprise: {
+    border: "border-red-500/30",
+    bg: "bg-red-500/5",
+    text: "text-red-400",
+    badge: "bg-red-500/20 text-red-300",
+    button: "bg-red-600 hover:bg-red-700 text-white",
+  },
+};
+
+export default function Pricing() {
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const { subscribed, tier: currentTier, loading, openCheckout, openCustomerPortal } = useSubscription();
+
+  const handleSubscribe = async (tierKey: TierKey) => {
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
+    try {
+      await openCheckout(SUBSCRIPTION_TIERS[tierKey].price_id);
+    } catch {
+      toast.error("Failed to start checkout. Please try again.");
+    }
+  };
+
+  const handleManage = async () => {
+    try {
+      await openCustomerPortal();
+    } catch {
+      toast.error("Failed to open subscription management.");
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="max-w-6xl mx-auto px-4 py-12">
+        <Button variant="ghost" onClick={() => navigate(-1)} className="mb-8">
+          <ArrowLeft className="h-4 w-4 mr-2" /> Back
+        </Button>
+
+        <div className="text-center mb-12">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <Sparkles className="h-6 w-6 text-amber-400" />
+            <h1 className="text-3xl font-bold">Choose Your Plan</h1>
+          </div>
+          <p className="text-muted-foreground max-w-xl mx-auto">
+            Scale your organic visibility with the right Searchera plan. All plans include a 14-day money-back guarantee.
+          </p>
+        </div>
+
+        {loading ? (
+          <div className="flex justify-center py-20">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {(Object.entries(SUBSCRIPTION_TIERS) as [TierKey, typeof SUBSCRIPTION_TIERS[TierKey]][]).map(([key, tier]) => {
+              const isCurrentPlan = subscribed && currentTier === key;
+              const colors = tierColors[key];
+              const isPro = key === "pro";
+
+              return (
+                <Card
+                  key={key}
+                  className={`relative overflow-hidden transition-all duration-300 hover:scale-[1.02] ${colors.border} ${colors.bg} ${isPro ? "ring-2 ring-blue-500/50 shadow-lg shadow-blue-500/10" : ""}`}
+                >
+                  {isPro && (
+                    <div className="absolute top-0 right-0 px-3 py-1 bg-blue-600 text-white text-xs font-bold rounded-bl-lg">
+                      MOST POPULAR
+                    </div>
+                  )}
+                  {isCurrentPlan && (
+                    <div className="absolute top-0 left-0 px-3 py-1 bg-amber-500 text-white text-xs font-bold rounded-br-lg">
+                      YOUR PLAN
+                    </div>
+                  )}
+
+                  <CardHeader className="pb-4">
+                    <div className={`flex items-center gap-2 ${colors.text} mb-2`}>
+                      {tierIcons[key]}
+                      <Badge className={colors.badge}>{tier.label}</Badge>
+                    </div>
+                    <CardTitle className="text-2xl">{tier.name}</CardTitle>
+                    <div className="mt-2">
+                      <span className="text-4xl font-bold">${tier.price.toLocaleString()}</span>
+                      <span className="text-muted-foreground">/month</span>
+                    </div>
+                    {key === "enterprise" && (
+                      <p className="text-xs text-muted-foreground mt-1">From $3,000 — contact us for custom pricing</p>
+                    )}
+                  </CardHeader>
+
+                  <CardContent>
+                    <ul className="space-y-3 mb-6">
+                      {features[key].map((feature, i) => (
+                        <li key={i} className="flex items-start gap-2 text-sm">
+                          <Check className={`h-4 w-4 mt-0.5 shrink-0 ${colors.text}`} />
+                          <span>{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    {isCurrentPlan ? (
+                      <Button onClick={handleManage} variant="outline" className="w-full">
+                        Manage Subscription
+                      </Button>
+                    ) : key === "enterprise" ? (
+                      <Button
+                        onClick={() => navigate("/contact")}
+                        className={`w-full ${colors.button}`}
+                      >
+                        Contact Sales
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={() => handleSubscribe(key)}
+                        className={`w-full ${colors.button}`}
+                      >
+                        {subscribed ? "Switch Plan" : "Get Started"}
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        )}
+
+        {subscribed && (
+          <div className="mt-8 text-center">
+            <Button variant="link" onClick={handleManage} className="text-muted-foreground">
+              Manage billing, payment method, or cancel →
+            </Button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

@@ -192,20 +192,36 @@ const Index = () => {
                 { id: "rewards", label: "Rewards", icon: Gift },
                 { id: "invite", label: "Invite Friends", icon: Users },
                 { id: "updates", label: "What's New", icon: Sparkles },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setDashTab(tab.id)}
-                  className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-semibold whitespace-nowrap transition-all duration-300 ${
-                    dashTab === tab.id
-                      ? "bg-primary text-primary-foreground shadow-md"
-                      : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
-                  }`}
-                >
-                  <tab.icon className="h-3.5 w-3.5" />
-                  {tab.label}
-                </button>
-              ))}
+              ].map((tab) => {
+                const isRewards = tab.id === "rewards";
+                const isActive = dashTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => {
+                      setDashTab(tab.id);
+                      if (isRewards) {
+                        const gold = ['#FFD700', '#FFC107', '#FFAA00', '#FF8F00', '#FFE082'];
+                        confetti({ particleCount: 80, spread: 70, origin: { y: 0.5 }, colors: gold });
+                        setTimeout(() => confetti({ particleCount: 50, spread: 100, origin: { y: 0.4, x: 0.3 }, colors: gold }), 200);
+                        setTimeout(() => confetti({ particleCount: 50, spread: 100, origin: { y: 0.4, x: 0.7 }, colors: gold }), 400);
+                      }
+                    }}
+                    className={`flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-semibold whitespace-nowrap transition-all duration-300 ${
+                      isActive && isRewards
+                        ? "bg-gradient-to-r from-amber-500 to-yellow-400 text-amber-950 shadow-lg shadow-amber-500/25"
+                        : isActive
+                          ? "bg-primary text-primary-foreground shadow-md"
+                          : isRewards
+                            ? "text-amber-600 hover:text-amber-700 hover:bg-amber-500/10"
+                            : "text-muted-foreground hover:text-foreground hover:bg-muted/30"
+                    }`}
+                  >
+                    <tab.icon className="h-3.5 w-3.5" />
+                    {tab.label}
+                  </button>
+                );
+              })}
             </div>
 
             {/* Tab Content */}

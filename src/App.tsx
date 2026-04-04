@@ -21,6 +21,7 @@ import About from "./pages/About";
 import Contact from "./pages/Contact";
 import Tools from "./pages/Tools";
 import Pricing from "./pages/Pricing";
+import CheckoutSuccess from "./pages/CheckoutSuccess";
 
 const queryClient = new QueryClient();
 

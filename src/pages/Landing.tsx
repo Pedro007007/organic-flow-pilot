@@ -103,7 +103,7 @@ const Landing = () => {
               <div className="mt-10 flex flex-wrap items-start gap-4">
                 <Button size="lg" className="bg-[length:200%_auto] animate-gradient bg-gradient-to-r from-blue-600 via-green-400 to-blue-600 text-white border-0 shadow-xl shadow-green-500/30 h-12 px-8 text-base font-bold hover:opacity-90" asChild>
                   <Link to="/auth">
-                    Start Free Trial <ArrowRight className="ml-1 h-4 w-4" />
+                    Get Started <ArrowRight className="ml-1 h-4 w-4" />
                   </Link>
                 </Button>
                 <Button variant="outline" size="lg" className="border-foreground/20 text-foreground hover:bg-accent h-12 px-8 text-base font-bold" asChild>

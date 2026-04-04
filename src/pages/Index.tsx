@@ -24,7 +24,7 @@ import { usePerformanceMetrics, useKeywords, useContentItems, useAgentRuns } fro
 import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-import { Activity, Loader2, Zap, FileText, Search, Bot } from "lucide-react";
+import { Activity, Loader2, Zap, FileText, Search, Bot, BarChart3, Key, Gift, Users, Sparkles } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 const Index = () => {

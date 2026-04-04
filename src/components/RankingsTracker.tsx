@@ -248,7 +248,7 @@ const RankingsTracker = () => {
           </Table>
         </div>
       ) : (
-        <div className="rounded-xl border border-border bg-card p-6">
+        <div className="rounded-xl border border-border/40 bg-card/30 backdrop-blur-xl p-6 shadow-md">
           <p className="text-xs text-muted-foreground mb-4">Average Position Over Time (lower is better)</p>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={chartData}>

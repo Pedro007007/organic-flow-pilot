@@ -2,10 +2,9 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Loader2, Brain, Sparkles, AlertTriangle, CheckCircle2, Wrench, Zap } from "lucide-react";
+import { Loader2, Brain, Sparkles, AlertTriangle, CheckCircle2, Wrench, Zap, Shield, TrendingUp } from "lucide-react";
 
 interface AeoTabProps {
   contentId: string;
@@ -44,6 +43,12 @@ const scoreColor = (val: number) => {
   if (val >= 80) return "text-success";
   if (val >= 50) return "text-warning";
   return "text-destructive";
+};
+
+const scoreGlow = (val: number) => {
+  if (val >= 80) return "shadow-[0_0_20px_hsl(152_70%_50%/0.15)]";
+  if (val >= 50) return "shadow-[0_0_20px_hsl(38_92%_60%/0.15)]";
+  return "shadow-[0_0_20px_hsl(0_72%_55%/0.15)]";
 };
 
 const AeoTab = ({ contentId, hasContent, onContentUpdated }: AeoTabProps) => {
@@ -120,7 +125,6 @@ const AeoTab = ({ contentId, hasContent, onContentUpdated }: AeoTabProps) => {
       }
       toast({ title: `${label} improved`, description: "Content updated." });
       onContentUpdated?.();
-      // Auto re-score after individual fix unless called from fixAll
       if (!skipRescore) {
         setFixingDim(null);
         await handleScore();
@@ -152,27 +156,28 @@ const AeoTab = ({ contentId, hasContent, onContentUpdated }: AeoTabProps) => {
 
   if (!hasContent) {
     return (
-      <Card className="p-8 text-center">
-        <Brain className="h-8 w-8 text-muted-foreground mx-auto mb-3" />
-        <p className="text-sm text-muted-foreground">Generate content first to run AEO analysis.</p>
-      </Card>
+      <div className="relative rounded-2xl border border-border/50 bg-card/40 backdrop-blur-xl p-10 text-center shadow-lg">
+        <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-primary/5 via-transparent to-accent/5 pointer-events-none" />
+        <Brain className="h-10 w-10 text-muted-foreground mx-auto mb-4 drop-shadow-lg" />
+        <p className="text-sm text-muted-foreground font-medium">Generate content first to run AEO analysis.</p>
+      </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Actions */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <Button onClick={handleScore} disabled={isBusy} size="sm">
+      {/* Actions — frosted glass toolbar */}
+      <div className="flex items-center gap-2.5 flex-wrap rounded-xl border border-border/40 bg-card/30 backdrop-blur-xl p-3 shadow-sm">
+        <Button onClick={handleScore} disabled={isBusy} size="sm" className="shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">
           {scoring ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Brain className="mr-1.5 h-3.5 w-3.5" />}
           {score ? "Re-score AEO" : "Run AEO Score"}
         </Button>
-        <Button onClick={handleGenerateBlocks} disabled={isBusy} size="sm" variant="outline">
+        <Button onClick={handleGenerateBlocks} disabled={isBusy} size="sm" variant="outline" className="shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 border-border/50 bg-card/50 backdrop-blur-sm">
           {generating ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Sparkles className="mr-1.5 h-3.5 w-3.5" />}
           Generate Answer Blocks
         </Button>
         {score && lowCount > 0 && (
-          <Button onClick={handleFixAll} disabled={isBusy} size="sm" variant="secondary" className="ml-auto">
+          <Button onClick={handleFixAll} disabled={isBusy} size="sm" variant="secondary" className="ml-auto shadow-md hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5 bg-warning/10 border border-warning/30 text-warning hover:bg-warning/20">
             {fixingDim ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Zap className="mr-1.5 h-3.5 w-3.5" />}
             Fix All Below {THRESHOLD} ({lowCount})
           </Button>
@@ -181,83 +186,138 @@ const AeoTab = ({ contentId, hasContent, onContentUpdated }: AeoTabProps) => {
 
       {score && (
         <>
-          {/* Overall score */}
-          <Card className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold text-foreground">AEO Score</h3>
-              <span className={`text-3xl font-bold ${scoreColor(score.overall_score)}`}>
-                {score.overall_score}
-              </span>
+          {/* Overall score — premium glass card */}
+          <div className={`relative overflow-hidden rounded-2xl border border-border/40 bg-card/30 backdrop-blur-xl p-6 shadow-lg transition-all duration-500 hover:shadow-xl hover:-translate-y-0.5 ${scoreGlow(score.overall_score)}`}>
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 pointer-events-none" />
+            <div className="absolute -top-20 -right-20 w-40 h-40 rounded-full bg-primary/5 blur-3xl pointer-events-none" />
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-primary/10 backdrop-blur-sm">
+                    <Shield className="h-4 w-4 text-primary" />
+                  </div>
+                  <h3 className="text-sm font-bold text-foreground tracking-wide uppercase">AEO Score</h3>
+                </div>
+                <div className="flex items-center gap-2">
+                  <TrendingUp className={`h-4 w-4 ${scoreColor(score.overall_score)}`} />
+                  <span className={`text-4xl font-bold font-mono tracking-tighter ${scoreColor(score.overall_score)} drop-shadow-sm`}>
+                    {score.overall_score}
+                  </span>
+                  <span className="text-sm text-muted-foreground font-medium">/100</span>
+                </div>
+              </div>
+              <Progress value={score.overall_score} className="h-2.5 rounded-full" />
+              <p className="text-xs text-muted-foreground mt-3 leading-relaxed">
+                {score.overall_score >= 80 ? "Excellent — content is well-optimized for AI extraction." :
+                  score.overall_score >= 50 ? "Good — some improvements recommended for better AI visibility." :
+                    "Needs work — significant improvements needed for AI search readiness."}
+              </p>
             </div>
-            <Progress value={score.overall_score} className="h-2" />
-            <p className="text-xs text-muted-foreground mt-2">
-              {score.overall_score >= 80 ? "Excellent — content is well-optimized for AI extraction." :
-                score.overall_score >= 50 ? "Good — some improvements recommended for better AI visibility." :
-                  "Needs work — significant improvements needed for AI search readiness."}
-            </p>
-          </Card>
+          </div>
 
-          {/* Dimension breakdown with fix buttons */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-            {dimensions.map((dim) => {
+          {/* Dimension breakdown — floating glass cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            {dimensions.map((dim, i) => {
               const val = score.scores[dim.key] || 0;
               const belowThreshold = val < THRESHOLD;
               const isFixing = fixingDim === dim.key;
               return (
-                <Card key={dim.key} className={`p-4 relative ${belowThreshold ? "border-warning/40" : ""}`}>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm">{dim.icon}</span>
-                    <span className={`text-lg font-bold ${scoreColor(val)}`}>{val}</span>
+                <div
+                  key={dim.key}
+                  className={`
+                    group relative overflow-hidden rounded-xl border backdrop-blur-xl p-5
+                    transition-all duration-500 ease-out
+                    hover:-translate-y-1.5 hover:shadow-xl
+                    animate-slide-in
+                    ${belowThreshold
+                      ? "border-warning/30 bg-warning/5 shadow-[0_4px_20px_hsl(38_92%_60%/0.08)]"
+                      : "border-border/40 bg-card/30 shadow-md"
+                    }
+                  `}
+                  style={{ animationDelay: `${i * 100}ms` }}
+                >
+                  {/* Glass highlight */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-foreground/[0.02] via-transparent to-transparent pointer-events-none" />
+                  <div className="absolute -top-10 -right-10 w-20 h-20 rounded-full bg-primary/5 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+
+                  <div className="relative z-10">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-lg drop-shadow-sm">{dim.icon}</span>
+                      <span className={`text-2xl font-bold font-mono tracking-tight ${scoreColor(val)} drop-shadow-sm transition-transform duration-300 group-hover:scale-110`}>
+                        {val}
+                      </span>
+                    </div>
+                    <p className="text-xs font-semibold text-foreground tracking-wide">{dim.label}</p>
+                    <p className="text-[10px] text-muted-foreground mt-0.5 font-medium">{dim.weight} weight</p>
+                    <div className="mt-3 relative">
+                      <div className="h-1.5 rounded-full bg-muted/50 overflow-hidden">
+                        <div
+                          className={`h-full rounded-full transition-all duration-700 ease-out ${
+                            val >= 80 ? "bg-success" : val >= 50 ? "bg-warning" : "bg-destructive"
+                          }`}
+                          style={{ width: `${val}%` }}
+                        />
+                      </div>
+                    </div>
+                    {belowThreshold && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="w-full mt-3.5 h-8 text-[11px] font-semibold text-warning hover:text-warning-foreground hover:bg-warning/20 gap-1.5 rounded-lg border border-warning/20 backdrop-blur-sm transition-all duration-300 hover:shadow-md hover:-translate-y-0.5"
+                        disabled={isBusy}
+                        onClick={() => handleFixDimension(dim.key, dim.label)}
+                      >
+                        {isFixing ? (
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                        ) : (
+                          <Wrench className="h-3 w-3" />
+                        )}
+                        {isFixing ? "Fixing…" : "AI Fix"}
+                      </Button>
+                    )}
                   </div>
-                  <p className="text-xs font-medium text-foreground">{dim.label}</p>
-                  <p className="text-[10px] text-muted-foreground">{dim.weight} weight</p>
-                  <Progress value={val} className="h-1 mt-2" />
-                  {belowThreshold && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="w-full mt-3 h-7 text-[11px] text-warning hover:text-warning hover:bg-warning/10 gap-1.5"
-                      disabled={isBusy}
-                      onClick={() => handleFixDimension(dim.key, dim.label)}
-                    >
-                      {isFixing ? (
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                      ) : (
-                        <Wrench className="h-3 w-3" />
-                      )}
-                      {isFixing ? "Fixing…" : "AI Fix"}
-                    </Button>
-                  )}
-                </Card>
+                </div>
               );
             })}
           </div>
 
-          {/* Recommendations */}
+          {/* Recommendations — frosted glass list */}
           {score.recommendations?.length > 0 && (
-            <div>
-              <h3 className="text-sm font-semibold text-foreground mb-3">Recommendations</h3>
-              <div className="space-y-2">
+            <div className="space-y-3">
+              <h3 className="text-sm font-bold text-foreground tracking-wide uppercase flex items-center gap-2">
+                <div className="w-1 h-4 rounded-full bg-primary" />
+                Recommendations
+              </h3>
+              <div className="space-y-2.5">
                 {score.recommendations.map((rec, i) => (
-                  <Card key={i} className="p-4">
-                    <div className="flex items-start gap-3">
+                  <div
+                    key={i}
+                    className="group relative overflow-hidden rounded-xl border border-border/40 bg-card/30 backdrop-blur-xl p-4 shadow-sm transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 animate-slide-in"
+                    style={{ animationDelay: `${i * 60}ms` }}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-foreground/[0.01] via-transparent to-transparent pointer-events-none" />
+                    <div className="relative z-10 flex items-start gap-3">
                       {rec.priority === "high" ? (
-                        <AlertTriangle className="h-4 w-4 text-destructive mt-0.5 shrink-0" />
+                        <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-destructive/10 shrink-0 mt-0.5">
+                          <AlertTriangle className="h-3.5 w-3.5 text-destructive" />
+                        </div>
                       ) : (
-                        <CheckCircle2 className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
+                        <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-muted/50 shrink-0 mt-0.5">
+                          <CheckCircle2 className="h-3.5 w-3.5 text-muted-foreground" />
+                        </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1 flex-wrap">
-                          <span className="text-xs font-semibold text-foreground">{rec.issue}</span>
-                          <Badge variant="outline" className={`text-[10px] ${priorityColors[rec.priority] || ""}`}>
+                        <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                          <span className="text-xs font-bold text-foreground">{rec.issue}</span>
+                          <Badge variant="outline" className={`text-[10px] font-semibold ${priorityColors[rec.priority] || ""}`}>
                             {rec.priority}
                           </Badge>
-                          <Badge variant="outline" className="text-[10px]">{rec.dimension}</Badge>
+                          <Badge variant="outline" className="text-[10px] font-medium bg-card/50 backdrop-blur-sm">{rec.dimension}</Badge>
                         </div>
-                        <p className="text-xs text-muted-foreground">{rec.fix}</p>
+                        <p className="text-xs text-muted-foreground leading-relaxed">{rec.fix}</p>
                       </div>
                     </div>
-                  </Card>
+                  </div>
                 ))}
               </div>
             </div>

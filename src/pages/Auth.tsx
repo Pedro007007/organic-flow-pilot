@@ -97,8 +97,8 @@ const Auth = () => {
               "Track rankings and AI citations",
               "Automated content pipeline",
             ].map((item) => (
-              <li key={item} className="flex items-center gap-3 text-blue-100/80 text-sm">
-                <span className="h-2 w-2 rounded-full bg-purple-400 shrink-0" />
+              <li key={item} className="flex items-center gap-3 text-muted-foreground text-sm">
+                <span className="h-2 w-2 rounded-full bg-purple-500 shrink-0" />
                 {item}
               </li>
             ))}
@@ -106,8 +106,8 @@ const Auth = () => {
         </div>
 
         {/* Testimonial */}
-        <div className="rounded-xl p-5" style={{ background: "hsl(235 55% 20%)" }}>
-          <p className="text-blue-100/80 text-sm italic mb-4">
+        <div className="rounded-xl p-5 border border-border bg-muted/40">
+          <p className="text-muted-foreground text-sm italic mb-4">
             "Searchera helped me rank 3 new pages in my first month. The AI content tools are incredibly fast and always produce quality results."
           </p>
           <div className="flex items-center gap-3">
@@ -116,19 +116,19 @@ const Auth = () => {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-white text-sm font-medium">James Mitchell</span>
+                <span className="text-foreground text-sm font-medium">James Mitchell</span>
                 <div className="flex gap-0.5">
                   {[...Array(5)].map((_, i) => (
                     <Star key={i} className="h-3 w-3 fill-yellow-400 text-yellow-400" />
                   ))}
                 </div>
               </div>
-              <span className="text-blue-200/60 text-xs">Digital Marketing Manager</span>
+              <span className="text-muted-foreground text-xs">Digital Marketing Manager</span>
             </div>
           </div>
         </div>
 
-        <p className="text-blue-200/40 text-xs mt-6">© 2026 Searchera</p>
+        <p className="text-muted-foreground/50 text-xs mt-6">© 2026 Searchera</p>
       </div>
 
       {/* Right Panel - Auth Form */}

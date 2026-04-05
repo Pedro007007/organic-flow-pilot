@@ -148,6 +148,9 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* Powered By */}
+      <PoweredBySection />
+
       {/* SEO to AEO Shift */}
       <SeoToAeoShift />
 

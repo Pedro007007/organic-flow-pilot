@@ -8,6 +8,7 @@ import SeoToAeoShift from "@/components/SeoToAeoShift";
 import PoweredBySection from "@/components/PoweredBySection";
 import DanielaChat from "@/components/DanielaChat";
 import ProductWalkthrough from "@/components/ProductWalkthrough";
+import AeoTooltip from "@/components/AeoTooltip";
 
 const features = [
   { icon: Search, title: "Keyword Discovery", desc: "Uncover high-impact keywords with AI-driven analysis of your search landscape. Target positions 8–30 for maximum growth.", color: "bg-gradient-to-br from-red-500 to-orange-500", badge: "AVAILABLE" },
@@ -91,7 +92,7 @@ const Landing = () => {
             <div className="text-center lg:text-left flex flex-col items-center lg:items-start">
               <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-4 py-1.5 text-sm font-bold text-blue-700 mb-8">
                 <Zap className="h-3.5 w-3.5" />
-                AI-Powered SEO & AEO Platform
+                AI-Powered SEO & <AeoTooltip /> Platform
               </div>
               <h1 className="text-4xl font-black tracking-tight sm:text-5xl lg:text-[3.2rem] xl:text-[3.5rem] leading-[1.2]">
                 Get Cited by AI

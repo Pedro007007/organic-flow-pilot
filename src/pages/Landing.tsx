@@ -74,7 +74,7 @@ const Landing = () => {
             <Link to="/auth">Sign In</Link>
           </Button>
           <Button size="sm" className="bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-700 hover:to-teal-600 text-white border-0 shadow-lg shadow-blue-500/25 font-bold" asChild>
-            <Link to="/auth">Get Started</Link>
+            <Link to="/contact">Book a Demo</Link>
           </Button>
         </div>
       </div>
@@ -104,18 +104,18 @@ const Landing = () => {
               </p>
               <div className="mt-10 flex flex-wrap items-center justify-center lg:justify-start gap-4">
                 <Button size="lg" className="bg-[length:200%_auto] animate-gradient bg-gradient-to-r from-blue-600 via-green-400 to-blue-600 text-white border-0 shadow-xl shadow-green-500/30 h-13 px-10 text-base font-bold hover:opacity-90" asChild>
-                  <Link to="/auth">
-                    Start Free Trial <ArrowRight className="ml-1 h-4 w-4" />
+                  <Link to="/contact">
+                    Book a Strategy Call <ArrowRight className="ml-1 h-4 w-4" />
                   </Link>
                 </Button>
                 <Button variant="outline" size="lg" className="border-gray-300 text-gray-700 hover:bg-gray-50 h-13 px-8 text-base font-bold gap-2" asChild>
-                  <a href="#how-it-works">
+                  <Link to="/auth">
                     <Play className="h-4 w-4 text-blue-600" />
-                    Watch 2-min Demo
-                  </a>
+                    Start 7-Day Pilot
+                  </Link>
                 </Button>
               </div>
-              <p className="mt-5 text-sm text-gray-500 font-bold">Plans from $699/mo · No credit card required · Cancel anytime</p>
+              <p className="mt-5 text-sm text-gray-500 font-bold">No commitment · Tailored to your domain · Cancel anytime</p>
             </div>
 
             {/* Right: Video */}
@@ -281,18 +281,24 @@ const Landing = () => {
       </section>
 
       {/* CTA */}
-      <section className="bg-gradient-to-r from-blue-600 to-teal-500 py-20">
-        <div className="mx-auto max-w-4xl px-6 text-center">
-          <h2 className="text-3xl font-black text-white sm:text-4xl">Ready to Dominate SEO & AEO?</h2>
-          <p className="mt-4 text-lg text-blue-100 max-w-xl mx-auto font-medium">Join thousands of marketers growing organic traffic and AI search visibility with Searchera's intelligent platform.</p>
+      <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 py-24">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_30%,rgba(59,130,246,0.2),transparent_60%)]" />
+        <div className="relative mx-auto max-w-4xl px-6 text-center">
+          <h2 className="text-3xl font-black text-white sm:text-4xl lg:text-5xl">Ready to Own AI Search?</h2>
+          <p className="mt-5 text-lg text-blue-200 max-w-2xl mx-auto font-medium leading-relaxed">Talk to our team to see how Searchera can drive rankings and AI citations for your specific domain — or jump straight in with a 7-day pilot.</p>
           <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-            <Button size="lg" className="bg-white text-blue-700 hover:bg-blue-50 border-0 shadow-xl h-12 px-8 text-base font-black" asChild>
+            <Button size="lg" className="bg-white text-blue-700 hover:bg-blue-50 border-0 shadow-xl h-13 px-10 text-base font-black" asChild>
+              <Link to="/contact">
+                Book a Strategy Call <ArrowRight className="ml-1 h-4 w-4" />
+              </Link>
+            </Button>
+            <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10 h-13 px-8 text-base font-bold" asChild>
               <Link to="/auth">
-                Get Started <ArrowRight className="ml-1 h-4 w-4" />
+                Start 7-Day Pilot
               </Link>
             </Button>
           </div>
-          <p className="mt-4 text-sm text-blue-200 font-semibold">Plans from $699/mo</p>
+          <p className="mt-5 text-sm text-blue-300/80 font-semibold">No commitment required · Tailored to your domain</p>
         </div>
       </section>
     </main>

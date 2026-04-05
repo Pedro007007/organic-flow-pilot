@@ -142,7 +142,7 @@ export default function SaasOwnerDashboard() {
         />
         <KpiCard
           title="Total Revenue"
-          value={`$${data.total_revenue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
+          value={`$${(data.total_revenue ?? 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
           icon={<DollarSign className="h-4 w-4" />}
           color="text-primary"
           bgColor="bg-primary/10"

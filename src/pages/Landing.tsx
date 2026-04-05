@@ -317,7 +317,7 @@ const Landing = () => {
                 Book a Strategy Call <ArrowRight className="ml-1 h-4 w-4" />
               </Link>
             </Button>
-            <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10 h-13 px-8 text-base font-bold" asChild>
+            <Button size="lg" className="bg-white text-gray-900 hover:bg-gray-100 border-0 h-13 px-8 text-base font-bold shadow-lg" asChild>
               <Link to="/auth">
                 Sign Up Now
               </Link>

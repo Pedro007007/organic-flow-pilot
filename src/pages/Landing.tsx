@@ -92,10 +92,10 @@ const Landing = () => {
                 <Zap className="h-3.5 w-3.5" />
                 AI-Powered SEO & AEO Platform
               </div>
-              <h1 className="text-4xl font-black tracking-tight sm:text-5xl lg:text-[3.5rem] xl:text-6xl leading-[1.15]">
+              <h1 className="text-4xl font-black tracking-tight sm:text-5xl lg:text-[3.2rem] xl:text-[3.5rem] leading-[1.2]">
                 Get Cited by AI
                 <br />
-                <span className="inline-block bg-[length:200%_auto] animate-gradient bg-gradient-to-r from-red-600 via-orange-500 to-red-600 bg-clip-text text-transparent pb-1 [text-shadow:0_0_40px_rgba(239,68,68,0.5),0_0_80px_rgba(239,68,68,0.3)] animate-[gradient_3s_ease_infinite,pulse_2s_ease-in-out_infinite]">
+                <span className="inline-block bg-[length:200%_auto] animate-gradient bg-gradient-to-r from-red-600 via-orange-500 to-red-600 bg-clip-text text-transparent pb-2 [text-shadow:0_0_40px_rgba(239,68,68,0.5),0_0_80px_rgba(239,68,68,0.3)] animate-[gradient_3s_ease_infinite,pulse_2s_ease-in-out_infinite]">
                   & Rank on Google
                 </span>
               </h1>

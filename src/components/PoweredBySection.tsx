@@ -1,11 +1,16 @@
 import { Shield } from "lucide-react";
+import logoGsc from "@/assets/logo-gsc.png";
+import logoGoogleAi from "@/assets/logo-google-ai.png";
+import logoOpenai from "@/assets/logo-openai.png";
+import logoPerplexity from "@/assets/logo-perplexity.png";
+import logoSchema from "@/assets/logo-schema.png";
 
 const integrations = [
-  { name: "Google Search Console", desc: "Real search data" },
-  { name: "Google AI Overviews", desc: "AI citation tracking" },
-  { name: "OpenAI / ChatGPT", desc: "Content & analysis" },
-  { name: "Perplexity AI", desc: "Answer monitoring" },
-  { name: "Schema.org", desc: "Structured data" },
+  { name: "Google Search Console", desc: "Real search data", logo: logoGsc },
+  { name: "Google AI Overviews", desc: "AI citation tracking", logo: logoGoogleAi },
+  { name: "OpenAI / ChatGPT", desc: "Content & analysis", logo: logoOpenai },
+  { name: "Perplexity AI", desc: "Answer monitoring", logo: logoPerplexity },
+  { name: "Schema.org", desc: "Structured data", logo: logoSchema },
 ];
 
 const PoweredBySection = () => {
@@ -27,11 +32,14 @@ const PoweredBySection = () => {
               key={item.name}
               className="flex items-center gap-3 rounded-xl border border-gray-150 bg-gray-50/60 px-5 py-3.5 hover:border-gray-300 hover:bg-white hover:shadow-sm transition-all duration-200"
             >
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-gray-100 to-gray-200 shrink-0">
-                <span className="text-xs font-black text-gray-500">
-                  {item.name.split(" ")[0][0]}{item.name.split(" ").length > 1 ? item.name.split(" ")[1][0] : ""}
-                </span>
-              </div>
+              <img
+                src={item.logo}
+                alt={item.name}
+                className="h-8 w-8 object-contain shrink-0"
+                loading="lazy"
+                width={32}
+                height={32}
+              />
               <div>
                 <p className="text-sm font-bold text-gray-800 leading-tight">{item.name}</p>
                 <p className="text-[11px] font-medium text-gray-400">{item.desc}</p>

@@ -16,8 +16,8 @@ const DanielaSection = ({ onOpenChat }: DanielaSectionProps) => {
           <div className="flex flex-col items-center lg:items-center">
             <div className="relative">
               {/* Glow ring */}
-              <div className="absolute -inset-4 rounded-full bg-gradient-to-r from-blue-500 to-teal-400 opacity-30 blur-xl animate-pulse" />
-              <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-blue-500 to-teal-400 opacity-60" />
+              <div className="absolute -inset-4 rounded-full bg-gradient-to-r from-red-500 to-orange-400 opacity-30 blur-xl animate-pulse" />
+              <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-red-500 to-orange-400 opacity-60" />
               <img
                 src={danielaAvatar}
                 alt="Daniela — AI SEO Expert"
@@ -61,7 +61,7 @@ const DanielaSection = ({ onOpenChat }: DanielaSectionProps) => {
             <Button
               onClick={onOpenChat}
               size="lg"
-              className="mt-8 bg-gradient-to-r from-blue-500 to-teal-400 hover:from-blue-600 hover:to-teal-500 text-white border-0 shadow-xl shadow-teal-500/20 h-12 px-8 text-base font-black"
+              className="mt-8 bg-gradient-to-r from-red-500 to-orange-400 hover:from-blue-600 hover:to-teal-500 text-white border-0 shadow-xl shadow-orange-500/20 h-12 px-8 text-base font-black"
             >
               Chat with Daniela <ArrowRight className="ml-1 h-4 w-4" />
             </Button>

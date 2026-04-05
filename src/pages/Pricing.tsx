@@ -65,25 +65,25 @@ const tierIcons: Record<TierKey, React.ReactNode> = {
 
 const tierColors: Record<TierKey, { border: string; bg: string; text: string; badge: string; button: string }> = {
   basic: {
-    border: "border-emerald-500/30",
-    bg: "bg-emerald-500/5",
-    text: "text-emerald-400",
-    badge: "bg-emerald-500/20 text-emerald-300",
-    button: "bg-emerald-600 hover:bg-emerald-700 text-white",
+    border: "border-red-500/30",
+    bg: "bg-red-500/5",
+    text: "text-red-400",
+    badge: "bg-red-500/20 text-red-300",
+    button: "bg-red-600 hover:bg-red-700 text-white",
   },
   pro: {
-    border: "border-blue-500/30",
+    border: "border-red-500/30",
     bg: "bg-red-500/5",
     text: "text-red-400",
     badge: "bg-red-500/20 text-red-300",
     button: "bg-red-600 hover:bg-red-700 text-white",
   },
   enterprise: {
-    border: "border-red-500/30",
-    bg: "bg-red-500/5",
-    text: "text-red-400",
-    badge: "bg-red-500/20 text-red-300",
-    button: "bg-red-600 hover:bg-red-700 text-white",
+    border: "border-orange-500/30",
+    bg: "bg-orange-500/5",
+    text: "text-orange-400",
+    badge: "bg-orange-500/20 text-orange-300",
+    button: "bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-700 hover:to-orange-600 text-white",
   },
 };
 

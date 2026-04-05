@@ -80,7 +80,7 @@ ${bodyHtml}
             <Button variant="ghost" size="sm" className="text-gray-700 hover:text-gray-900 font-bold" asChild>
               <Link to="/auth">Sign In</Link>
             </Button>
-            <Button size="sm" className="bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-700 hover:to-teal-600 text-white border-0 shadow-lg shadow-blue-500/25 font-bold" asChild>
+            <Button size="sm" className="bg-gradient-to-r from-red-600 to-red-500 hover:from-blue-700 hover:to-teal-600 text-white border-0 shadow-lg shadow-red-500/25 font-bold" asChild>
               <Link to="/auth">Get Started</Link>
             </Button>
           </div>
@@ -102,7 +102,7 @@ ${bodyHtml}
           <div className="mx-auto max-w-3xl px-6 py-24 text-center">
             <h1 className="text-3xl font-black text-gray-900">Article Not Found</h1>
             <p className="mt-4 text-gray-600">The article you're looking for doesn't exist or hasn't been published yet.</p>
-            <Button className="mt-8 bg-gradient-to-r from-blue-600 to-teal-500 text-white border-0 font-bold" asChild>
+            <Button className="mt-8 bg-gradient-to-r from-red-600 to-red-500 text-white border-0 font-bold" asChild>
               <Link to="/blog"><ArrowLeft className="mr-2 h-4 w-4" /> Back to Blog</Link>
             </Button>
           </div>
@@ -111,7 +111,7 @@ ${bodyHtml}
         {post && (
           <article className="mx-auto max-w-3xl px-6 py-12">
             {/* Back link */}
-            <Link to="/blog" className="inline-flex items-center gap-1 text-sm font-bold text-blue-600 hover:underline mb-8">
+            <Link to="/blog" className="inline-flex items-center gap-1 text-sm font-bold text-red-600 hover:underline mb-8">
               <ArrowLeft className="h-4 w-4" /> Back to Blog
             </Link>
 
@@ -152,9 +152,9 @@ ${bodyHtml}
               prose-p:text-gray-700 prose-p:leading-relaxed
               prose-strong:text-gray-900
               prose-ul:text-gray-700 prose-ol:text-gray-700
-              prose-a:text-blue-600 hover:prose-a:underline
+              prose-a:text-red-600 hover:prose-a:underline
               prose-blockquote:border-blue-500 prose-blockquote:text-gray-600 prose-blockquote:italic
-              prose-code:text-blue-700 prose-code:bg-gray-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded
+              prose-code:text-red-700 prose-code:bg-gray-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded
               prose-pre:bg-gray-50 prose-pre:border prose-pre:border-gray-200 prose-pre:rounded-lg
               prose-img:rounded-lg
             ">

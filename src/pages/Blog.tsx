@@ -38,7 +38,7 @@ const Blog = () => {
             <Button variant="ghost" size="sm" className="text-gray-700 hover:text-gray-900 font-bold" asChild>
               <Link to="/auth">Sign In</Link>
             </Button>
-            <Button size="sm" className="bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-700 hover:to-teal-600 text-white border-0 shadow-lg shadow-blue-500/25 font-bold" asChild>
+            <Button size="sm" className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white border-0 shadow-lg shadow-red-500/25 font-bold" asChild>
               <Link to="/auth">Get Started</Link>
             </Button>
           </div>
@@ -51,7 +51,7 @@ const Blog = () => {
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,rgba(59,130,246,0.08),transparent_50%)]" />
           <div className="relative mx-auto max-w-6xl px-6 text-center">
             <h1 className="text-4xl font-black tracking-tight sm:text-5xl">
-              The Searchera <span className="bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent">SEO & AEO Blog</span>
+              The Searchera <span className="bg-gradient-to-r from-red-600 to-red-500 bg-clip-text text-transparent">SEO & AEO Blog</span>
             </h1>
             <p className="mt-4 text-lg text-gray-600 max-w-2xl mx-auto font-medium">
               Expert insights on Search Engine Optimization, Answer Engine Optimization, AI search, content strategy, and everything you need to dominate modern search.
@@ -101,18 +101,18 @@ const Blog = () => {
                       ) : (
                         <>
                           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_50%,rgba(59,130,246,0.2),transparent_70%)]" />
-                          <FileText className="h-16 w-16 text-teal-400/60" />
+                          <FileText className="h-16 w-16 text-red-400/60" />
                         </>
                       )}
                     </div>
                     <div className="p-6">
                       <div className="flex items-center gap-3 mb-3">
-                        <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 border border-blue-200 px-2.5 py-0.5 text-xs font-bold text-blue-700">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-red-50 border border-red-200 px-2.5 py-0.5 text-xs font-bold text-red-700">
                           <Tag className="h-3 w-3" />
                           {post.keyword}
                         </span>
                       </div>
-                      <h2 className="text-lg font-black text-gray-900 leading-snug group-hover:text-blue-600 transition-colors">
+                      <h2 className="text-lg font-black text-gray-900 leading-snug group-hover:text-red-600 transition-colors">
                         {post.seo_title || post.title}
                       </h2>
                       {post.meta_description && (
@@ -125,7 +125,7 @@ const Blog = () => {
                           <Calendar className="h-3 w-3" />
                           {new Date(post.updated_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}
                         </span>
-                        <span className="text-sm font-bold text-blue-600 group-hover:underline flex items-center gap-1">
+                        <span className="text-sm font-bold text-red-600 group-hover:underline flex items-center gap-1">
                           Read More <ArrowRight className="h-3 w-3" />
                         </span>
                       </div>
@@ -138,11 +138,11 @@ const Blog = () => {
         </section>
 
         {/* CTA */}
-        <section className="bg-gradient-to-r from-blue-600 to-teal-500 py-16">
+        <section className="bg-gradient-to-r from-red-600 to-red-500 py-16">
           <div className="mx-auto max-w-4xl px-6 text-center">
             <h2 className="text-3xl font-black text-white sm:text-4xl">Start Ranking on Google & AI Search Today</h2>
             <p className="mt-4 text-lg text-blue-100 max-w-xl mx-auto font-medium">Put these SEO & AEO strategies into action with Searchera's AI-powered platform.</p>
-            <Button size="lg" className="mt-8 bg-white text-blue-700 hover:bg-blue-50 border-0 shadow-xl h-12 px-8 text-base font-black" asChild>
+            <Button size="lg" className="mt-8 bg-white text-red-700 hover:bg-red-50 border-0 shadow-xl h-12 px-8 text-base font-black" asChild>
               <Link to="/auth">
                 Get Started <ArrowRight className="ml-1 h-4 w-4" />
               </Link>

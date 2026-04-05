@@ -172,7 +172,7 @@ const About = () => {
           </nav>
           <Button
             size="sm"
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold"
+            className="bg-red-600 hover:bg-red-700 text-white font-bold"
             asChild
           >
             <Link to="/auth">Get Started</Link>
@@ -181,18 +181,18 @@ const About = () => {
       </header>
 
       {/* Hero */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-gray-50 via-white to-blue-50 py-24 sm:py-32">
+      <section className="relative overflow-hidden bg-gradient-to-br from-gray-50 via-white to-red-50/30 py-24 sm:py-32">
         <div className="absolute inset-0 opacity-[0.03]">
           <div className="absolute inset-0" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, currentColor 1px, transparent 0)", backgroundSize: "40px 40px" }} />
         </div>
         <div className="relative mx-auto max-w-4xl px-6 text-center">
-          <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 border border-blue-200 px-4 py-1.5 text-xs font-bold text-blue-700 mb-6">
+          <div className="inline-flex items-center gap-2 rounded-full bg-red-50 border border-red-200 px-4 py-1.5 text-xs font-bold text-red-700 mb-6">
             <Zap className="h-3.5 w-3.5" />
             ABOUT SEARCHERA
           </div>
           <h1 className="text-4xl font-black tracking-tight text-gray-900 sm:text-5xl lg:text-6xl leading-[1.1]">
             The AI Platform Built to{" "}
-            <span className="bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-red-600 to-red-500 bg-clip-text text-transparent">
               Dominate Search
             </span>
           </h1>
@@ -225,7 +225,7 @@ const About = () => {
                 <strong>both</strong> traditional search and AI answer engines.
               </p>
             </div>
-            <div className="rounded-2xl bg-gradient-to-br from-blue-600 to-teal-500 p-8 text-white">
+            <div className="rounded-2xl bg-gradient-to-br from-red-600 to-red-500 p-8 text-white">
               <h3 className="text-lg font-black">By the Numbers</h3>
               <div className="mt-6 grid grid-cols-2 gap-6">
                 <div>
@@ -277,7 +277,7 @@ const About = () => {
                 className="rounded-xl border border-gray-200 bg-white p-6 hover:shadow-lg transition-shadow"
               >
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-50 text-red-600">
                     <v.icon className="h-5 w-5" />
                   </div>
                   <h3 className="font-bold text-gray-900">{v.title}</h3>
@@ -309,7 +309,7 @@ const About = () => {
                 key={t.title}
                 className="rounded-xl border border-gray-200 bg-gray-50 p-6 text-center"
               >
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-blue-600 mb-4">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-600 mb-4">
                   <t.icon className="h-6 w-6" />
                 </div>
                 <h3 className="font-bold text-gray-900">{t.title}</h3>
@@ -353,7 +353,7 @@ const About = () => {
       </section>
 
       {/* CTA */}
-      <section className="bg-gradient-to-r from-blue-600 to-teal-500 py-20">
+      <section className="bg-gradient-to-r from-red-600 to-red-500 py-20">
         <div className="mx-auto max-w-4xl px-6 text-center">
           <h2 className="text-3xl font-black text-white sm:text-4xl">
             Ready to Transform Your Search Visibility?
@@ -365,7 +365,7 @@ const About = () => {
           <div className="mt-10">
             <Button
               size="lg"
-              className="bg-white text-blue-700 hover:bg-blue-50 border-0 shadow-xl h-12 px-8 text-base font-black"
+              className="bg-white text-red-700 hover:bg-red-50 border-0 shadow-xl h-12 px-8 text-base font-black"
               asChild
             >
               <Link to="/auth">

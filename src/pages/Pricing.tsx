@@ -73,10 +73,10 @@ const tierColors: Record<TierKey, { border: string; bg: string; text: string; ba
   },
   pro: {
     border: "border-blue-500/30",
-    bg: "bg-blue-500/5",
-    text: "text-blue-400",
-    badge: "bg-blue-500/20 text-blue-300",
-    button: "bg-blue-600 hover:bg-blue-700 text-white",
+    bg: "bg-red-500/5",
+    text: "text-red-400",
+    badge: "bg-red-500/20 text-red-300",
+    button: "bg-red-600 hover:bg-red-700 text-white",
   },
   enterprise: {
     border: "border-red-500/30",
@@ -146,7 +146,7 @@ export default function Pricing() {
                   className={`relative overflow-hidden transition-all duration-300 hover:scale-[1.02] ${colors.border} ${colors.bg} ${isPro ? "ring-2 ring-blue-500/50 shadow-lg shadow-blue-500/10" : ""}`}
                 >
                   {isPro && (
-                    <div className="absolute top-0 right-0 px-3 py-1 bg-blue-600 text-white text-xs font-bold rounded-bl-lg">
+                    <div className="absolute top-0 right-0 px-3 py-1 bg-red-600 text-white text-xs font-bold rounded-bl-lg">
                       MOST POPULAR
                     </div>
                   )}

@@ -90,7 +90,7 @@ const Landing = () => {
           <div className="grid lg:grid-cols-2 gap-16 items-center">
             {/* Left: Hero Text */}
             <div className="text-center lg:text-left flex flex-col items-center lg:items-start">
-              <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-4 py-1.5 text-sm font-bold text-blue-700 mb-8">
+              <div className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-4 py-1.5 text-sm font-bold text-red-700 mb-8">
                 <Zap className="h-3.5 w-3.5" />
                 AI-Powered SEO & <AeoTooltip /> Platform
               </div>

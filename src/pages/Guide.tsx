@@ -76,7 +76,7 @@ const guideSections: GuideSection[] = [
   },
   {
     id: "content", step: "D", title: "Content Pipeline", icon: FileText,
-    color: "from-emerald-500 to-teal-500", category: "content-engine",
+    color: "from-red-500 to-orange-500", category: "content-engine",
     summary: "Create, generate, and optimize SEO content from draft to published.",
     details: [
       "Click 'New Content' and enter your target keyword.",
@@ -88,7 +88,7 @@ const guideSections: GuideSection[] = [
   },
   {
     id: "agents", step: "E", title: "Agent Pipeline", icon: Bot,
-    color: "from-blue-500 to-indigo-500", category: "content-engine",
+    color: "from-red-600 to-red-500", category: "content-engine",
     summary: "Automate the entire workflow with AI agents.",
     details: [
       "Open Agents to see the 7-stage automation pipeline.",
@@ -100,7 +100,7 @@ const guideSections: GuideSection[] = [
   },
   {
     id: "calendar", step: "F", title: "Content Calendar", icon: CalendarDays,
-    color: "from-cyan-500 to-teal-500", category: "content-engine",
+    color: "from-orange-500 to-red-500", category: "content-engine",
     summary: "Visualize your publishing schedule and ensure consistent output.",
     details: [
       "Calendar view shows all content items plotted by creation/publish date.",
@@ -111,7 +111,7 @@ const guideSections: GuideSection[] = [
   },
   {
     id: "checklist", step: "G", title: "SEO Checklist", icon: ListChecks,
-    color: "from-teal-500 to-cyan-500", category: "content-engine",
+    color: "from-red-500 to-orange-400", category: "content-engine",
     summary: "Ensure every piece meets SEO best practices before publishing.",
     details: [
       "Categorized SEO requirements per content item.",
@@ -122,7 +122,7 @@ const guideSections: GuideSection[] = [
   },
   {
     id: "rankings", step: "H", title: "Track Rankings", icon: TrendingUp,
-    color: "from-sky-500 to-blue-500", category: "intelligence",
+    color: "from-red-500 to-red-600", category: "intelligence",
     summary: "Monitor Google positions and AI engine citations.",
     details: [
       "See every published page tracked with its current Google position.",
@@ -212,8 +212,8 @@ const guideSections: GuideSection[] = [
 
 const categories = [
   { id: "getting-started", label: "Getting Started", color: "from-purple-500 to-pink-500", textColor: "text-purple-400" },
-  { id: "content-engine", label: "Content Engine", color: "from-emerald-500 to-teal-500", textColor: "text-emerald-400" },
-  { id: "intelligence", label: "Intelligence", color: "from-sky-500 to-blue-500", textColor: "text-sky-400" },
+  { id: "content-engine", label: "Content Engine", color: "from-red-500 to-orange-500", textColor: "text-red-400" },
+  { id: "intelligence", label: "Intelligence", color: "from-red-500 to-red-600", textColor: "text-orange-400" },
   { id: "business", label: "Business", color: "from-indigo-500 to-violet-500", textColor: "text-indigo-400" },
 ];
 

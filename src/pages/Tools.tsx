@@ -59,7 +59,7 @@ const MetaTagChecker = () => {
           className="flex-1 bg-white border-gray-300 text-gray-900 placeholder:text-gray-400"
           onKeyDown={(e) => e.key === "Enter" && analyze()}
         />
-        <Button onClick={analyze} disabled={loading || !url.trim()} className="bg-gradient-to-r from-blue-600 to-teal-500 text-white border-0 font-bold gap-2">
+        <Button onClick={analyze} disabled={loading || !url.trim()} className="bg-gradient-to-r from-red-600 to-red-500 text-white border-0 font-bold gap-2">
           {loading ? <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <Search className="h-4 w-4" />}
           Analyze
         </Button>
@@ -71,7 +71,7 @@ const MetaTagChecker = () => {
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="rounded-xl border border-gray-200 bg-white p-5">
             <div className="flex items-center gap-2 mb-3">
-              <Type className="h-4 w-4 text-blue-500" />
+              <Type className="h-4 w-4 text-red-500" />
               <span className="text-sm font-bold text-gray-900">Title Tag</span>
               <Badge variant="outline" className={`text-xs ${results.titleLen >= 30 && results.titleLen <= 60 ? "text-emerald-600 border-emerald-200 bg-emerald-50" : "text-amber-600 border-amber-200 bg-amber-50"}`}>
                 {results.titleLen} chars
@@ -87,7 +87,7 @@ const MetaTagChecker = () => {
 
           <div className="rounded-xl border border-gray-200 bg-white p-5">
             <div className="flex items-center gap-2 mb-3">
-              <FileText className="h-4 w-4 text-teal-500" />
+              <FileText className="h-4 w-4 text-red-500" />
               <span className="text-sm font-bold text-gray-900">Meta Description</span>
               <Badge variant="outline" className={`text-xs ${results.descLen >= 120 && results.descLen <= 160 ? "text-emerald-600 border-emerald-200 bg-emerald-50" : "text-amber-600 border-amber-200 bg-amber-50"}`}>
                 {results.descLen} chars
@@ -121,7 +121,7 @@ const MetaTagChecker = () => {
 
           <div className="rounded-xl border border-gray-200 bg-white p-5">
             <div className="flex items-center gap-2 mb-3">
-              <Globe className="h-4 w-4 text-blue-500" />
+              <Globe className="h-4 w-4 text-red-500" />
               <span className="text-sm font-bold text-gray-900">Technical SEO</span>
             </div>
             <div className="space-y-1.5 text-sm">
@@ -183,7 +183,7 @@ const KeywordDensityAnalyzer = () => {
       </div>
       <div className="flex items-center justify-between">
         <span className="text-xs text-gray-500 font-medium">{text.split(/\s+/).filter(Boolean).length} words</span>
-        <Button onClick={analyze} disabled={!text.trim()} className="bg-gradient-to-r from-blue-600 to-teal-500 text-white border-0 font-bold gap-2">
+        <Button onClick={analyze} disabled={!text.trim()} className="bg-gradient-to-r from-red-600 to-red-500 text-white border-0 font-bold gap-2">
           <Tag className="h-4 w-4" /> Analyze Density
         </Button>
       </div>
@@ -202,7 +202,7 @@ const KeywordDensityAnalyzer = () => {
               <div className="flex items-center justify-end gap-2">
                 <div className="w-16 h-1.5 bg-gray-100 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-gradient-to-r from-blue-500 to-teal-400 rounded-full"
+                    className="h-full bg-gradient-to-r from-red-500 to-orange-400 rounded-full"
                     style={{ width: `${Math.min(parseFloat(r.density) * 10, 100)}%` }}
                   />
                 </div>
@@ -238,7 +238,7 @@ const Tools = () => {
             <Button variant="ghost" size="sm" className="text-gray-700 hover:text-gray-900 font-bold" asChild>
               <Link to="/auth">Sign In</Link>
             </Button>
-            <Button size="sm" className="bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-700 hover:to-teal-600 text-white border-0 shadow-lg shadow-blue-500/25 font-bold" asChild>
+            <Button size="sm" className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white border-0 shadow-lg shadow-red-500/25 font-bold" asChild>
               <Link to="/auth">Get Started</Link>
             </Button>
           </div>
@@ -250,11 +250,11 @@ const Tools = () => {
         <section className="relative overflow-hidden bg-gradient-to-b from-slate-50 to-white py-16">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,rgba(59,130,246,0.08),transparent_50%)]" />
           <div className="relative mx-auto max-w-4xl px-6 text-center">
-            <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-4 py-1.5 text-sm font-bold text-blue-700 mb-6">
+            <div className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-4 py-1.5 text-sm font-bold text-red-700 mb-6">
               <Zap className="h-3.5 w-3.5" /> Instant Analysis · No Login Required
             </div>
             <h1 className="text-4xl font-black tracking-tight sm:text-5xl">
-              SEO <span className="bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent">Tools</span>
+              SEO <span className="bg-gradient-to-r from-red-600 to-red-500 bg-clip-text text-transparent">Tools</span>
             </h1>
             <p className="mt-4 text-lg text-gray-600 font-semibold max-w-2xl mx-auto">
               Instantly check your meta tags and analyze keyword density.
@@ -270,7 +270,7 @@ const Tools = () => {
                 onClick={() => setActiveTool("meta")}
                 className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-bold transition-all ${
                   activeTool === "meta"
-                    ? "bg-gradient-to-r from-blue-600 to-teal-500 text-white shadow-lg"
+                    ? "bg-gradient-to-r from-red-600 to-red-500 text-white shadow-lg"
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                 }`}
               >
@@ -280,7 +280,7 @@ const Tools = () => {
                 onClick={() => setActiveTool("density")}
                 className={`flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-bold transition-all ${
                   activeTool === "density"
-                    ? "bg-gradient-to-r from-blue-600 to-teal-500 text-white shadow-lg"
+                    ? "bg-gradient-to-r from-red-600 to-red-500 text-white shadow-lg"
                     : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                 }`}
               >
@@ -293,12 +293,12 @@ const Tools = () => {
             </div>
 
             {/* Upsell CTA */}
-            <div className="mt-12 rounded-2xl bg-gradient-to-r from-blue-600 to-teal-500 p-8 text-center">
+            <div className="mt-12 rounded-2xl bg-gradient-to-r from-red-600 to-red-500 p-8 text-center">
               <h2 className="text-2xl font-black text-white">Want the full power?</h2>
               <p className="mt-2 text-blue-100 font-medium max-w-lg mx-auto">
                 Get AI-powered keyword discovery, automated content generation, ranking tracking, and AI citation monitoring — all in one platform.
               </p>
-              <Button size="lg" className="mt-6 bg-white text-blue-700 hover:bg-blue-50 border-0 shadow-xl h-12 px-8 text-base font-black" asChild>
+              <Button size="lg" className="mt-6 bg-white text-red-700 hover:bg-red-50 border-0 shadow-xl h-12 px-8 text-base font-black" asChild>
                 <Link to="/auth">Get Started <ArrowRight className="ml-1 h-4 w-4" /></Link>
               </Button>
             </div>

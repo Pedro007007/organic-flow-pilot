@@ -3,6 +3,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, TrendingUp, MousePointer, Eye, Hash } from "lucide-react";
+import KeywordMovers from "@/components/analytics/KeywordMovers";
+import AiCitationRate from "@/components/analytics/AiCitationRate";
+import TopPagesPerformance from "@/components/analytics/TopPagesPerformance";
+import ContentVelocity from "@/components/analytics/ContentVelocity";
 import {
   LineChart,
   Line,
@@ -236,6 +240,18 @@ const AnalyticsDashboard = () => {
           </ResponsiveContainer>
         </ChartCard>
       )}
+
+      {/* Keyword Movers */}
+      <KeywordMovers />
+
+      {/* AI Citation Rate & Content Velocity */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <AiCitationRate />
+        <ContentVelocity />
+      </div>
+
+      {/* Top Pages */}
+      <TopPagesPerformance />
     </div>
   );
 };

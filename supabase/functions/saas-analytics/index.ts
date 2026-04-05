@@ -106,7 +106,7 @@ serve(async (req) => {
           totalRevenue += charge.amount;
         }
       }
-    } catch {
+    } catch (_e) {
       // fallback: estimate from current data
     }
     const totalRevenueDollars = totalRevenue / 100;

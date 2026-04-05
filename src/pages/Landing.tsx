@@ -111,7 +111,7 @@ const Landing = () => {
                     Book a Strategy Call <ArrowRight className="ml-1 h-4 w-4" />
                   </Link>
                 </Button>
-                <Button variant="outline" size="lg" className="border-gray-300 text-gray-700 hover:bg-gray-50 h-13 px-8 text-base font-bold gap-2" asChild>
+                <Button variant="outline" size="lg" className="border-gray-800 bg-gray-900 text-white hover:bg-gray-800 h-13 px-8 text-base font-bold gap-2" asChild>
                   <Link to="/contact">
                     <Play className="h-4 w-4 text-red-500" />
                     Watch Demo

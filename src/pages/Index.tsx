@@ -29,9 +29,10 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useSubscription } from "@/hooks/useSubscription";
 import { hasFeatureAccess, getRequiredTier, getTierLabel } from "@/lib/featureGating";
 
-import { Activity, Loader2, Zap, FileText, Search, Bot, BarChart3, Key, Gift, Users, Sparkles, Lock } from "lucide-react";
+import { Activity, Loader2, Zap, FileText, Search, Bot, BarChart3, Key, Gift, Users, Sparkles, Lock, Sun, Moon } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "next-themes";
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState("dashboard");

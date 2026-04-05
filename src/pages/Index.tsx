@@ -29,9 +29,10 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useSubscription } from "@/hooks/useSubscription";
 import { hasFeatureAccess, getRequiredTier, getTierLabel } from "@/lib/featureGating";
 
-import { Activity, Loader2, Zap, FileText, Search, Bot, BarChart3, Key, Gift, Users, Sparkles, Lock } from "lucide-react";
+import { Activity, Loader2, Zap, FileText, Search, Bot, BarChart3, Key, Gift, Users, Sparkles, Lock, Sun, Moon } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "next-themes";
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState("dashboard");
@@ -42,6 +43,7 @@ const Index = () => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const { subscribed, tier } = useSubscription();
+  const { theme, setTheme } = useTheme();
 
   // Gate check: redirect locked sections back to dashboard
   const isSectionLocked = (section: string) => !hasFeatureAccess(section, tier, subscribed);
@@ -142,6 +144,13 @@ const Index = () => {
                 );
               })}
               <div className="w-px h-5 bg-border/40 mx-1" />
+              <button
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                title={theme === "dark" ? "Light Mode" : "Dark Mode"}
+                className="relative p-2 rounded-lg transition-all duration-200 text-muted-foreground hover:text-foreground hover:bg-muted/40"
+              >
+                {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              </button>
               <NotificationBell />
               <button
                 onClick={signOut}

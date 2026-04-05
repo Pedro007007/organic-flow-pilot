@@ -132,7 +132,7 @@ const Landing = () => {
         <div className="mx-auto max-w-6xl px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((s) => (
-              <div key={s.label} className="text-center">
+              <div key={s.label} className="glass-panel p-6 text-center">
                 <div className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-red-500 via-orange-500 to-red-500 bg-clip-text text-transparent">{s.value}</div>
                 <p className="mt-2 text-sm text-gray-700 font-bold">{s.label}</p>
               </div>

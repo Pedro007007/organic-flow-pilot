@@ -273,6 +273,38 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* FAQ */}
+      <section className="bg-white py-24">
+        <div className="mx-auto max-w-3xl px-6">
+          <div className="text-center mb-14">
+            <h2 className="text-3xl font-black tracking-tight sm:text-4xl">Frequently Asked <span className="bg-gradient-to-r from-red-600 via-orange-500 to-red-500 bg-clip-text text-transparent">Questions</span></h2>
+            <p className="mt-4 text-gray-600 font-semibold">Everything you need to know about Searchera and how it can help you grow.</p>
+          </div>
+          <div className="space-y-3">
+            {[
+              { q: "What is Searchera?", a: "Searchera is an AI-powered SEO & AEO platform that helps your brand rank on Google and get cited by AI assistants like ChatGPT, Perplexity, and Google AI Overviews — all from one dashboard." },
+              { q: "What is AEO and why does it matter?", a: "AEO (Answer Engine Optimization) is the practice of optimizing your content so AI-powered search engines recommend and cite your brand. With over 58% of searches expected to include AI-generated answers by 2026, AEO is essential for staying visible." },
+              { q: "How is Searchera different from other SEO tools?", a: "Unlike traditional SEO tools, Searchera combines Google ranking optimization with AI citation tracking and content generation — giving you a single platform to dominate both classic search and the new wave of AI-driven discovery." },
+              { q: "Do I need technical SEO knowledge to use Searchera?", a: "Not at all. Searchera is designed for marketers, founders, and content teams. Our AI handles the heavy lifting — from keyword research and content creation to technical optimization and publishing." },
+              { q: "How does the content pipeline work?", a: "You provide a keyword or topic, and our AI researches the SERP landscape, generates a fully optimized article with proper headings, schema markup, internal links, and FAQ sections — ready to publish in minutes." },
+              { q: "Can I track my AI citations across different platforms?", a: "Yes. Searchera monitors whether your brand is being cited by ChatGPT, Perplexity, Google AI Overviews, and other AI search engines — so you can see exactly where you're being recommended." },
+              { q: "What kind of results can I expect?", a: "Our users typically see a 3x increase in organic traffic, significant time savings on content production, and measurable improvements in AI citation appearances within the first 60 days." },
+              { q: "Is there a free trial?", a: "We don't offer a free trial, but we do offer a no-commitment strategy call where we'll analyse your domain and show you exactly how Searchera can help. Book a call to get started." },
+            ].map((item, i) => (
+              <details key={i} className="group rounded-xl border border-gray-200 bg-gray-50/50 hover:border-gray-300 transition-colors">
+                <summary className="flex items-center justify-between cursor-pointer px-6 py-4 text-sm font-bold text-gray-900 list-none [&::-webkit-details-marker]:hidden">
+                  {item.q}
+                  <span className="ml-4 shrink-0 text-gray-400 group-open:rotate-45 transition-transform text-xl font-light">+</span>
+                </summary>
+                <div className="px-6 pb-4 text-sm text-gray-600 leading-relaxed font-medium">
+                  {item.a}
+                </div>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* CTA */}
       <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-blue-950 to-slate-900 py-24">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_30%,rgba(59,130,246,0.2),transparent_60%)]" />

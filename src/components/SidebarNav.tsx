@@ -52,6 +52,9 @@ const navItems = [
   { id: "leads", label: "Leads", icon: Users },
   { id: "checklist", label: "Checklist", icon: ListChecks },
   { id: "brands", label: "Brands", icon: Tag },
+];
+
+export const headerNavItems = [
   { id: "referrals", label: "Referrals", icon: Gift },
   { id: "team", label: "Team", icon: Users },
   { id: "settings", label: "Settings", icon: Settings },

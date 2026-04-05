@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Search, FileText, Bot, BarChart3, ArrowRight, Play, Shield, Zap, TrendingUp, CheckCircle2, Star, Target, Globe, LineChart, Cpu } from "lucide-react";
 import searcheraLogo from "@/assets/searchera-logo.png";
 import DanielaSection from "@/components/DanielaSection";
+import SeoToAeoShift from "@/components/SeoToAeoShift";
 import DanielaChat from "@/components/DanielaChat";
 
 const features = [
@@ -145,6 +146,9 @@ const Landing = () => {
           </div>
         </div>
       </section>
+
+      {/* SEO to AEO Shift */}
+      <SeoToAeoShift />
 
       {/* Features */}
       <section id="features" className="bg-white py-24">

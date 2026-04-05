@@ -75,7 +75,7 @@ const Landing = () => {
           <Button variant="ghost" size="sm" className="text-gray-700 hover:text-gray-900 font-bold" asChild>
             <Link to="/auth">Sign In</Link>
           </Button>
-          <Button size="sm" className="bg-gradient-to-r from-blue-600 to-teal-500 hover:from-blue-700 hover:to-teal-600 text-white border-0 shadow-lg shadow-blue-500/25 font-bold" asChild>
+          <Button size="sm" className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white border-0 shadow-lg shadow-red-500/25 font-bold" asChild>
             <Link to="/contact">Book a Demo</Link>
           </Button>
         </div>
@@ -106,7 +106,7 @@ const Landing = () => {
                 The only platform that gets your brand into ChatGPT, Perplexity & AI Overviews — while driving Google rankings on autopilot. Built for teams serious about owning AI search.
               </p>
               <div className="mt-10 flex flex-wrap items-center justify-center lg:justify-start gap-4">
-                <Button size="lg" className="bg-[length:200%_auto] animate-gradient bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-400 text-gray-900 border-0 shadow-xl shadow-green-500/40 h-13 px-10 text-base font-black hover:opacity-90" asChild>
+                <Button size="lg" className="bg-[length:200%_auto] animate-gradient bg-gradient-to-r from-red-600 via-orange-500 to-red-600 text-white border-0 shadow-xl shadow-red-500/40 h-13 px-10 text-base font-black hover:opacity-90" asChild>
                   <Link to="/contact">
                     Book a Strategy Call <ArrowRight className="ml-1 h-4 w-4" />
                   </Link>
@@ -185,11 +185,11 @@ const Landing = () => {
           <div className="hidden lg:block">
             {/* Circles + connecting line */}
             <div className="relative grid grid-cols-4 max-w-4xl mx-auto mb-6">
-              <div className="absolute top-1/2 left-[12.5%] right-[12.5%] h-px bg-teal-400/40 -translate-y-1/2" />
+              <div className="absolute top-1/2 left-[12.5%] right-[12.5%] h-px bg-red-500/40 -translate-y-1/2" />
               {steps.map((s) => (
                 <div key={s.num} className="flex justify-center">
-                  <div className="relative z-10 flex h-16 w-16 items-center justify-center rounded-full border-2 border-teal-400/60 bg-slate-900">
-                    <span className="text-lg font-black text-teal-400">{s.num}</span>
+                  <div className="relative z-10 flex h-16 w-16 items-center justify-center rounded-full border-2 border-red-500/60 bg-slate-900">
+                    <span className="text-lg font-black text-red-400">{s.num}</span>
                   </div>
                 </div>
               ))}
@@ -198,7 +198,7 @@ const Landing = () => {
             <div className="grid grid-cols-4 max-w-4xl mx-auto mb-6">
               {[Globe, FileText, Cpu, BarChart3].map((Icon, i) => (
                 <div key={i} className="flex justify-center">
-                  <Icon className="h-6 w-6 text-teal-400/70" />
+                  <Icon className="h-6 w-6 text-red-400/70" />
                 </div>
               ))}
             </div>
@@ -216,8 +216,8 @@ const Landing = () => {
           <div className="grid gap-8 sm:grid-cols-2 lg:hidden">
             {steps.map((s) => (
               <div key={s.num} className="text-center">
-                <div className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-teal-400/60 bg-slate-900 mx-auto mb-3">
-                  <span className="text-base font-black text-teal-400">{s.num}</span>
+                <div className="flex h-14 w-14 items-center justify-center rounded-full border-2 border-red-500/60 bg-slate-900 mx-auto mb-3">
+                  <span className="text-base font-black text-red-400">{s.num}</span>
                 </div>
                 <h3 className="text-lg font-black text-white">{s.title}</h3>
                 <p className="mt-2 text-sm text-blue-100/90 leading-relaxed font-medium">{s.desc}</p>
@@ -260,15 +260,15 @@ const Landing = () => {
       <section className="bg-slate-50 py-16">
         <div className="mx-auto max-w-4xl px-6 text-center">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <Shield className="h-6 w-6 text-blue-600" />
+            <Shield className="h-6 w-6 text-red-500" />
             <h3 className="text-xl font-black text-gray-900">Enterprise-Grade Security</h3>
           </div>
           <p className="text-gray-700 max-w-xl mx-auto font-semibold">Your data is encrypted at rest and in transit. We follow industry best practices and comply with GDPR. Google Search Console access uses secure OAuth 2.0 authentication.</p>
           <div className="flex flex-wrap items-center justify-center gap-6 mt-8 text-sm text-gray-700 font-bold">
-            <span className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-teal-500" /> SOC 2 Compliant</span>
-            <span className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-teal-500" /> GDPR Ready</span>
-            <span className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-teal-500" /> OAuth 2.0 Secured</span>
-            <span className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-teal-500" /> 256-bit Encryption</span>
+            <span className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-red-500" /> SOC 2 Compliant</span>
+            <span className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-red-500" /> GDPR Ready</span>
+            <span className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-red-500" /> OAuth 2.0 Secured</span>
+            <span className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-red-500" /> 256-bit Encryption</span>
           </div>
         </div>
       </section>
@@ -312,7 +312,7 @@ const Landing = () => {
           <h2 className="text-3xl font-black text-white sm:text-4xl lg:text-5xl">Ready to Own AI Search?</h2>
           <p className="mt-5 text-lg text-blue-200 max-w-2xl mx-auto font-medium leading-relaxed">Talk to our team to see how Searchera can drive rankings and AI citations for your specific domain.</p>
           <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-            <Button size="lg" className="bg-[length:200%_auto] animate-gradient bg-gradient-to-r from-emerald-400 via-green-300 to-emerald-400 text-gray-900 border-0 shadow-xl shadow-green-400/40 h-13 px-10 text-base font-black hover:opacity-90" asChild>
+            <Button size="lg" className="bg-[length:200%_auto] animate-gradient bg-gradient-to-r from-red-600 via-orange-500 to-red-600 text-white border-0 shadow-xl shadow-red-500/40 h-13 px-10 text-base font-black hover:opacity-90" asChild>
               <Link to="/contact">
                 Book a Strategy Call <ArrowRight className="ml-1 h-4 w-4" />
               </Link>

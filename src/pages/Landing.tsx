@@ -103,7 +103,7 @@ const Landing = () => {
                 The only platform that gets your brand into ChatGPT, Perplexity & AI Overviews — while driving Google rankings on autopilot. Built for teams serious about owning AI search.
               </p>
               <div className="mt-10 flex flex-wrap items-center justify-center lg:justify-start gap-4">
-                <Button size="lg" className="bg-[length:200%_auto] animate-gradient bg-gradient-to-r from-blue-600 via-green-400 to-blue-600 text-white border-0 shadow-xl shadow-green-500/30 h-13 px-10 text-base font-bold hover:opacity-90" asChild>
+                <Button size="lg" className="bg-[length:200%_auto] animate-gradient bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-400 text-gray-900 border-0 shadow-xl shadow-green-500/40 h-13 px-10 text-base font-black hover:opacity-90" asChild>
                   <Link to="/contact">
                     Book a Strategy Call <ArrowRight className="ml-1 h-4 w-4" />
                   </Link>
@@ -287,7 +287,7 @@ const Landing = () => {
           <h2 className="text-3xl font-black text-white sm:text-4xl lg:text-5xl">Ready to Own AI Search?</h2>
           <p className="mt-5 text-lg text-blue-200 max-w-2xl mx-auto font-medium leading-relaxed">Talk to our team to see how Searchera can drive rankings and AI citations for your specific domain — or jump straight in with a 7-day pilot.</p>
           <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-            <Button size="lg" className="bg-white text-blue-700 hover:bg-blue-50 border-0 shadow-xl h-13 px-10 text-base font-black" asChild>
+            <Button size="lg" className="bg-[length:200%_auto] animate-gradient bg-gradient-to-r from-emerald-400 via-green-300 to-emerald-400 text-gray-900 border-0 shadow-xl shadow-green-400/40 h-13 px-10 text-base font-black hover:opacity-90" asChild>
               <Link to="/contact">
                 Book a Strategy Call <ArrowRight className="ml-1 h-4 w-4" />
               </Link>

@@ -17,6 +17,8 @@ import {
 interface SaasData {
   mrr: number;
   arr: number;
+  total_revenue: number;
+  arpu: number;
   active_subscriptions: number;
   churn_rate: number;
   ltv: number;

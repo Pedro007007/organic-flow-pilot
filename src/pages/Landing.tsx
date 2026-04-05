@@ -246,7 +246,7 @@ const Landing = () => {
               <div key={t.name} className="rounded-2xl border border-gray-200 bg-white p-8">
                 <div className="flex gap-1 mb-4">
                   {Array.from({ length: t.stars }).map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
+                    <Star key={i} className="h-4 w-4 fill-red-500 text-red-500" />
                   ))}
                 </div>
                 <p className="text-gray-800 leading-relaxed mb-6 font-semibold">"{t.quote}"</p>

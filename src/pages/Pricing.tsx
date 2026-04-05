@@ -151,7 +151,7 @@ export default function Pricing() {
                     </div>
                   )}
                   {isCurrentPlan && (
-                    <div className="absolute top-0 left-0 px-3 py-1 bg-amber-500 text-white text-xs font-bold rounded-br-lg">
+                    <div className="absolute top-0 right-0 px-3 py-1 bg-amber-500 text-white text-xs font-bold rounded-bl-lg">
                       YOUR PLAN
                     </div>
                   )}

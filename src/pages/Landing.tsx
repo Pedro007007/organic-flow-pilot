@@ -95,7 +95,7 @@ const Landing = () => {
               <h1 className="text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl leading-[1.08]">
                 Get Cited by AI
                 <br />
-                <span className="bg-gradient-to-r from-red-600 via-rose-500 to-red-500 bg-clip-text text-transparent">
+                <span className="inline-block bg-[length:200%_auto] animate-gradient bg-gradient-to-r from-red-600 via-orange-500 to-red-600 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(239,68,68,0.4)]">
                   & Rank on Google
                 </span>
               </h1>

@@ -3,7 +3,7 @@ import confetti from "canvas-confetti";
 import OnboardingWizard from "@/components/OnboardingWizard";
 import Changelog from "@/components/Changelog";
 import ReferralProgram from "@/components/ReferralProgram";
-import SidebarNav from "@/components/SidebarNav";
+import SidebarNav, { headerNavItems } from "@/components/SidebarNav";
 import MetricCard from "@/components/MetricCard";
 import AgentPipeline from "@/components/AgentPipeline";
 import KeywordTable from "@/components/KeywordTable";

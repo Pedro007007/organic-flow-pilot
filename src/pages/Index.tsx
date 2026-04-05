@@ -144,6 +144,13 @@ const Index = () => {
                 );
               })}
               <div className="w-px h-5 bg-border/40 mx-1" />
+              <button
+                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+                title={theme === "dark" ? "Light Mode" : "Dark Mode"}
+                className="relative p-2 rounded-lg transition-all duration-200 text-muted-foreground hover:text-foreground hover:bg-muted/40"
+              >
+                {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              </button>
               <NotificationBell />
               <button
                 onClick={signOut}

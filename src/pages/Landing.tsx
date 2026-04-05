@@ -147,6 +147,9 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* SEO to AEO Shift */}
+      <SeoToAeoShift />
+
       {/* Features */}
       <section id="features" className="bg-white py-24">
         <div className="mx-auto max-w-6xl px-6">

@@ -125,7 +125,7 @@ export default function SaasOwnerDashboard() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-4">
         <KpiCard
           title="MRR"
           value={`$${data.mrr.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
@@ -141,11 +141,25 @@ export default function SaasOwnerDashboard() {
           bgColor="bg-blue-500/10"
         />
         <KpiCard
+          title="Total Revenue"
+          value={`$${data.total_revenue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
+          icon={<DollarSign className="h-4 w-4" />}
+          color="text-primary"
+          bgColor="bg-primary/10"
+        />
+        <KpiCard
           title="Active Subscriptions"
           value={data.active_subscriptions.toString()}
           icon={<Users className="h-4 w-4" />}
           color="text-violet-400"
           bgColor="bg-violet-500/10"
+        />
+        <KpiCard
+          title="ARPU"
+          value={`$${data.arpu.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
+          icon={<CreditCard className="h-4 w-4" />}
+          color="text-cyan-400"
+          bgColor="bg-cyan-500/10"
         />
         <KpiCard
           title="Churn Rate (30d)"

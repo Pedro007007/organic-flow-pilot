@@ -90,7 +90,7 @@ const AnalyticsDashboard = () => {
   const keywordRankings = useMemo(() => {
     if (!keywords?.length) return [];
     return keywords.slice(0, 10).map((k) => ({
-      keyword: k.keyword.length > 20 ? k.keyword.slice(0, 20) + "…" : k.keyword,
+      keyword: k.keyword.length > 30 ? k.keyword.slice(0, 30) + "…" : k.keyword,
       position: Number(k.position),
       impressions: k.impressions,
     }));
@@ -219,7 +219,7 @@ const AnalyticsDashboard = () => {
             <BarChart data={keywordRankings} layout="vertical" margin={{ left: 20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 25%, 16%)" />
               <XAxis type="number" tick={{ fontSize: 10, fill: "hsl(215, 15%, 55%)" }} />
-              <YAxis dataKey="keyword" type="category" tick={{ fontSize: 10, fill: "hsl(215, 15%, 55%)" }} width={140} />
+              <YAxis dataKey="keyword" type="category" tick={{ fontSize: 12, fill: "hsl(var(--foreground))", fontWeight: 500 }} width={180} />
               <Tooltip
                 contentStyle={{
                   backgroundColor: "hsla(220, 20%, 14%, 0.65)",

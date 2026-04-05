@@ -166,8 +166,8 @@ const AnalyticsDashboard = () => {
         {/* Content by status */}
         {contentByStatus.length > 0 && (
           <ChartCard title="Content by Stage">
-            <div className="flex flex-col sm:flex-row items-center gap-4">
-              <ResponsiveContainer width="100%" height={220} className="flex-shrink-0 sm:max-w-[260px]">
+            <div className="flex flex-col sm:flex-row items-center gap-4 overflow-visible">
+              <ResponsiveContainer width={220} height={220} className="flex-shrink-0">
                 <PieChart>
                   <Pie
                     data={contentByStatus}
@@ -193,9 +193,9 @@ const AnalyticsDashboard = () => {
                   />
                 </PieChart>
               </ResponsiveContainer>
-              <div className="flex flex-wrap sm:flex-col gap-2 justify-center">
+              <div className="flex flex-wrap sm:flex-col gap-2 justify-center min-w-0">
                 {contentByStatus.map((entry, i) => (
-                  <div key={entry.name} className="flex items-center gap-2 text-xs">
+                  <div key={entry.name} className="flex items-center gap-2 text-xs min-w-0">
                     <span
                       className="inline-block h-2.5 w-2.5 rounded-sm flex-shrink-0"
                       style={{ backgroundColor: COLORS[i % COLORS.length] }}
@@ -203,7 +203,7 @@ const AnalyticsDashboard = () => {
                     <span className="text-muted-foreground capitalize whitespace-nowrap">
                       {entry.name}
                     </span>
-                    <span className="font-mono font-semibold text-foreground">{entry.value}</span>
+                    <span className="font-mono font-semibold text-foreground flex-shrink-0">{entry.value}</span>
                   </div>
                 ))}
               </div>

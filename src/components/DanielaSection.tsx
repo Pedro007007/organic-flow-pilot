@@ -16,8 +16,8 @@ const DanielaSection = ({ onOpenChat }: DanielaSectionProps) => {
           <div className="flex flex-col items-center lg:items-center">
             <div className="relative">
               {/* Glow ring */}
-              <div className="absolute -inset-4 rounded-full bg-gradient-to-r from-blue-500 to-teal-400 opacity-30 blur-xl animate-pulse" />
-              <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-blue-500 to-teal-400 opacity-60" />
+              <div className="absolute -inset-4 rounded-full bg-gradient-to-r from-red-500 to-orange-400 opacity-30 blur-xl animate-pulse" />
+              <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-red-500 to-orange-400 opacity-60" />
               <img
                 src={danielaAvatar}
                 alt="Daniela — AI SEO Expert"
@@ -26,7 +26,7 @@ const DanielaSection = ({ onOpenChat }: DanielaSectionProps) => {
             </div>
             <div className="mt-6 text-center">
               <h3 className="text-2xl font-black text-white">Daniela</h3>
-              <p className="text-teal-400 font-bold text-sm flex items-center justify-center gap-1.5 mt-1">
+              <p className="text-orange-400 font-bold text-sm flex items-center justify-center gap-1.5 mt-1">
                 <Sparkles className="h-4 w-4" />
                 AI SEO & AEO Expert
               </p>
@@ -35,7 +35,7 @@ const DanielaSection = ({ onOpenChat }: DanielaSectionProps) => {
 
           {/* Right: Content */}
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-teal-400/30 bg-teal-400/10 px-4 py-1.5 text-sm font-bold text-teal-400 mb-6">
+            <div className="inline-flex items-center gap-2 rounded-full border border-orange-400/30 bg-orange-400/10 px-4 py-1.5 text-sm font-bold text-orange-400 mb-6">
               <MessageCircle className="h-3.5 w-3.5" />
               Free AI Consultation
             </div>
@@ -53,7 +53,7 @@ const DanielaSection = ({ onOpenChat }: DanielaSectionProps) => {
                 "Available 24/7 — no waiting, no appointments",
               ].map((item) => (
                 <li key={item} className="flex items-start gap-3 text-blue-100/90 font-medium">
-                  <Sparkles className="h-4 w-4 text-teal-400 flex-shrink-0 mt-1" />
+                  <Sparkles className="h-4 w-4 text-orange-400 flex-shrink-0 mt-1" />
                   <span>{item}</span>
                 </li>
               ))}
@@ -61,7 +61,7 @@ const DanielaSection = ({ onOpenChat }: DanielaSectionProps) => {
             <Button
               onClick={onOpenChat}
               size="lg"
-              className="mt-8 bg-gradient-to-r from-blue-500 to-teal-400 hover:from-blue-600 hover:to-teal-500 text-white border-0 shadow-xl shadow-teal-500/20 h-12 px-8 text-base font-black"
+              className="mt-8 bg-gradient-to-r from-red-500 to-orange-400 hover:from-red-600 hover:to-orange-500 text-white border-0 shadow-xl shadow-orange-500/20 h-12 px-8 text-base font-black"
             >
               Chat with Daniela <ArrowRight className="ml-1 h-4 w-4" />
             </Button>

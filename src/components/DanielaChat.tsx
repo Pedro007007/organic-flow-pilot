@@ -185,7 +185,7 @@ const LeadCaptureForm = ({ onSubmit }: { onSubmit: (lead: LeadInfo) => void }) =
         <Button
           type="submit"
           disabled={saving}
-          className="w-full rounded-xl bg-gradient-to-r from-red-600 to-red-500 hover:from-blue-700 hover:to-teal-600 text-white font-bold text-sm py-2.5"
+          className="w-full rounded-xl bg-gradient-to-r from-red-500 to-rose-500 hover:from-blue-700 hover:to-teal-600 text-white font-bold text-sm py-2.5"
         >
           {saving ? "Starting..." : "Start Chatting 🚀"}
         </Button>
@@ -266,7 +266,7 @@ const DanielaChat = ({ externalOpen, onExternalOpenHandled }: DanielaChatProps) 
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          className="fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-full bg-gradient-to-r from-red-600 to-red-500 pl-2 pr-5 py-2 text-white shadow-2xl shadow-red-500/30 hover:shadow-red-500/50 transition-all duration-300 hover:scale-105 group"
+          className="fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-full bg-gradient-to-r from-red-500 to-rose-500 pl-2 pr-5 py-2 text-white shadow-2xl shadow-red-500/30 hover:shadow-red-500/50 transition-all duration-300 hover:scale-105 group"
         >
           <div className="relative">
             <img src={danielaAvatar} alt="Daniela" className="h-10 w-10 rounded-full object-cover border-2 border-white/30" />
@@ -279,7 +279,7 @@ const DanielaChat = ({ externalOpen, onExternalOpenHandled }: DanielaChatProps) 
       {open && (
         <div className="fixed bottom-6 right-6 z-50 flex flex-col w-[380px] max-w-[calc(100vw-2rem)] h-[560px] max-h-[calc(100vh-4rem)] rounded-2xl bg-white shadow-2xl border border-gray-200 overflow-hidden animate-scale-in">
           {/* Header */}
-          <div className="flex items-center gap-3 bg-gradient-to-r from-red-600 to-red-500 px-4 py-3">
+          <div className="flex items-center gap-3 bg-gradient-to-r from-red-500 to-rose-500 px-4 py-3">
             <div className="relative">
               <img src={danielaAvatar} alt="Daniela" className="h-10 w-10 rounded-full object-cover border-2 border-white/40" />
               <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-green-400 border-2 border-white" />
@@ -376,7 +376,7 @@ const DanielaChat = ({ externalOpen, onExternalOpenHandled }: DanielaChatProps) 
                     type="submit"
                     size="icon"
                     disabled={isLoading || !input.trim()}
-                    className="h-10 w-10 rounded-full bg-gradient-to-r from-red-600 to-red-500 hover:from-blue-700 hover:to-teal-600 text-white shadow-md flex-shrink-0"
+                    className="h-10 w-10 rounded-full bg-gradient-to-r from-red-500 to-rose-500 hover:from-blue-700 hover:to-teal-600 text-white shadow-md flex-shrink-0"
                   >
                     <Send className="h-4 w-4" />
                   </Button>

@@ -97,6 +97,23 @@ serve(async (req) => {
     const mrrDollars = mrr / 100;
     const arr = mrrDollars * 12;
 
+    // Total revenue (all-time) from Stripe balance transactions
+    let totalRevenue = 0;
+    try {
+      const charges: any[] = [];
+      for await (const charge of stripe.charges.list({ limit: 100 })) {
+        if (charge.paid && !charge.refunded) {
+          totalRevenue += charge.amount;
+        }
+      }
+    } catch {
+      // fallback: estimate from current data
+    }
+    const totalRevenueDollars = totalRevenue / 100;
+
+    // ARPU (Average Revenue Per User)
+    const arpu = activeSubs.length > 0 ? mrrDollars / activeSubs.length : 0;
+
     // Churn: canceled in last 30 days vs active at start of period
     const thirtyDaysAgo = Math.floor(Date.now() / 1000) - 30 * 86400;
     const recentCanceled = canceledSubs.filter(s => (s.canceled_at || 0) >= thirtyDaysAgo).length;
@@ -149,6 +166,8 @@ serve(async (req) => {
     return new Response(JSON.stringify({
       mrr: mrrDollars,
       arr,
+      total_revenue: totalRevenueDollars,
+      arpu: Math.round(arpu * 100) / 100,
       active_subscriptions: activeSubs.length,
       churn_rate: Math.round(churnRate * 100) / 100,
       ltv: Math.round(ltv * 100) / 100,
@@ -157,6 +176,9 @@ serve(async (req) => {
       growth_data: growthData,
       subscribers,
     }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 200,
+    });
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });

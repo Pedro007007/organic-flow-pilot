@@ -17,6 +17,8 @@ import {
 interface SaasData {
   mrr: number;
   arr: number;
+  total_revenue: number;
+  arpu: number;
   active_subscriptions: number;
   churn_rate: number;
   ltv: number;
@@ -45,7 +47,7 @@ function exportCSV(data: SaasData) {
     `"${s.customer_name || ""}","${s.customer_email || ""}","${s.plan}",${s.amount},"${s.interval}","${s.cancel_at_period_end ? "Cancelling" : "Active"}","${new Date(s.created).toLocaleDateString()}","${new Date(s.current_period_end).toLocaleDateString()}"`
   ).join("\n");
 
-  const summary = `\n\nSummary\nMRR,$${data.mrr.toFixed(2)}\nARR,$${data.arr.toFixed(0)}\nActive Subscriptions,${data.active_subscriptions}\nChurn Rate (30d),${data.churn_rate}%\nCustomer LTV,$${data.ltv.toFixed(0)}\n`;
+  const summary = `\n\nSummary\nMRR,$${data.mrr.toFixed(2)}\nARR,$${data.arr.toFixed(0)}\nTotal Revenue (All-Time),$${data.total_revenue.toFixed(0)}\nARPU,$${data.arpu.toFixed(0)}\nActive Subscriptions,${data.active_subscriptions}\nChurn Rate (30d),${data.churn_rate}%\nCustomer LTV,$${data.ltv.toFixed(0)}\n`;
 
   const blob = new Blob([header + rows + summary], { type: "text/csv" });
   const url = URL.createObjectURL(blob);
@@ -123,7 +125,7 @@ export default function SaasOwnerDashboard() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-4">
         <KpiCard
           title="MRR"
           value={`$${data.mrr.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
@@ -139,11 +141,25 @@ export default function SaasOwnerDashboard() {
           bgColor="bg-blue-500/10"
         />
         <KpiCard
+          title="Total Revenue"
+          value={`$${data.total_revenue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
+          icon={<DollarSign className="h-4 w-4" />}
+          color="text-primary"
+          bgColor="bg-primary/10"
+        />
+        <KpiCard
           title="Active Subscriptions"
           value={data.active_subscriptions.toString()}
           icon={<Users className="h-4 w-4" />}
           color="text-violet-400"
           bgColor="bg-violet-500/10"
+        />
+        <KpiCard
+          title="ARPU"
+          value={`$${data.arpu.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
+          icon={<CreditCard className="h-4 w-4" />}
+          color="text-cyan-400"
+          bgColor="bg-cyan-500/10"
         />
         <KpiCard
           title="Churn Rate (30d)"

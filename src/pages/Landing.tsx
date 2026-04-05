@@ -110,9 +110,9 @@ const Landing = () => {
                   </Link>
                 </Button>
                 <Button variant="outline" size="lg" className="border-gray-300 text-gray-700 hover:bg-gray-50 h-13 px-8 text-base font-bold gap-2" asChild>
-                  <Link to="/auth">
-                    <Play className="h-4 w-4 text-blue-600" />
-                    Start 7-Day Pilot
+                  <Link to="/contact">
+                    <Play className="h-4 w-4 text-red-500" />
+                    Watch Demo
                   </Link>
                 </Button>
               </div>
@@ -286,7 +286,7 @@ const Landing = () => {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_50%_30%,rgba(59,130,246,0.2),transparent_60%)]" />
         <div className="relative mx-auto max-w-4xl px-6 text-center">
           <h2 className="text-3xl font-black text-white sm:text-4xl lg:text-5xl">Ready to Own AI Search?</h2>
-          <p className="mt-5 text-lg text-blue-200 max-w-2xl mx-auto font-medium leading-relaxed">Talk to our team to see how Searchera can drive rankings and AI citations for your specific domain — or jump straight in with a 7-day pilot.</p>
+          <p className="mt-5 text-lg text-blue-200 max-w-2xl mx-auto font-medium leading-relaxed">Talk to our team to see how Searchera can drive rankings and AI citations for your specific domain.</p>
           <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
             <Button size="lg" className="bg-[length:200%_auto] animate-gradient bg-gradient-to-r from-emerald-400 via-green-300 to-emerald-400 text-gray-900 border-0 shadow-xl shadow-green-400/40 h-13 px-10 text-base font-black hover:opacity-90" asChild>
               <Link to="/contact">
@@ -295,7 +295,7 @@ const Landing = () => {
             </Button>
             <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10 h-13 px-8 text-base font-bold" asChild>
               <Link to="/auth">
-                Start 7-Day Pilot
+                Sign Up Now
               </Link>
             </Button>
           </div>

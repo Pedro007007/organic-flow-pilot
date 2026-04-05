@@ -126,9 +126,9 @@ serve(async (req) => {
       };
     });
 
-    // Monthly growth data (last 6 months)
+    // Monthly growth data (last 12 months)
     const growthData: { month: string; newSubs: number; canceled: number }[] = [];
-    for (let i = 5; i >= 0; i--) {
+    for (let i = 11; i >= 0; i--) {
       const d = new Date();
       d.setMonth(d.getMonth() - i);
       const monthStart = new Date(d.getFullYear(), d.getMonth(), 1).getTime() / 1000;

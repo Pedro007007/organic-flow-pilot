@@ -3,7 +3,7 @@ import confetti from "canvas-confetti";
 import OnboardingWizard from "@/components/OnboardingWizard";
 import Changelog from "@/components/Changelog";
 import ReferralProgram from "@/components/ReferralProgram";
-import SidebarNav from "@/components/SidebarNav";
+import SidebarNav, { headerNavItems } from "@/components/SidebarNav";
 import MetricCard from "@/components/MetricCard";
 import AgentPipeline from "@/components/AgentPipeline";
 import KeywordTable from "@/components/KeywordTable";
@@ -122,11 +122,30 @@ const Index = () => {
                 Real-time data from your AI SEO growth engine
               </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
+              {headerNavItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = activeSection === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => { setActiveSection(item.id); setSelectedContentId(null); }}
+                    title={item.label}
+                    className={`relative p-2 rounded-lg transition-all duration-200 ${
+                      isActive
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
+                    }`}
+                  >
+                    <Icon className="h-4 w-4" />
+                  </button>
+                );
+              })}
+              <div className="w-px h-5 bg-border/40 mx-1" />
               <NotificationBell />
               <button
                 onClick={signOut}
-                className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+                className="text-xs text-muted-foreground hover:text-foreground transition-colors ml-1"
               >
                 Sign out
               </button>

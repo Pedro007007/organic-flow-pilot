@@ -119,18 +119,8 @@ const Landing = () => {
               <p className="mt-5 text-sm text-gray-500 font-bold">No commitment · Tailored to your domain · Cancel anytime</p>
             </div>
 
-            {/* Right: Video */}
-            <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-slate-900 to-slate-800 aspect-video shadow-2xl shadow-slate-900/20 border border-slate-700/50">
-              <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
-                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white/10 backdrop-blur-sm border border-white/20 cursor-pointer hover:bg-white/20 transition-colors group">
-                  <Play className="h-8 w-8 text-white ml-1 group-hover:scale-110 transition-transform" />
-                </div>
-                <p className="text-white/70 text-sm font-bold">See Searchera in Action</p>
-              </div>
-              <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/10">
-                <div className="h-full w-1/3 bg-gradient-to-r from-blue-500 to-teal-400 rounded-full" />
-              </div>
-            </div>
+            {/* Right: Interactive Product Walkthrough */}
+            <ProductWalkthrough />
           </div>
         </div>
       </section>

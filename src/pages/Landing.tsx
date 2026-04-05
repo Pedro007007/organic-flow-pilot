@@ -7,6 +7,7 @@ import DanielaSection from "@/components/DanielaSection";
 import SeoToAeoShift from "@/components/SeoToAeoShift";
 import PoweredBySection from "@/components/PoweredBySection";
 import DanielaChat from "@/components/DanielaChat";
+import ProductWalkthrough from "@/components/ProductWalkthrough";
 
 const features = [
   { icon: Search, title: "Keyword Discovery", desc: "Uncover high-impact keywords with AI-driven analysis of your search landscape. Target positions 8–30 for maximum growth.", color: "bg-gradient-to-br from-red-500 to-orange-500", badge: "AVAILABLE" },

@@ -178,7 +178,7 @@ const Landing = () => {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,rgba(59,130,246,0.15),transparent_50%),radial-gradient(ellipse_at_70%_80%,rgba(20,184,166,0.1),transparent_50%)]" />
         <div className="relative mx-auto max-w-6xl px-6">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-black tracking-tight sm:text-4xl text-white">How <span className="bg-gradient-to-r from-red-400 via-rose-400 to-red-400 bg-clip-text text-transparent">Searchera</span> Works</h2>
+            <h2 className="text-3xl font-black tracking-tight sm:text-4xl text-white">How <span className="bg-gradient-to-r from-red-500 via-orange-500 to-red-500 bg-clip-text text-transparent">Searchera</span> Works</h2>
             <p className="mt-4 text-lg text-blue-100 max-w-2xl mx-auto font-semibold">Get started in minutes. Our streamlined process takes you from setup to growth with minimal effort.</p>
           </div>
           {/* Desktop timeline */}

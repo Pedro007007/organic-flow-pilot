@@ -82,25 +82,29 @@ const ContentVelocity = () => {
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis
               dataKey="stage"
-              tick={{ fontSize: 11, fill: "hsl(var(--foreground))" }}
+              tick={{ fontSize: 13, fill: "hsl(var(--foreground))", fontWeight: 600 }}
               axisLine={false}
               tickLine={false}
             />
             <YAxis
-              tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+              tick={{ fontSize: 12, fill: "hsl(var(--foreground))", fontWeight: 500 }}
               axisLine={false}
               tickLine={false}
-              label={{ value: "Days", angle: -90, position: "insideLeft", fontSize: 10, fill: "hsl(var(--muted-foreground))" }}
+              label={{ value: "Days", angle: -90, position: "insideLeft", fontSize: 12, fill: "hsl(var(--foreground))", fontWeight: 600 }}
             />
             <Tooltip
               contentStyle={{
-                backgroundColor: "hsla(220, 20%, 14%, 0.65)",
+                backgroundColor: "hsla(220, 15%, 10%, 0.92)",
                 backdropFilter: "blur(16px)",
                 WebkitBackdropFilter: "blur(16px)",
-                border: "1px solid hsla(220, 20%, 40%, 0.25)",
+                border: "1px solid hsla(220, 20%, 40%, 0.35)",
                 borderRadius: 12,
-                fontSize: 12,
+                fontSize: 13,
+                fontWeight: 500,
+                color: "#fff",
               }}
+              labelStyle={{ color: "#fff", fontWeight: 600 }}
+              itemStyle={{ color: "#fff" }}
               formatter={(value: number, name: string) => [`${value} days`, "Avg Time"]}
             />
             <Bar dataKey="avgDays" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />

@@ -146,10 +146,13 @@
     @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent;
   }
   .glass-panel {
-    @apply rounded-xl border border-border/50 bg-card/60 backdrop-blur-xl shadow-sm;
+    @apply rounded-2xl border border-white/20 bg-white/60 backdrop-blur-xl shadow-lg shadow-black/[0.04];
   }
   .glass-panel-hover {
-    @apply glass-panel transition-all duration-500 ease-out hover:shadow-lg hover:-translate-y-1;
+    @apply glass-panel transition-all duration-500 ease-out hover:shadow-xl hover:shadow-black/[0.08] hover:-translate-y-1.5 hover:bg-white/70;
+  }
+  .glass-panel-dark {
+    @apply rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-lg shadow-black/20;
   }
   .glass-surface {
     @apply relative overflow-hidden;

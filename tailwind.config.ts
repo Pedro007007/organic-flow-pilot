@@ -100,6 +100,10 @@ export default {
           "0%, 100%": { backgroundPosition: "0% 50%" },
           "50%": { backgroundPosition: "100% 50%" },
         },
+        "underline-slide": {
+          "0%, 100%": { left: "0%", width: "33%" },
+          "50%": { left: "67%", width: "33%" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -107,6 +111,7 @@ export default {
         "pulse-glow": "pulse-glow 2s ease-in-out infinite",
         "slide-in": "slide-in 0.3s ease-out",
         gradient: "gradient 3s ease infinite",
+        "underline-slide": "underline-slide 3s ease-in-out infinite",
       },
     },
   },

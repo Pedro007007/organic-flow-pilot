@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useSubscription, SUBSCRIPTION_TIERS } from "@/hooks/useSubscription";
 import { hasFeatureAccess, getRequiredTier, getTierLabel } from "@/lib/featureGating";
@@ -76,7 +77,14 @@ function GuideButton() {
 function ChatbotLeadsButton() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  if (user?.email !== "pedro.acn@consultant.com") return null;
+  const [isAdmin, setIsAdmin] = useState(false);
+  useEffect(() => {
+    if (!user) return;
+    supabase.rpc("has_role", { _user_id: user.id, _role: "admin" }).then(({ data }) => {
+      setIsAdmin(!!data);
+    });
+  }, [user]);
+  if (!isAdmin) return null;
   return (
     <button
       onClick={() => navigate("/daniela-leads")}

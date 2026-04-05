@@ -36,10 +36,46 @@ Keyword Discovery, Content Pipeline, Autonomous Agents, Rankings Tracker, SEO Fu
 ## Off-topic
 Politely redirect: "Haha that's outside my lane! But I'd love to help with your SEO — what are you working on?" 🙂`;
 
+// Simple in-memory rate limiter per IP
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT_WINDOW_MS = 60_000; // 1 minute
+const RATE_LIMIT_MAX = 15; // max 15 requests per minute per IP
+
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    return true;
+  }
+  entry.count++;
+  if (entry.count > RATE_LIMIT_MAX) {
+    return false;
+  }
+  return true;
+}
+
+// Clean up old entries periodically
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, val] of rateLimitMap) {
+    if (now > val.resetAt) rateLimitMap.delete(key);
+  }
+}, 60_000);
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    // Rate limiting
+    const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    if (!checkRateLimit(clientIp)) {
+      return new Response(JSON.stringify({ error: "Too many requests. Please slow down and try again in a moment. 💛" }), {
+        status: 429,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const body = await req.json();
     const messages = body?.messages;
 
@@ -117,7 +153,7 @@ serve(async (req) => {
     });
   } catch (e) {
     console.error("daniela-chat error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
+    return new Response(JSON.stringify({ error: "Something went wrong. Please try again!" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

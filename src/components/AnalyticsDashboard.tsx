@@ -221,19 +221,22 @@ const AnalyticsDashboard = () => {
         <ChartCard title="Top Keywords by Position">
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={keywordRankings} layout="vertical" margin={{ left: 20 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 25%, 16%)" />
-              <XAxis type="number" tick={{ fontSize: 10, fill: "hsl(215, 15%, 55%)" }} />
-              <YAxis dataKey="keyword" type="category" tick={{ fontSize: 12, fill: "hsl(var(--foreground))", fontWeight: 500 }} width={180} />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis type="number" tick={{ fontSize: 12, fill: "hsl(var(--foreground))", fontWeight: 500 }} />
+              <YAxis dataKey="keyword" type="category" tick={{ fontSize: 13, fill: "hsl(var(--foreground))", fontWeight: 600 }} width={200} />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: "hsla(220, 20%, 14%, 0.65)",
+                  backgroundColor: "hsla(220, 15%, 10%, 0.92)",
                   backdropFilter: "blur(16px)",
                   WebkitBackdropFilter: "blur(16px)",
-                  border: "1px solid hsla(220, 20%, 40%, 0.25)",
+                  border: "1px solid hsla(220, 20%, 40%, 0.35)",
                   borderRadius: 12,
-                  fontSize: 12,
-                  boxShadow: "0 8px 32px hsla(0, 0%, 0%, 0.3)",
+                  fontSize: 13,
+                  fontWeight: 500,
+                  color: "#fff",
                 }}
+                labelStyle={{ color: "#fff", fontWeight: 600 }}
+                itemStyle={{ color: "#fff" }}
               />
               <Bar dataKey="impressions" fill="hsl(210, 100%, 68%)" radius={[0, 4, 4, 0]} />
             </BarChart>

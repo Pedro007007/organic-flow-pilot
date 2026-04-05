@@ -38,7 +38,7 @@ const Blog = () => {
             <Button variant="ghost" size="sm" className="text-gray-700 hover:text-gray-900 font-bold" asChild>
               <Link to="/auth">Sign In</Link>
             </Button>
-            <Button size="sm" className="bg-gradient-to-r from-red-600 to-red-500 hover:from-blue-700 hover:to-teal-600 text-white border-0 shadow-lg shadow-red-500/25 font-bold" asChild>
+            <Button size="sm" className="bg-gradient-to-r from-red-600 to-red-500 hover:from-red-700 hover:to-red-600 text-white border-0 shadow-lg shadow-red-500/25 font-bold" asChild>
               <Link to="/auth">Get Started</Link>
             </Button>
           </div>

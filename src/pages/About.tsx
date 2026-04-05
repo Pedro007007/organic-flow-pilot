@@ -277,7 +277,7 @@ const About = () => {
                 className="rounded-xl border border-gray-200 bg-white p-6 hover:shadow-lg transition-shadow"
               >
                 <div className="flex items-center gap-3 mb-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-50 text-red-600">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-50 text-red-600">
                     <v.icon className="h-5 w-5" />
                   </div>
                   <h3 className="font-bold text-gray-900">{v.title}</h3>
@@ -309,7 +309,7 @@ const About = () => {
                 key={t.title}
                 className="rounded-xl border border-gray-200 bg-gray-50 p-6 text-center"
               >
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-blue-100 text-red-600 mb-4">
+                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-600 mb-4">
                   <t.icon className="h-6 w-6" />
                 </div>
                 <h3 className="font-bold text-gray-900">{t.title}</h3>

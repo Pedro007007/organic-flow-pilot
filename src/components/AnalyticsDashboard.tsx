@@ -222,10 +222,13 @@ const AnalyticsDashboard = () => {
               <YAxis dataKey="keyword" type="category" tick={{ fontSize: 10, fill: "hsl(215, 15%, 55%)" }} width={140} />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: "hsl(220, 30%, 9%)",
-                  border: "1px solid hsl(220, 25%, 16%)",
-                  borderRadius: 8,
+                  backgroundColor: "hsla(220, 20%, 14%, 0.65)",
+                  backdropFilter: "blur(16px)",
+                  WebkitBackdropFilter: "blur(16px)",
+                  border: "1px solid hsla(220, 20%, 40%, 0.25)",
+                  borderRadius: 12,
                   fontSize: 12,
+                  boxShadow: "0 8px 32px hsla(0, 0%, 0%, 0.3)",
                 }}
               />
               <Bar dataKey="impressions" fill="hsl(210, 100%, 68%)" radius={[0, 4, 4, 0]} />

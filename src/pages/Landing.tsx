@@ -5,6 +5,7 @@ import { Search, FileText, Bot, BarChart3, ArrowRight, Play, Shield, Zap, Trendi
 import searcheraLogo from "@/assets/searchera-logo.png";
 import DanielaSection from "@/components/DanielaSection";
 import SeoToAeoShift from "@/components/SeoToAeoShift";
+import PoweredBySection from "@/components/PoweredBySection";
 import DanielaChat from "@/components/DanielaChat";
 
 const features = [

@@ -43,6 +43,7 @@ const Index = () => {
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const { subscribed, tier } = useSubscription();
+  const { theme, setTheme } = useTheme();
 
   // Gate check: redirect locked sections back to dashboard
   const isSectionLocked = (section: string) => !hasFeatureAccess(section, tier, subscribed);

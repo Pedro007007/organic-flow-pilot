@@ -67,22 +67,22 @@ const tierColors: Record<TierKey, { border: string; bg: string; text: string; ba
   basic: {
     border: "border-red-500/30",
     bg: "bg-red-500/5",
-    text: "text-red-400",
-    badge: "bg-red-500/20 text-red-300",
+    text: "text-red-500",
+    badge: "bg-red-600 text-white font-semibold",
     button: "bg-red-600 hover:bg-red-700 text-white",
   },
   pro: {
     border: "border-red-500/30",
     bg: "bg-red-500/5",
-    text: "text-red-400",
-    badge: "bg-red-500/20 text-red-300",
+    text: "text-red-500",
+    badge: "bg-red-600 text-white font-semibold",
     button: "bg-red-600 hover:bg-red-700 text-white",
   },
   enterprise: {
     border: "border-orange-500/30",
     bg: "bg-orange-500/5",
-    text: "text-orange-400",
-    badge: "bg-orange-500/20 text-orange-300",
+    text: "text-orange-500",
+    badge: "bg-orange-600 text-white font-semibold",
     button: "bg-gradient-to-r from-red-600 to-orange-500 hover:from-red-700 hover:to-orange-600 text-white",
   },
 };

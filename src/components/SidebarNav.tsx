@@ -188,7 +188,6 @@ function SidebarContentInner({ activeSection, onNavigate }: SidebarNavProps) {
       </nav>
       <div className="border-t border-border/30 px-4 py-3 space-y-3">
         <GuideButton />
-        <ChatbotLeadsButton />
         <div className="rounded-lg bg-muted/30 backdrop-blur-sm px-3 py-2 border border-border/20">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Status</p>
           <div className="mt-1 flex items-center gap-1.5">

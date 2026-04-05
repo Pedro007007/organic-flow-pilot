@@ -110,6 +110,17 @@ function SidebarContentInner({ activeSection, onNavigate }: SidebarNavProps) {
         <img src={searcheraLogo} alt="Searchera" className="h-40 w-40 rounded-md object-cover" />
       </div>
 
+      {/* Theme Toggle */}
+      <div className="px-3 pt-2">
+        <button
+          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
+        >
+          {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          {theme === "dark" ? "Light Mode" : "Dark Mode"}
+        </button>
+      </div>
+
       {/* Plan Badge */}
       <div className="px-3 pt-3">
         <button
@@ -188,13 +199,6 @@ function SidebarContentInner({ activeSection, onNavigate }: SidebarNavProps) {
       <div className="border-t border-border/30 px-4 py-3 space-y-3">
         <GuideButton />
         <ChatbotLeadsButton />
-        <button
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-          className="flex w-full items-center gap-2.5 rounded-md px-3 py-2 text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
-        >
-          {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          {theme === "dark" ? "Light Mode" : "Dark Mode"}
-        </button>
         <div className="rounded-lg bg-muted/30 backdrop-blur-sm px-3 py-2 border border-border/20">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Status</p>
           <div className="mt-1 flex items-center gap-1.5">

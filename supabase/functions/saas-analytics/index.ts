@@ -166,6 +166,8 @@ serve(async (req) => {
     return new Response(JSON.stringify({
       mrr: mrrDollars,
       arr,
+      total_revenue: totalRevenueDollars,
+      arpu: Math.round(arpu * 100) / 100,
       active_subscriptions: activeSubs.length,
       churn_rate: Math.round(churnRate * 100) / 100,
       ltv: Math.round(ltv * 100) / 100,
@@ -174,6 +176,9 @@ serve(async (req) => {
       growth_data: growthData,
       subscribers,
     }), {
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 200,
+    });
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });

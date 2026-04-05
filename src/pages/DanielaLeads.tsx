@@ -14,7 +14,7 @@ interface DanielaLead {
   created_at: string;
 }
 
-const ALLOWED_EMAIL = "pedro.acn@consultant.com";
+
 
 const DanielaLeads = () => {
   const { user, loading } = useAuth();
@@ -22,14 +22,18 @@ const DanielaLeads = () => {
   const [leads, setLeads] = useState<DanielaLead[]>([]);
   const [search, setSearch] = useState("");
   const [fetching, setFetching] = useState(true);
-
-  const isAllowed = user?.email === ALLOWED_EMAIL;
+  const [isAllowed, setIsAllowed] = useState(false);
 
   useEffect(() => {
-    if (!loading && (!user || !isAllowed)) {
-      navigate("/");
-    }
-  }, [user, loading, isAllowed, navigate]);
+    if (loading || !user) return;
+    supabase.rpc("has_role", { _user_id: user.id, _role: "admin" }).then(({ data }) => {
+      if (!data) {
+        navigate("/");
+      } else {
+        setIsAllowed(true);
+      }
+    });
+  }, [user, loading, navigate]);
 
   useEffect(() => {
     if (!isAllowed) return;

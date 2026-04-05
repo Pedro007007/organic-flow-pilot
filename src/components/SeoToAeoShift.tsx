@@ -66,7 +66,7 @@ const SeoToAeoShift = () => {
           </div>
 
           {/* NEW: AEO */}
-          <div className="relative rounded-2xl border-2 border-red-200 bg-gradient-to-br from-white to-red-50/30 p-6 lg:p-8 shadow-lg shadow-red-100/50">
+          <div className="relative glass-panel border-red-200/40 p-6 lg:p-8">
             <div className="absolute -top-3 right-6 inline-flex items-center rounded-full bg-gradient-to-r from-red-600 to-red-500 px-3 py-1 text-xs font-bold text-white shadow-md">
               THE NEW STANDARD
             </div>

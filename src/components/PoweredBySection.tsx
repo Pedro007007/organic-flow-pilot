@@ -26,7 +26,7 @@ const PoweredBySection = () => {
             Searchera connects directly to the platforms that matter — pulling real data, not estimates.
           </p>
         </div>
-        <div className="flex flex-wrap items-center justify-center gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
           {integrations.map((item) => (
             <div
               key={item.name}

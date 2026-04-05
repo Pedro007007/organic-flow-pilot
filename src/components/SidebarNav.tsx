@@ -107,7 +107,7 @@ function SidebarContentInner({ activeSection, onNavigate }: SidebarNavProps) {
   return (
     <>
       <div className="flex items-center justify-center border-b border-border/30 px-5 py-4">
-        <img src={searcheraLogo} alt="Searchera" className="h-24 w-24 rounded-md object-contain" />
+        <img src={searcheraLogo} alt="Searchera" className="h-40 w-40 rounded-md object-contain" />
       </div>
 
       {/* Plan Badge */}

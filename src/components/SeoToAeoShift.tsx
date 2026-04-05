@@ -18,7 +18,7 @@ const SeoToAeoShift = () => {
           <h2 className="text-3xl font-black tracking-tight sm:text-4xl lg:text-5xl text-gray-900 leading-[1.1]">
             The Shift from SEO
             <br />
-            <span className="bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-red-600 via-rose-500 to-red-500 bg-clip-text text-transparent">
               to Answer Engine Optimization
             </span>
           </h2>

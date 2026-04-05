@@ -161,7 +161,7 @@ export default function Pricing() {
                       {tierIcons[key]}
                       <Badge className={colors.badge}>{tier.label}</Badge>
                     </div>
-                    <CardTitle className="text-2xl">{tier.name}</CardTitle>
+                    <CardTitle className="text-2xl text-foreground">{tier.name}</CardTitle>
                     <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
                       {tierDescriptions[key]}
                     </p>

@@ -47,7 +47,7 @@ function exportCSV(data: SaasData) {
     `"${s.customer_name || ""}","${s.customer_email || ""}","${s.plan}",${s.amount},"${s.interval}","${s.cancel_at_period_end ? "Cancelling" : "Active"}","${new Date(s.created).toLocaleDateString()}","${new Date(s.current_period_end).toLocaleDateString()}"`
   ).join("\n");
 
-  const summary = `\n\nSummary\nMRR,$${data.mrr.toFixed(2)}\nARR,$${data.arr.toFixed(0)}\nTotal Revenue (All-Time),$${data.total_revenue.toFixed(0)}\nARPU,$${data.arpu.toFixed(0)}\nActive Subscriptions,${data.active_subscriptions}\nChurn Rate (30d),${data.churn_rate}%\nCustomer LTV,$${data.ltv.toFixed(0)}\n`;
+  const summary = `\n\nSummary\nMRR,$${data.mrr.toFixed(2)}\nARR,$${data.arr.toFixed(0)}\nTotal Revenue (All-Time),$${(data.total_revenue ?? 0).toFixed(0)}\nARPU,$${(data.arpu ?? 0).toFixed(0)}\nActive Subscriptions,${data.active_subscriptions}\nChurn Rate (30d),${data.churn_rate}%\nCustomer LTV,$${data.ltv.toFixed(0)}\n`;
 
   const blob = new Blob([header + rows + summary], { type: "text/csv" });
   const url = URL.createObjectURL(blob);
@@ -156,7 +156,7 @@ export default function SaasOwnerDashboard() {
         />
         <KpiCard
           title="ARPU"
-          value={`$${data.arpu.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
+          value={`$${(data.arpu ?? 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`}
           icon={<CreditCard className="h-4 w-4" />}
           color="text-cyan-400"
           bgColor="bg-cyan-500/10"

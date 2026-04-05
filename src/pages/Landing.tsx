@@ -132,7 +132,7 @@ const Landing = () => {
         <div className="mx-auto max-w-6xl px-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((s) => (
-              <div key={s.label} className="text-center">
+              <div key={s.label} className="glass-panel p-6 text-center">
                 <div className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-red-500 via-orange-500 to-red-500 bg-clip-text text-transparent">{s.value}</div>
                 <p className="mt-2 text-sm text-gray-700 font-bold">{s.label}</p>
               </div>
@@ -156,7 +156,7 @@ const Landing = () => {
           </div>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {features.map((f) => (
-              <div key={f.title} className="group relative rounded-2xl border border-gray-200 bg-white p-8 hover:border-gray-300 hover:shadow-xl hover:shadow-gray-200/50 transition-all duration-300">
+              <div key={f.title} className="group relative glass-panel-hover p-8">
                 <div className="flex items-start justify-between mb-8">
                   <div className={`flex h-14 w-14 items-center justify-center rounded-2xl ${f.color} shadow-lg`}>
                     <f.icon className="h-7 w-7 text-white" />
@@ -236,7 +236,7 @@ const Landing = () => {
           </div>
           <div className="grid gap-8 md:grid-cols-3">
             {testimonials.map((t) => (
-              <div key={t.name} className="rounded-2xl border border-gray-200 bg-white p-8">
+              <div key={t.name} className="glass-panel-hover p-8">
                 <div className="flex gap-1 mb-4">
                   {Array.from({ length: t.stars }).map((_, i) => (
                     <Star key={i} className="h-4 w-4 fill-red-500 text-red-500" />
@@ -291,7 +291,7 @@ const Landing = () => {
               { q: "What kind of results can I expect?", a: "Our users typically see a 3x increase in organic traffic, significant time savings on content production, and measurable improvements in AI citation appearances within the first 60 days." },
               { q: "Is there a free trial?", a: "We don't offer a free trial, but we do offer a no-commitment strategy call where we'll analyse your domain and show you exactly how Searchera can help. Book a call to get started." },
             ].map((item, i) => (
-              <details key={i} className="group rounded-xl border border-gray-200 bg-gray-50/50 hover:border-gray-300 transition-colors">
+              <details key={i} className="group glass-panel hover:bg-white/70 transition-colors">
                 <summary className="flex items-center justify-between cursor-pointer px-6 py-4 text-sm font-bold text-gray-900 list-none [&::-webkit-details-marker]:hidden">
                   {item.q}
                   <span className="ml-4 shrink-0 text-gray-400 group-open:rotate-45 transition-transform text-xl font-light">+</span>

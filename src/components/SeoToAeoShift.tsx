@@ -31,7 +31,7 @@ const SeoToAeoShift = () => {
         {/* Visual comparison: Old vs New */}
         <div className="grid lg:grid-cols-[1fr_auto_1fr] gap-6 lg:gap-0 items-stretch mb-20">
           {/* OLD: Traditional SEO */}
-          <div className="relative rounded-2xl border border-gray-200 bg-white p-6 lg:p-8 shadow-sm">
+          <div className="relative glass-panel p-6 lg:p-8">
             <div className="flex items-center gap-3 mb-5">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gray-100">
                 <Search className="h-5 w-5 text-gray-500" />
@@ -66,7 +66,7 @@ const SeoToAeoShift = () => {
           </div>
 
           {/* NEW: AEO */}
-          <div className="relative rounded-2xl border-2 border-red-200 bg-gradient-to-br from-white to-red-50/30 p-6 lg:p-8 shadow-lg shadow-red-100/50">
+          <div className="relative glass-panel border-red-200/40 p-6 lg:p-8">
             <div className="absolute -top-3 right-6 inline-flex items-center rounded-full bg-gradient-to-r from-red-600 to-red-500 px-3 py-1 text-xs font-bold text-white shadow-md">
               THE NEW STANDARD
             </div>
@@ -94,7 +94,7 @@ const SeoToAeoShift = () => {
 
         {/* Bridge statement */}
         <div className="text-center max-w-3xl mx-auto">
-          <div className="rounded-2xl border border-gray-200 bg-white p-8 sm:p-10 shadow-sm">
+          <div className="glass-panel p-8 sm:p-10">
             <h3 className="text-xl sm:text-2xl font-black text-gray-900 mb-3">
               Searchera Bridges the Gap
             </h3>

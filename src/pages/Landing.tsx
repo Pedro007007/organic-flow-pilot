@@ -95,8 +95,9 @@ const Landing = () => {
               <h1 className="text-4xl font-black tracking-tight sm:text-5xl lg:text-[3.2rem] xl:text-[3.5rem] leading-[1.2]">
                 Get Cited by AI
                 <br />
-                <span className="inline-block bg-[length:200%_auto] animate-gradient bg-gradient-to-r from-red-600 via-orange-500 to-red-600 bg-clip-text text-transparent pb-2 [text-shadow:0_0_40px_rgba(239,68,68,0.5),0_0_80px_rgba(239,68,68,0.3)] animate-[gradient_3s_ease_infinite,pulse_2s_ease-in-out_infinite]">
+                <span className="relative inline-block bg-gradient-to-r from-red-600 via-orange-500 to-red-600 bg-clip-text text-transparent pb-2">
                   & Rank on Google
+                  <span className="absolute bottom-0 left-0 h-1 w-1/3 rounded-full bg-gradient-to-r from-red-500 to-orange-500 animate-[underline-slide_3s_ease-in-out_infinite]" />
                 </span>
               </h1>
               <p className="mt-6 max-w-xl text-lg text-gray-700 leading-relaxed font-semibold">

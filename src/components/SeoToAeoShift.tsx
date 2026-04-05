@@ -11,7 +11,7 @@ const SeoToAeoShift = () => {
       <div className="relative mx-auto max-w-6xl px-6">
         {/* Section header */}
         <div className="text-center mb-20">
-          <span className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-4 py-1.5 text-sm font-bold text-amber-700 mb-6">
+          <span className="inline-flex items-center gap-2 rounded-full border border-red-200 bg-red-50 px-4 py-1.5 text-sm font-bold text-red-700 mb-6">
             <Sparkles className="h-3.5 w-3.5" />
             The Search Landscape Has Changed
           </span>

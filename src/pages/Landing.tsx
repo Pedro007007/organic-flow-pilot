@@ -9,11 +9,11 @@ import PoweredBySection from "@/components/PoweredBySection";
 import DanielaChat from "@/components/DanielaChat";
 
 const features = [
-  { icon: Search, title: "Keyword Discovery", desc: "Uncover high-impact keywords with AI-driven analysis of your search landscape. Target positions 8–30 for maximum growth.", color: "bg-orange-500", badge: "AVAILABLE" },
+  { icon: Search, title: "Keyword Discovery", desc: "Uncover high-impact keywords with AI-driven analysis of your search landscape. Target positions 8–30 for maximum growth.", color: "bg-red-500", badge: "AVAILABLE" },
   { icon: FileText, title: "Content Pipeline", desc: "Generate, optimize, and publish SEO & AEO-ready content at scale with intelligent automation and editorial control.", color: "bg-teal-500", badge: "AVAILABLE" },
   { icon: Bot, title: "Autonomous Agents", desc: "AI agents continuously monitor rankings, discover opportunities, and take action — 24/7 on autopilot.", color: "bg-violet-500", badge: "POPULAR", badgeColor: "text-rose-500 bg-rose-50 border-rose-200" },
   { icon: BarChart3, title: "Performance Analytics", desc: "Track clicks, impressions, and positions with real-time Google Search Console data and actionable insights.", color: "bg-blue-500", badge: "AVAILABLE" },
-  { icon: Target, title: "Competitor Analysis", desc: "Scan competitor domains, uncover their keyword strategies, and find gaps you can exploit for faster growth.", color: "bg-amber-500", badge: "AVAILABLE" },
+  { icon: Target, title: "Competitor Analysis", desc: "Scan competitor domains, uncover their keyword strategies, and find gaps you can exploit for faster growth.", color: "bg-red-600", badge: "AVAILABLE" },
   { icon: Globe, title: "SEO & AEO Intelligence Reports", desc: "Generate comprehensive audit reports with revenue projections, technical scores, AEO readiness, and shareable client-ready PDFs.", color: "bg-emerald-500", badge: "AVAILABLE" },
   { icon: LineChart, title: "Rankings & AI Citation Tracker", desc: "Monitor your Google positions and AI citation appearances across ChatGPT, Perplexity, and Google AI Overviews.", color: "bg-cyan-500", badge: "NEW", badgeColor: "text-emerald-600 bg-emerald-50 border-emerald-200" },
   { icon: Cpu, title: "SEO & AEO Fulfilment Engine", desc: "Automated quality checks ensure every piece of content meets on-page SEO, technical SEO, schema markup, and AEO standards.", color: "bg-rose-500", badge: "AVAILABLE" },
@@ -246,7 +246,7 @@ const Landing = () => {
               <div key={t.name} className="rounded-2xl border border-gray-200 bg-white p-8">
                 <div className="flex gap-1 mb-4">
                   {Array.from({ length: t.stars }).map((_, i) => (
-                    <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
+                    <Star key={i} className="h-4 w-4 fill-red-500 text-red-500" />
                   ))}
                 </div>
                 <p className="text-gray-800 leading-relaxed mb-6 font-semibold">"{t.quote}"</p>

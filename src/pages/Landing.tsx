@@ -158,7 +158,7 @@ const Landing = () => {
       <section id="features" className="bg-white py-24">
         <div className="mx-auto max-w-6xl px-6">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-black tracking-tight sm:text-4xl">Everything You Need to <span className="bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent">Rank Higher</span></h2>
+            <h2 className="text-3xl font-black tracking-tight sm:text-4xl">Everything You Need to <span className="bg-gradient-to-r from-red-600 via-rose-500 to-red-500 bg-clip-text text-transparent">Rank Higher</span></h2>
             <p className="mt-4 text-lg text-gray-700 max-w-2xl mx-auto font-semibold">A complete AI-powered toolkit for SEO & AEO — from keyword research and content creation to AI citation tracking and answer engine optimization.</p>
           </div>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -185,7 +185,7 @@ const Landing = () => {
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,rgba(59,130,246,0.15),transparent_50%),radial-gradient(ellipse_at_70%_80%,rgba(20,184,166,0.1),transparent_50%)]" />
         <div className="relative mx-auto max-w-6xl px-6">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-black tracking-tight sm:text-4xl text-white">How <span className="bg-gradient-to-r from-blue-400 to-teal-400 bg-clip-text text-transparent">Searchera</span> Works</h2>
+            <h2 className="text-3xl font-black tracking-tight sm:text-4xl text-white">How <span className="bg-gradient-to-r from-red-400 via-rose-400 to-red-400 bg-clip-text text-transparent">Searchera</span> Works</h2>
             <p className="mt-4 text-lg text-blue-100 max-w-2xl mx-auto font-semibold">Get started in minutes. Our streamlined process takes you from setup to growth with minimal effort.</p>
           </div>
           {/* Desktop timeline */}
@@ -238,7 +238,7 @@ const Landing = () => {
       <section id="testimonials" className="bg-white py-24">
         <div className="mx-auto max-w-6xl px-6">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-black tracking-tight sm:text-4xl">Trusted by <span className="bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent">Growth Teams</span></h2>
+            <h2 className="text-3xl font-black tracking-tight sm:text-4xl">Trusted by <span className="bg-gradient-to-r from-red-600 via-rose-500 to-red-500 bg-clip-text text-transparent">Growth Teams</span></h2>
             <p className="mt-4 text-lg text-gray-700 font-semibold">See what our users have to say about Searchera.</p>
           </div>
           <div className="grid gap-8 md:grid-cols-3">

@@ -40,7 +40,7 @@ const DanielaSection = ({ onOpenChat }: DanielaSectionProps) => {
               Free AI Consultation
             </div>
             <h2 className="text-3xl font-black tracking-tight sm:text-4xl text-white leading-tight">
-              Meet <span className="bg-gradient-to-r from-blue-400 to-teal-400 bg-clip-text text-transparent">Daniela</span>,
+              Meet <span className="bg-gradient-to-r from-red-400 via-rose-400 to-red-400 bg-clip-text text-transparent">Daniela</span>,
               <br />Your Personal SEO Strategist
             </h2>
             <p className="mt-4 text-lg text-blue-200/80 leading-relaxed font-medium">

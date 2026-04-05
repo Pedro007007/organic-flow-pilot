@@ -9,14 +9,14 @@ import PoweredBySection from "@/components/PoweredBySection";
 import DanielaChat from "@/components/DanielaChat";
 
 const features = [
-  { icon: Search, title: "Keyword Discovery", desc: "Uncover high-impact keywords with AI-driven analysis of your search landscape. Target positions 8–30 for maximum growth.", color: "bg-red-500", badge: "AVAILABLE" },
-  { icon: FileText, title: "Content Pipeline", desc: "Generate, optimize, and publish SEO & AEO-ready content at scale with intelligent automation and editorial control.", color: "bg-teal-500", badge: "AVAILABLE" },
-  { icon: Bot, title: "Autonomous Agents", desc: "AI agents continuously monitor rankings, discover opportunities, and take action — 24/7 on autopilot.", color: "bg-violet-500", badge: "POPULAR", badgeColor: "text-rose-500 bg-rose-50 border-rose-200" },
-  { icon: BarChart3, title: "Performance Analytics", desc: "Track clicks, impressions, and positions with real-time Google Search Console data and actionable insights.", color: "bg-blue-500", badge: "AVAILABLE" },
-  { icon: Target, title: "Competitor Analysis", desc: "Scan competitor domains, uncover their keyword strategies, and find gaps you can exploit for faster growth.", color: "bg-red-600", badge: "AVAILABLE" },
-  { icon: Globe, title: "SEO & AEO Intelligence Reports", desc: "Generate comprehensive audit reports with revenue projections, technical scores, AEO readiness, and shareable client-ready PDFs.", color: "bg-emerald-500", badge: "AVAILABLE" },
-  { icon: LineChart, title: "Rankings & AI Citation Tracker", desc: "Monitor your Google positions and AI citation appearances across ChatGPT, Perplexity, and Google AI Overviews.", color: "bg-cyan-500", badge: "NEW", badgeColor: "text-emerald-600 bg-emerald-50 border-emerald-200" },
-  { icon: Cpu, title: "SEO & AEO Fulfilment Engine", desc: "Automated quality checks ensure every piece of content meets on-page SEO, technical SEO, schema markup, and AEO standards.", color: "bg-rose-500", badge: "AVAILABLE" },
+  { icon: Search, title: "Keyword Discovery", desc: "Uncover high-impact keywords with AI-driven analysis of your search landscape. Target positions 8–30 for maximum growth.", color: "bg-gradient-to-br from-red-500 to-rose-600", badge: "AVAILABLE" },
+  { icon: FileText, title: "Content Pipeline", desc: "Generate, optimize, and publish SEO & AEO-ready content at scale with intelligent automation and editorial control.", color: "bg-gradient-to-br from-emerald-400 to-teal-600", badge: "AVAILABLE" },
+  { icon: Bot, title: "Autonomous Agents", desc: "AI agents continuously monitor rankings, discover opportunities, and take action — 24/7 on autopilot.", color: "bg-gradient-to-br from-violet-500 to-purple-700", badge: "POPULAR", badgeColor: "text-rose-500 bg-rose-50 border-rose-200" },
+  { icon: BarChart3, title: "Performance Analytics", desc: "Track clicks, impressions, and positions with real-time Google Search Console data and actionable insights.", color: "bg-gradient-to-br from-blue-400 to-indigo-600", badge: "AVAILABLE" },
+  { icon: Target, title: "Competitor Analysis", desc: "Scan competitor domains, uncover their keyword strategies, and find gaps you can exploit for faster growth.", color: "bg-gradient-to-br from-rose-500 to-red-700", badge: "AVAILABLE" },
+  { icon: Globe, title: "SEO & AEO Intelligence Reports", desc: "Generate comprehensive audit reports with revenue projections, technical scores, AEO readiness, and shareable client-ready PDFs.", color: "bg-gradient-to-br from-green-400 to-emerald-600", badge: "AVAILABLE" },
+  { icon: LineChart, title: "Rankings & AI Citation Tracker", desc: "Monitor your Google positions and AI citation appearances across ChatGPT, Perplexity, and Google AI Overviews.", color: "bg-gradient-to-br from-cyan-400 to-blue-600", badge: "NEW", badgeColor: "text-emerald-600 bg-emerald-50 border-emerald-200" },
+  { icon: Cpu, title: "SEO & AEO Fulfilment Engine", desc: "Automated quality checks ensure every piece of content meets on-page SEO, technical SEO, schema markup, and AEO standards.", color: "bg-gradient-to-br from-pink-500 to-rose-700", badge: "AVAILABLE" },
 ];
 
 const stats = [
@@ -140,7 +140,7 @@ const Landing = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((s) => (
               <div key={s.label} className="text-center">
-                <div className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-blue-600 to-teal-500 bg-clip-text text-transparent">{s.value}</div>
+                <div className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-red-500 via-rose-500 to-pink-500 bg-clip-text text-transparent">{s.value}</div>
                 <p className="mt-2 text-sm text-gray-700 font-bold">{s.label}</p>
               </div>
             ))}

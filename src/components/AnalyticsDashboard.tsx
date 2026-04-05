@@ -240,6 +240,18 @@ const AnalyticsDashboard = () => {
           </ResponsiveContainer>
         </ChartCard>
       )}
+
+      {/* Keyword Movers */}
+      <KeywordMovers />
+
+      {/* AI Citation Rate & Content Velocity */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <AiCitationRate />
+        <ContentVelocity />
+      </div>
+
+      {/* Top Pages */}
+      <TopPagesPerformance />
     </div>
   );
 };

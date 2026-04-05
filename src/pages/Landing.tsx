@@ -82,37 +82,38 @@ const Landing = () => {
       {/* Hero + Video Side by Side */}
       <section className="relative overflow-hidden bg-gradient-to-b from-slate-50 to-white">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_30%_20%,rgba(59,130,246,0.08),transparent_50%),radial-gradient(ellipse_at_70%_80%,rgba(20,184,166,0.06),transparent_50%)]" />
-        <div className="relative mx-auto max-w-6xl px-6 pt-20 pb-16">
-          <div className="grid lg:grid-cols-2 gap-12 items-center">
+        <div className="relative mx-auto max-w-6xl px-6 pt-24 pb-20">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
             {/* Left: Hero Text */}
-            <div>
+            <div className="text-center lg:text-left flex flex-col items-center lg:items-start">
               <div className="inline-flex items-center gap-2 rounded-full border border-blue-200 bg-blue-50 px-4 py-1.5 text-sm font-bold text-blue-700 mb-8">
                 <Zap className="h-3.5 w-3.5" />
                 AI-Powered SEO & AEO Platform
               </div>
-              <h1 className="text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl leading-[1.1]">
-                Dominate Google
+              <h1 className="text-4xl font-black tracking-tight sm:text-5xl lg:text-6xl leading-[1.08]">
+                Get Cited by AI
                 <br />
                 <span className="bg-gradient-to-r from-blue-600 via-blue-500 to-teal-500 bg-clip-text text-transparent">
-                  & AI Search Engines
+                  & Rank on Google
                 </span>
               </h1>
               <p className="mt-6 max-w-xl text-lg text-gray-700 leading-relaxed font-semibold">
-                The all-in-one SEO & AEO platform. Discover keywords, generate optimized content, rank on Google, and get cited by ChatGPT, Perplexity & AI Overviews — all on autopilot.
+                The only platform that gets your brand into ChatGPT, Perplexity & AI Overviews — while driving Google rankings on autopilot. Built for teams serious about owning AI search.
               </p>
-              <div className="mt-10 flex flex-wrap items-start gap-4">
-                <Button size="lg" className="bg-[length:200%_auto] animate-gradient bg-gradient-to-r from-blue-600 via-green-400 to-blue-600 text-white border-0 shadow-xl shadow-green-500/30 h-12 px-8 text-base font-bold hover:opacity-90" asChild>
+              <div className="mt-10 flex flex-wrap items-center justify-center lg:justify-start gap-4">
+                <Button size="lg" className="bg-[length:200%_auto] animate-gradient bg-gradient-to-r from-blue-600 via-green-400 to-blue-600 text-white border-0 shadow-xl shadow-green-500/30 h-13 px-10 text-base font-bold hover:opacity-90" asChild>
                   <Link to="/auth">
-                    Get Started <ArrowRight className="ml-1 h-4 w-4" />
+                    Start Free Trial <ArrowRight className="ml-1 h-4 w-4" />
                   </Link>
                 </Button>
-                <Button variant="outline" size="lg" className="border-foreground/20 text-foreground hover:bg-accent h-12 px-8 text-base font-bold" asChild>
+                <Button variant="outline" size="lg" className="border-gray-300 text-gray-700 hover:bg-gray-50 h-13 px-8 text-base font-bold gap-2" asChild>
                   <a href="#how-it-works">
-                    Learn More
+                    <Play className="h-4 w-4 text-blue-600" />
+                    Watch 2-min Demo
                   </a>
                 </Button>
               </div>
-              <p className="mt-4 text-sm text-gray-600 font-bold">Plans from $699/mo · Cancel anytime</p>
+              <p className="mt-5 text-sm text-gray-500 font-bold">Plans from $699/mo · No credit card required · Cancel anytime</p>
             </div>
 
             {/* Right: Video */}

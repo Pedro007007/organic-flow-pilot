@@ -387,8 +387,30 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
             </DialogHeader>
             <div className="space-y-4 pt-2">
               <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">Title</Label>
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs text-muted-foreground">Title</Label>
+                  <Button type="button" size="sm" variant="ghost" className="h-6 text-[10px] gap-1 text-primary hover:text-primary" onClick={handleSuggestTitles} disabled={suggestingTitles || (!keyword.trim() && !title.trim())}>
+                    {suggestingTitles ? <Loader2 className="h-3 w-3 animate-spin" /> : <Lightbulb className="h-3 w-3" />}
+                    AI Titles
+                  </Button>
+                </div>
                 <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="How to Improve Your SEO Rankings" className="bg-background border-border text-sm" />
+                {titleSuggestions.length > 0 && (
+                  <div className="space-y-1.5 rounded-lg border border-primary/20 bg-primary/5 p-2.5">
+                    <p className="text-[10px] font-medium text-primary">Pick a title:</p>
+                    {titleSuggestions.map((s, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        className="w-full text-left rounded-md px-2.5 py-1.5 text-xs hover:bg-primary/10 transition-colors flex items-center justify-between gap-2 group"
+                        onClick={() => { setTitle(s.title); setTitleSuggestions([]); }}
+                      >
+                        <span className="text-foreground">{s.title}</span>
+                        <span className="text-[9px] text-muted-foreground opacity-0 group-hover:opacity-100 shrink-0">{s.style}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">

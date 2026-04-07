@@ -237,7 +237,7 @@ async function analyzeAeoContent(apiKey: string, content: string, schemaTypes: s
     throw new Error("No AEO analysis returned");
   }
 
-  const parsed = JSON.parse(toolCall.function.arguments);
+  const parsed = repairAndParseJson(toolCall.function.arguments);
 
   return {
     faq_coverage: normalizeScore(parsed.faq_coverage),

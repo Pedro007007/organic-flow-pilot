@@ -89,6 +89,7 @@ const AeoTab = ({ contentId, hasContent, onContentUpdated }: AeoTabProps) => {
       }
       setScore(res.data);
       toast({ title: "AEO Score calculated", description: `Overall: ${res.data.overall_score}/100` });
+      onContentUpdated?.();
     } catch (err: any) {
       toast({ title: "AEO scoring failed", description: err.message, variant: "destructive" });
     } finally {

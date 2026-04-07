@@ -851,13 +851,13 @@ ${body}
 
       {/* Tabs: Content + Fulfilment */}
       <Tabs defaultValue="content" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="content">Content & Metadata</TabsTrigger>
-          <TabsTrigger value="optimization">Optimization</TabsTrigger>
-          <TabsTrigger value="aeo">AEO</TabsTrigger>
-          <TabsTrigger value="fulfilment">SEO/GEO Fulfilment</TabsTrigger>
-          <TabsTrigger value="history">History Versions</TabsTrigger>
-          <TabsTrigger value="repurpose">Repurpose</TabsTrigger>
+        <TabsList className="flex-wrap">
+          <TabsTrigger value="content" className="data-[state=active]:bg-blue-500/15 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400">Content & Metadata</TabsTrigger>
+          <TabsTrigger value="optimization" className="data-[state=active]:bg-emerald-500/15 data-[state=active]:text-emerald-600 dark:data-[state=active]:text-emerald-400">Optimization</TabsTrigger>
+          <TabsTrigger value="aeo" className="data-[state=active]:bg-orange-500/15 data-[state=active]:text-orange-600 dark:data-[state=active]:text-orange-400">AEO</TabsTrigger>
+          <TabsTrigger value="fulfilment" className="data-[state=active]:bg-purple-500/15 data-[state=active]:text-purple-600 dark:data-[state=active]:text-purple-400">SEO/GEO Fulfilment</TabsTrigger>
+          <TabsTrigger value="history" className="data-[state=active]:bg-cyan-500/15 data-[state=active]:text-cyan-600 dark:data-[state=active]:text-cyan-400">History Versions</TabsTrigger>
+          <TabsTrigger value="repurpose" className="data-[state=active]:bg-rose-500/15 data-[state=active]:text-rose-600 dark:data-[state=active]:text-rose-400">Repurpose</TabsTrigger>
         </TabsList>
 
         <TabsContent value="content">

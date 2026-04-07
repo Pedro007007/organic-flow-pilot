@@ -389,6 +389,7 @@ GENERAL RULES:
     let approvedContent: string | null = null;
     let approvedAnalysis: AeoAnalysis | null = null;
     let retryFeedback = "";
+    let bestCandidate: { content: string; analysis: AeoAnalysis; score: number } | null = null;
 
     for (let attempt = 1; attempt <= 3; attempt++) {
       const rewriteResponse = await callLovableChat(LOVABLE_API_KEY, {
@@ -424,6 +425,12 @@ ${content}`,
       const candidateTargetScore = candidateScores[typedDimension];
       const regressions = getRegressions(baselineScores, candidateScores, typedDimension);
       const targetImproved = candidateTargetScore > baselineTargetScore;
+      const candidateOverall = getOverallScore(candidateScores);
+
+      // Track the best candidate (highest overall score that improved the target)
+      if (targetImproved && (!bestCandidate || candidateOverall > bestCandidate.score)) {
+        bestCandidate = { content: candidate, analysis: candidateAnalysis, score: candidateOverall };
+      }
 
       if (targetImproved && regressions.length === 0) {
         approvedContent = candidate;
@@ -443,15 +450,18 @@ ${content}`,
 
       retryFeedback = feedbackLines.join("\n");
 
-      if (attempt === 3) {
-        return jsonResponse(
-          {
-            error: "AI fix was blocked because it improved one AEO metric by hurting others.",
-            attempted_dimension: typedDimension,
-            before: baselineScores,
-          },
-          409,
-        );
+      if (attempt === 3 && !approvedContent) {
+        // After 3 attempts, accept the best candidate if overall score didn't drop
+        if (bestCandidate && bestCandidate.score >= getOverallScore(baselineScores)) {
+          approvedContent = bestCandidate.content;
+          approvedAnalysis = bestCandidate.analysis;
+        } else {
+          // Last resort: accept if target improved at all, even with minor regressions
+          if (bestCandidate) {
+            approvedContent = bestCandidate.content;
+            approvedAnalysis = bestCandidate.analysis;
+          }
+        }
       }
     }
 

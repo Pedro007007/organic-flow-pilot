@@ -444,7 +444,13 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
                 <p className="text-[10px] text-muted-foreground text-right">{context.trim().split(/\s+/).filter(Boolean).length} / 1,000 words</p>
               </div>
               <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground flex items-center gap-1"><Link className="h-3 w-3" /> Reference Links</Label>
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs text-muted-foreground flex items-center gap-1"><Link className="h-3 w-3" /> Reference Links</Label>
+                  <Button type="button" size="sm" variant="ghost" className="h-6 text-[10px] gap-1 text-accent hover:text-accent" onClick={handleAutoReferences} disabled={fetchingRefs || (!title.trim() && !keyword.trim())}>
+                    {fetchingRefs ? <Loader2 className="h-3 w-3 animate-spin" /> : <Globe className="h-3 w-3" />}
+                    Auto-Scrape Top 3
+                  </Button>
+                </div>
                 <div className="flex gap-2">
                   <Input value={refLinkInput} onChange={(e) => setRefLinkInput(e.target.value)} placeholder="https://example.com/article" className="bg-background border-border text-sm flex-1" onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); const url = refLinkInput.trim(); if (url && !referenceLinks.includes(url)) { setReferenceLinks([...referenceLinks, url]); setRefLinkInput(""); } } }} />
                   <Button type="button" size="sm" variant="outline" onClick={() => { const url = refLinkInput.trim(); if (url && !referenceLinks.includes(url)) { setReferenceLinks([...referenceLinks, url]); setRefLinkInput(""); } }}>Add</Button>

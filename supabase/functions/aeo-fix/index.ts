@@ -278,14 +278,23 @@ serve(async (req) => {
     const baselineScores = toScores(baselineAnalysis);
     const baselineTargetScore = baselineScores[typedDimension];
 
-    if (baselineTargetScore >= 80) {
+    const { data: existingScore } = await supabase
+      .from("aeo_scores")
+      .select("id, scores")
+      .eq("content_item_id", contentItemId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    const storedScores = existingScore?.scores && typeof existingScore.scores === "object"
+      ? (existingScore.scores as Record<string, unknown>)
+      : null;
+    const storedTargetScore = storedScores?.[typedDimension];
+    const effectiveTargetScore = storedTargetScore === undefined || storedTargetScore === null
+      ? baselineTargetScore
+      : normalizeScore(storedTargetScore);
+
+    if (effectiveTargetScore >= 80 && baselineTargetScore >= 80) {
       const baselineOverallScore = getOverallScore(baselineScores);
-      const { data: existingScore } = await supabase
-        .from("aeo_scores")
-        .select("id")
-        .eq("content_item_id", contentItemId)
-        .eq("user_id", user.id)
-        .maybeSingle();
 
       if (existingScore) {
         await supabase

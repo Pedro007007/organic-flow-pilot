@@ -260,20 +260,26 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
     if (!user || !title.trim() || !keyword.trim()) return;
     setCreating(true);
 
+    const savedTitle = title.trim();
+    const savedKeyword = keyword.trim();
+    const savedBrandId = brandId || undefined;
+    const savedContext = context.trim() || undefined;
+    const savedRefLinks = referenceLinks.length > 0 ? [...referenceLinks] : undefined;
+    const savedExtraKw = extraKeywords.trim() ? extraKeywords.split(",").map(k => k.trim()).filter(Boolean) : undefined;
+
     try {
-      const parsedExtraKw = extraKeywords.trim() ? extraKeywords.split(",").map(k => k.trim()).filter(Boolean) : null;
       const { data, error } = await supabase
         .from("content_items")
         .insert({
           user_id: user.id,
-          title: title.trim(),
-          keyword: keyword.trim(),
+          title: savedTitle,
+          keyword: savedKeyword,
           status: "discovery",
           author: "Agent",
-          brand_id: brandId || null,
-          context: context.trim() || null,
-          reference_links: referenceLinks.length > 0 ? referenceLinks : null,
-          extra_keywords: parsedExtraKw,
+          brand_id: savedBrandId || null,
+          context: savedContext || null,
+          reference_links: savedRefLinks || null,
+          extra_keywords: savedExtraKw || null,
         } as any)
         .select("id")
         .single();
@@ -285,11 +291,66 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
       setTitle(""); setKeyword(""); setContext(""); setReferenceLinks([]); setRefLinkInput(""); setExtraKeywords(""); setTitleSuggestions([]);
       setOpen(false);
 
-      if (runAutopilot && data?.id) {
-        setAutopilot(true);
-        const parsedKw = extraKeywords.trim() ? extraKeywords.split(",").map(k => k.trim()).filter(Boolean) : undefined;
-        await runFullPipeline(data.id, keyword.trim(), title.trim(), brandId || undefined, context.trim() || undefined, referenceLinks.length > 0 ? referenceLinks : undefined, parsedKw);
-        setAutopilot(false);
+      if (data?.id) {
+        if (runAutopilot) {
+          setAutopilot(true);
+          await runFullPipeline(data.id, savedKeyword, savedTitle, savedBrandId, savedContext, savedRefLinks, savedExtraKw);
+          setAutopilot(false);
+        } else {
+          // Generate article + SEO metadata (no publish)
+          setAutopilot(true);
+          try {
+            // Step 1: SERP Research
+            toast({ title: "🔍 Researching competitors..." });
+            let serpResearch: any = null;
+            try {
+              const serpRes = await supabase.functions.invoke("serp-research", {
+                body: { contentItemId: data.id, keyword: savedKeyword, limit: 10 },
+              });
+              if (!serpRes.error && serpRes.data?.analysis) serpResearch = serpRes.data.analysis;
+            } catch { console.warn("SERP research skipped"); }
+
+            // Step 2: Content Strategy
+            toast({ title: "📋 Building strategy..." });
+            let strategy: any = null;
+            try {
+              const stratRes = await supabase.functions.invoke("content-strategy", {
+                body: { keyword: savedKeyword, serpResearch },
+              });
+              if (!stratRes.error && stratRes.data?.strategy) strategy = stratRes.data.strategy;
+            } catch { console.warn("Content strategy skipped"); }
+
+            // Step 3: Content Generation
+            toast({ title: "✍️ Writing content..." });
+            const genRes = await supabase.functions.invoke("content-generate", {
+              body: { contentItemId: data.id, keyword: savedKeyword, title: savedTitle, serpResearch, strategy, brandId: savedBrandId, context: savedContext, referenceLinks: savedRefLinks, extraKeywords: savedExtraKw },
+            });
+            if (genRes.error) throw genRes.error;
+
+            // Step 4: Hero Image
+            toast({ title: "🎨 Generating hero image..." });
+            try {
+              await supabase.functions.invoke("generate-hero-image", {
+                body: { contentItemId: data.id, keyword: savedKeyword, title: savedTitle, brandId: savedBrandId },
+              });
+            } catch { console.warn("Hero image skipped"); }
+
+            // Step 5: SEO Optimization
+            toast({ title: "🔧 Optimizing SEO metadata..." });
+            const optRes = await supabase.functions.invoke("seo-optimize", {
+              body: { contentItemId: data.id, keyword: savedKeyword, brandId: savedBrandId },
+            });
+            if (optRes.error) throw optRes.error;
+
+            toast({ title: "✅ Article & SEO metadata ready!", description: "Content generated and optimized — ready to review." });
+            queryClient.invalidateQueries({ queryKey: ["content_items"] });
+          } catch (err: any) {
+            toast({ title: "Generation failed", description: err.message, variant: "destructive" });
+            queryClient.invalidateQueries({ queryKey: ["content_items"] });
+          } finally {
+            setAutopilot(false);
+          }
+        }
       }
     } catch (err: any) {
       toast({ title: "Failed", description: err.message, variant: "destructive" });
@@ -472,8 +533,8 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
               </div>
               <div className="flex gap-2">
                 <Button onClick={() => handleCreate(false)} disabled={creating || !title.trim() || !keyword.trim()} className="flex-1">
-                  {creating ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Plus className="mr-1.5 h-3.5 w-3.5" />}
-                  Create
+                  {creating ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <FileText className="mr-1.5 h-3.5 w-3.5" />}
+                  Create & Generate
                 </Button>
                 <Button onClick={() => handleCreate(true)} disabled={creating || !title.trim() || !keyword.trim()} variant="outline" className="flex-1 border-accent/30 text-accent hover:bg-accent/10">
                   {creating ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Rocket className="mr-1.5 h-3.5 w-3.5" />}
@@ -481,7 +542,7 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
                 </Button>
               </div>
               <p className="text-[10px] text-muted-foreground text-center">
-                <strong>Autopilot</strong> runs: SERP Research → Strategy → Generate → Hero Image → SEO → Publish
+                <strong>Create & Generate</strong>: Research → Write → Image → SEO metadata &nbsp;|&nbsp; <strong>Autopilot</strong>: + Publish
               </p>
             </div>
           </DialogContent>

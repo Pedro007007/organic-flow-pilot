@@ -434,7 +434,7 @@ ${content}`,
       .eq("user_id", user.id)
       .maybeSingle();
 
-    if (existingScore) {
+    if (existingScoreFinal) {
       await supabase
         .from("aeo_scores")
         .update({
@@ -443,7 +443,7 @@ ${content}`,
           recommendations: approvedAnalysis.recommendations,
           created_at: new Date().toISOString(),
         })
-        .eq("id", existingScore.id);
+        .eq("id", existingScoreFinal.id);
     } else {
       await supabase.from("aeo_scores").insert({
         content_item_id: contentItemId,

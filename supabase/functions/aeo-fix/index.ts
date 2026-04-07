@@ -233,11 +233,16 @@ async function analyzeAeoContent(apiKey: string, content: string, schemaTypes: s
 
   const aiData = await aiResponse.json();
   const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
-  if (!toolCall?.function?.arguments) {
-    throw new Error("No AEO analysis returned");
+  
+  let parsed: Record<string, unknown>;
+  if (toolCall?.function?.arguments) {
+    parsed = repairAndParseJson(toolCall.function.arguments) as Record<string, unknown>;
+  } else {
+    // Fallback: try parsing from message content
+    const msgContent = aiData.choices?.[0]?.message?.content || "";
+    if (!msgContent) throw new Error("No AEO analysis returned");
+    parsed = repairAndParseJson(msgContent) as Record<string, unknown>;
   }
-
-  const parsed = repairAndParseJson(toolCall.function.arguments);
 
   return {
     faq_coverage: normalizeScore(parsed.faq_coverage),

@@ -511,7 +511,37 @@ ${content}`,
     }
 
     if (!approvedContent || !approvedAnalysis) {
-      return jsonResponse({ error: "Unable to produce a safe AEO fix." }, 409);
+      if (existingScore) {
+        await supabase
+          .from("aeo_scores")
+          .update({
+            overall_score: baselineOverallScore,
+            scores: baselineScores,
+            recommendations: baselineAnalysis.recommendations,
+            created_at: new Date().toISOString(),
+          })
+          .eq("id", existingScore.id);
+      } else {
+        await supabase.from("aeo_scores").insert({
+          content_item_id: contentItemId,
+          user_id: user.id,
+          overall_score: baselineOverallScore,
+          scores: baselineScores,
+          recommendations: baselineAnalysis.recommendations,
+        });
+      }
+
+      return jsonResponse({
+        success: false,
+        skipped: true,
+        reason: "no_safe_improvement",
+        message: "No safe AEO rewrite was found without reducing other strong metrics.",
+        dimension: typedDimension,
+        improved: content,
+        before: baselineScores,
+        after: baselineScores,
+        overall_score: baselineOverallScore,
+      });
     }
 
     const finalScores = toScores(approvedAnalysis);

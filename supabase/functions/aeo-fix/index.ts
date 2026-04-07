@@ -42,6 +42,20 @@ const dimensionPrompts: Record<string, string> = {
 
 const AEO_DIMENSIONS = ["faq_coverage", "answer_blocks", "entity_clarity", "schema_richness", "conciseness"] as const;
 type AeoDimension = (typeof AEO_DIMENSIONS)[number];
+const HEALTHY_SCORE_THRESHOLD = 80;
+
+type ScoreMap = ReturnType<typeof toScores>;
+
+type CandidateAssessment = {
+  content: string;
+  analysis: AeoAnalysis;
+  scores: ScoreMap;
+  targetScore: number;
+  targetGain: number;
+  overallScore: number;
+  regressions: Array<{ dimension: AeoDimension; before: number; after: number }>;
+  totalRegression: number;
+};
 
 type AeoAnalysis = {
   faq_coverage: number;
@@ -128,6 +142,36 @@ const getOverallScore = (scores: ReturnType<typeof toScores>) =>
       scores.schema_richness * 0.2 +
       scores.conciseness * 0.15,
   );
+
+const getTotalRegression = (
+  before: ScoreMap,
+  after: ScoreMap,
+  targetDimension: AeoDimension,
+) =>
+  AEO_DIMENSIONS.reduce((sum, key) => {
+    if (key === targetDimension) return sum;
+    return sum + Math.max(0, before[key] - after[key]);
+  }, 0);
+
+const isBetterCandidate = (candidate: CandidateAssessment, best: CandidateAssessment | null) => {
+  if (!best) return true;
+  if (candidate.targetGain !== best.targetGain) return candidate.targetGain > best.targetGain;
+  if (candidate.regressions.length !== best.regressions.length) return candidate.regressions.length < best.regressions.length;
+  if (candidate.overallScore !== best.overallScore) return candidate.overallScore > best.overallScore;
+  return candidate.totalRegression < best.totalRegression;
+};
+
+const isAcceptableFallback = (candidate: CandidateAssessment, baselineOverallScore: number) => {
+  if (candidate.targetGain <= 0) return false;
+  if (candidate.regressions.length === 0) return true;
+  if (candidate.overallScore >= baselineOverallScore) return true;
+
+  return (
+    candidate.regressions.length <= 1 &&
+    candidate.totalRegression <= 4 &&
+    candidate.overallScore >= baselineOverallScore - 1
+  );
+};
 
 const getRegressions = (
   before: ReturnType<typeof toScores>,
@@ -317,6 +361,7 @@ serve(async (req) => {
     const baselineAnalysis = await analyzeAeoContent(LOVABLE_API_KEY, content, item.schema_types || []);
     const baselineScores = toScores(baselineAnalysis);
     const baselineTargetScore = baselineScores[typedDimension];
+    const baselineOverallScore = getOverallScore(baselineScores);
 
     const { data: existingScore } = await supabase
       .from("aeo_scores")
@@ -328,13 +373,7 @@ serve(async (req) => {
     const storedScores = existingScore?.scores && typeof existingScore.scores === "object"
       ? (existingScore.scores as Record<string, unknown>)
       : null;
-    const storedTargetScore = storedScores?.[typedDimension];
-    const effectiveTargetScore = storedTargetScore === undefined || storedTargetScore === null
-      ? baselineTargetScore
-      : normalizeScore(storedTargetScore);
-
-    if (effectiveTargetScore >= 80 && baselineTargetScore >= 80) {
-      const baselineOverallScore = getOverallScore(baselineScores);
+    if (baselineTargetScore >= HEALTHY_SCORE_THRESHOLD) {
 
       if (existingScore) {
         await supabase
@@ -388,8 +427,8 @@ GENERAL RULES:
 
     let approvedContent: string | null = null;
     let approvedAnalysis: AeoAnalysis | null = null;
+    let bestCandidate: CandidateAssessment | null = null;
     let retryFeedback = "";
-    let bestCandidate: { content: string; analysis: AeoAnalysis; score: number } | null = null;
 
     for (let attempt = 1; attempt <= 3; attempt++) {
       const rewriteResponse = await callLovableChat(LOVABLE_API_KEY, {
@@ -423,13 +462,26 @@ ${content}`,
       const candidateAnalysis = await analyzeAeoContent(LOVABLE_API_KEY, candidate, item.schema_types || []);
       const candidateScores = toScores(candidateAnalysis);
       const candidateTargetScore = candidateScores[typedDimension];
+      const candidateOverallScore = getOverallScore(candidateScores);
       const regressions = getRegressions(baselineScores, candidateScores, typedDimension);
-      const targetImproved = candidateTargetScore > baselineTargetScore;
-      const candidateOverall = getOverallScore(candidateScores);
+      const targetGain = candidateTargetScore - baselineTargetScore;
+      const targetImproved = targetGain > 0;
 
-      // Track the best candidate (highest overall score that improved the target)
-      if (targetImproved && (!bestCandidate || candidateOverall > bestCandidate.score)) {
-        bestCandidate = { content: candidate, analysis: candidateAnalysis, score: candidateOverall };
+      if (targetImproved) {
+        const candidateAssessment: CandidateAssessment = {
+          content: candidate,
+          analysis: candidateAnalysis,
+          scores: candidateScores,
+          targetScore: candidateTargetScore,
+          targetGain,
+          overallScore: candidateOverallScore,
+          regressions,
+          totalRegression: getTotalRegression(baselineScores, candidateScores, typedDimension),
+        };
+
+        if (isBetterCandidate(candidateAssessment, bestCandidate)) {
+          bestCandidate = candidateAssessment;
+        }
       }
 
       if (targetImproved && regressions.length === 0) {
@@ -449,19 +501,12 @@ ${content}`,
       ].filter(Boolean);
 
       retryFeedback = feedbackLines.join("\n");
+    }
 
-      if (attempt === 3 && !approvedContent) {
-        // After 3 attempts, accept the best candidate if overall score didn't drop
-        if (bestCandidate && bestCandidate.score >= getOverallScore(baselineScores)) {
-          approvedContent = bestCandidate.content;
-          approvedAnalysis = bestCandidate.analysis;
-        } else {
-          // Last resort: accept if target improved at all, even with minor regressions
-          if (bestCandidate) {
-            approvedContent = bestCandidate.content;
-            approvedAnalysis = bestCandidate.analysis;
-          }
-        }
+    if (!approvedContent || !approvedAnalysis) {
+      if (bestCandidate && isAcceptableFallback(bestCandidate, baselineOverallScore)) {
+        approvedContent = bestCandidate.content;
+        approvedAnalysis = bestCandidate.analysis;
       }
     }
 

@@ -533,8 +533,8 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
               </div>
               <div className="flex gap-2">
                 <Button onClick={() => handleCreate(false)} disabled={creating || !title.trim() || !keyword.trim()} className="flex-1">
-                  {creating ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Plus className="mr-1.5 h-3.5 w-3.5" />}
-                  Create
+                  {creating ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <FileText className="mr-1.5 h-3.5 w-3.5" />}
+                  Create & Generate
                 </Button>
                 <Button onClick={() => handleCreate(true)} disabled={creating || !title.trim() || !keyword.trim()} variant="outline" className="flex-1 border-accent/30 text-accent hover:bg-accent/10">
                   {creating ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Rocket className="mr-1.5 h-3.5 w-3.5" />}
@@ -542,7 +542,7 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
                 </Button>
               </div>
               <p className="text-[10px] text-muted-foreground text-center">
-                <strong>Autopilot</strong> runs: SERP Research → Strategy → Generate → Hero Image → SEO → Publish
+                <strong>Create & Generate</strong>: Research → Write → Image → SEO metadata &nbsp;|&nbsp; <strong>Autopilot</strong>: + Publish
               </p>
             </div>
           </DialogContent>

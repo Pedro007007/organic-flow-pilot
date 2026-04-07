@@ -427,7 +427,7 @@ ${content}`,
       .update({ draft_content: approvedContent, updated_at: new Date().toISOString() })
       .eq("id", contentItemId);
 
-    const { data: existingScore } = await supabase
+    const { data: existingScoreFinal } = await supabase
       .from("aeo_scores")
       .select("id")
       .eq("content_item_id", contentItemId)

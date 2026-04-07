@@ -124,6 +124,26 @@ const AeoTab = ({ contentId, hasContent, onContentUpdated }: AeoTabProps) => {
         const errBody = res.error?.context ? await (res.error.context as any).json?.() : null;
         throw new Error(errBody?.error || res.error.message || "Fix failed");
       }
+
+      if (res.data?.after && typeof res.data?.overall_score === "number") {
+        setScore((prev) => ({
+          overall_score: res.data.overall_score,
+          scores: (res.data.after as Record<string, number>) || prev?.scores || {},
+          recommendations: prev?.recommendations || [],
+        }));
+      }
+
+      if (res.data?.skipped) {
+        toast({
+          title: res.data?.reason === "already_healthy" ? `${label} already strong` : `${label} left unchanged`,
+          description:
+            res.data?.reason === "already_healthy"
+              ? "This section already meets the target score."
+              : res.data?.message || "No safe improvement was found, so the content was not changed.",
+        });
+        return;
+      }
+
       toast({ title: `${label} improved`, description: "Content updated." });
       onContentUpdated?.();
       if (!skipRescore) {

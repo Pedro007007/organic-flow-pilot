@@ -44,7 +44,7 @@ const navItems = [
   { id: "keywords", label: "Keywords", icon: Search },
   { id: "content", label: "Content", icon: FileText },
   { id: "rankings", label: "Rankings", icon: TrendingUp },
-  { id: "llm-search", label: "LLM Search", icon: Sparkles },
+  { id: "llm-search", label: "Keyword Search", icon: Sparkles },
   { id: "calendar", label: "Calendar", icon: CalendarDays },
   { id: "agents", label: "Agents", icon: Bot },
   { id: "analytics", label: "Analytics", icon: BarChart3 },

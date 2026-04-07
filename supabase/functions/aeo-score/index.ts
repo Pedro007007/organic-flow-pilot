@@ -161,6 +161,9 @@ serve(async (req) => {
       });
     }
 
+    // Also update the content_items.seo_score so the pipeline card reflects the latest score
+    await supabase.from("content_items").update({ seo_score: overall }).eq("id", contentItemId);
+
     return new Response(JSON.stringify({
       success: true,
       overall_score: overall,

@@ -1193,8 +1193,9 @@ ${body}
         <TabsContent value="aeo">
           <div className="rounded-lg border border-border bg-card p-5">
             <AeoTab contentId={contentId} hasContent={!!draftContent.trim()} onContentUpdated={async () => {
-              const { data } = await supabase.from("content_items").select("draft_content").eq("id", contentId).maybeSingle();
+              const { data } = await supabase.from("content_items").select("draft_content, seo_score").eq("id", contentId).maybeSingle();
               if (data?.draft_content) setDraftContent(data.draft_content);
+              queryClient.invalidateQueries({ queryKey: ["content_items"] });
             }} />
           </div>
         </TabsContent>

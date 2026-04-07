@@ -173,7 +173,7 @@ const Auth = () => {
 
           <h1 className="text-3xl font-bold text-gray-900 leading-tight mb-3">
             Turn any website into a{" "}
-            <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-red-500 via-orange-500 to-amber-500 bg-clip-text text-transparent">
               winning strategy
             </span>
           </h1>

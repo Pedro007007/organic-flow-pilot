@@ -93,6 +93,57 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
     }
   };
 
+  const handleSuggestTitles = async () => {
+    if (!keyword.trim() && !title.trim()) {
+      toast({ title: "Enter a keyword or title first", variant: "destructive" });
+      return;
+    }
+    setSuggestingTitles(true);
+    setTitleSuggestions([]);
+    try {
+      const brandName = brands.find(b => b.id === brandId)?.name;
+      const { data, error } = await supabase.functions.invoke("suggest-titles", {
+        body: { keyword: keyword.trim() || undefined, topic: title.trim() || undefined, brandName },
+      });
+      if (error) throw error;
+      if (data?.titles?.length) {
+        setTitleSuggestions(data.titles);
+        toast({ title: `💡 ${data.titles.length} title suggestions ready` });
+      } else {
+        toast({ title: "No suggestions returned", variant: "destructive" });
+      }
+    } catch (err: any) {
+      toast({ title: "Title suggestion failed", description: err.message, variant: "destructive" });
+    } finally {
+      setSuggestingTitles(false);
+    }
+  };
+
+  const handleAutoReferences = async () => {
+    if (!title.trim() && !keyword.trim()) {
+      toast({ title: "Enter a title or keyword first", variant: "destructive" });
+      return;
+    }
+    setFetchingRefs(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("auto-references", {
+        body: { title: title.trim() || undefined, keyword: keyword.trim() || undefined },
+      });
+      if (error) throw error;
+      if (data?.references?.length) {
+        const newLinks = data.references.map((r: any) => r.url).filter((url: string) => !referenceLinks.includes(url));
+        setReferenceLinks([...referenceLinks, ...newLinks]);
+        toast({ title: `🔗 ${newLinks.length} reference links added` });
+      } else {
+        toast({ title: "No references found", variant: "destructive" });
+      }
+    } catch (err: any) {
+      toast({ title: "Auto-reference failed", description: err.message, variant: "destructive" });
+    } finally {
+      setFetchingRefs(false);
+    }
+  };
+
   useEffect(() => {
     if (!user) return;
     supabase.from("brands").select("id, name, is_default").order("created_at").then(({ data }) => {

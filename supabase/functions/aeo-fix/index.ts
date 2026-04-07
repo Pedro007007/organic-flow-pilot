@@ -77,6 +77,41 @@ const stripMarkdownFence = (value: string) =>
     .replace(/\s*```$/, "")
     .trim();
 
+function repairAndParseJson(raw: string): unknown {
+  let cleaned = raw
+    .replace(/```json\s*/gi, "")
+    .replace(/```\s*/g, "")
+    .trim();
+
+  const jsonStart = cleaned.search(/[\{\[]/);
+  if (jsonStart === -1) throw new Error("No JSON found in response");
+  cleaned = cleaned.substring(jsonStart);
+
+  // Try direct parse first
+  try { return JSON.parse(cleaned); } catch { /* continue */ }
+
+  // Remove trailing commas and control chars
+  cleaned = cleaned
+    .replace(/,\s*}/g, "}")
+    .replace(/,\s*]/g, "]")
+    .replace(/[\x00-\x1F\x7F]/g, "");
+
+  try { return JSON.parse(cleaned); } catch { /* continue */ }
+
+  // Repair unbalanced braces/brackets
+  let braces = 0, brackets = 0;
+  for (const c of cleaned) {
+    if (c === '{') braces++;
+    if (c === '}') braces--;
+    if (c === '[') brackets++;
+    if (c === ']') brackets--;
+  }
+  while (brackets > 0) { cleaned += ']'; brackets--; }
+  while (braces > 0) { cleaned += '}'; braces--; }
+
+  return JSON.parse(cleaned);
+}
+
 const toScores = (analysis: AeoAnalysis) => ({
   faq_coverage: normalizeScore(analysis.faq_coverage),
   answer_blocks: normalizeScore(analysis.answer_blocks),
@@ -198,11 +233,16 @@ async function analyzeAeoContent(apiKey: string, content: string, schemaTypes: s
 
   const aiData = await aiResponse.json();
   const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
-  if (!toolCall?.function?.arguments) {
-    throw new Error("No AEO analysis returned");
+  
+  let parsed: Record<string, unknown>;
+  if (toolCall?.function?.arguments) {
+    parsed = repairAndParseJson(toolCall.function.arguments) as Record<string, unknown>;
+  } else {
+    // Fallback: try parsing from message content
+    const msgContent = aiData.choices?.[0]?.message?.content || "";
+    if (!msgContent) throw new Error("No AEO analysis returned");
+    parsed = repairAndParseJson(msgContent) as Record<string, unknown>;
   }
-
-  const parsed = JSON.parse(toolCall.function.arguments);
 
   return {
     faq_coverage: normalizeScore(parsed.faq_coverage),

@@ -95,7 +95,7 @@ const Index = () => {
     settings: "Settings",
     calendar: "Content Calendar",
     rankings: "AI SEO & Rankings",
-    "llm-search": "LLM Search Lab",
+    "llm-search": "Keyword Research",
     scanner: "Business Scanner",
     reports: "Reports",
     leads: "Lead Capture",

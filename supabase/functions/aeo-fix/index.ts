@@ -278,6 +278,47 @@ serve(async (req) => {
     const baselineScores = toScores(baselineAnalysis);
     const baselineTargetScore = baselineScores[typedDimension];
 
+    if (baselineTargetScore >= 80) {
+      const baselineOverallScore = getOverallScore(baselineScores);
+      const { data: existingScore } = await supabase
+        .from("aeo_scores")
+        .select("id")
+        .eq("content_item_id", contentItemId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (existingScore) {
+        await supabase
+          .from("aeo_scores")
+          .update({
+            overall_score: baselineOverallScore,
+            scores: baselineScores,
+            recommendations: baselineAnalysis.recommendations,
+            created_at: new Date().toISOString(),
+          })
+          .eq("id", existingScore.id);
+      } else {
+        await supabase.from("aeo_scores").insert({
+          content_item_id: contentItemId,
+          user_id: user.id,
+          overall_score: baselineOverallScore,
+          scores: baselineScores,
+          recommendations: baselineAnalysis.recommendations,
+        });
+      }
+
+      return jsonResponse({
+        success: true,
+        skipped: true,
+        reason: "already_healthy",
+        dimension: typedDimension,
+        improved: content,
+        before: baselineScores,
+        after: baselineScores,
+        overall_score: baselineOverallScore,
+      });
+    }
+
     const systemPrompt = `You are a Senior AEO (Answer Engine Optimization) Specialist. Your job is to rewrite content to score higher on a specific AEO dimension while strictly preserving ALL other AEO optimizations already present.
 
 CRITICAL PRESERVATION RULES — violating any of these is a failure:

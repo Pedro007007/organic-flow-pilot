@@ -427,14 +427,14 @@ ${content}`,
       .update({ draft_content: approvedContent, updated_at: new Date().toISOString() })
       .eq("id", contentItemId);
 
-    const { data: existingScore } = await supabase
+    const { data: existingScoreFinal } = await supabase
       .from("aeo_scores")
       .select("id")
       .eq("content_item_id", contentItemId)
       .eq("user_id", user.id)
       .maybeSingle();
 
-    if (existingScore) {
+    if (existingScoreFinal) {
       await supabase
         .from("aeo_scores")
         .update({
@@ -443,7 +443,7 @@ ${content}`,
           recommendations: approvedAnalysis.recommendations,
           created_at: new Date().toISOString(),
         })
-        .eq("id", existingScore.id);
+        .eq("id", existingScoreFinal.id);
     } else {
       await supabase.from("aeo_scores").insert({
         content_item_id: contentItemId,

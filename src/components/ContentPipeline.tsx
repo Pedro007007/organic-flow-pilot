@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { FileText, Plus, Rocket, Loader2, Search, Filter, CheckSquare, Square, Download, Tag, X, Link, Sparkles, Trash2, EyeOff } from "lucide-react";
+import { FileText, Plus, Rocket, Loader2, Search, Filter, CheckSquare, Square, Download, Tag, X, Link, Sparkles, Trash2, EyeOff, Lightbulb, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -66,6 +66,9 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
   const [refLinkInput, setRefLinkInput] = useState("");
   const [extraKeywords, setExtraKeywords] = useState("");
   const [suggesting, setSuggesting] = useState(false);
+  const [suggestingTitles, setSuggestingTitles] = useState(false);
+  const [titleSuggestions, setTitleSuggestions] = useState<{ title: string; style: string }[]>([]);
+  const [fetchingRefs, setFetchingRefs] = useState(false);
 
   const handleAiSuggest = async () => {
     if (!title.trim()) {
@@ -87,6 +90,57 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
       toast({ title: "AI suggest failed", description: err.message, variant: "destructive" });
     } finally {
       setSuggesting(false);
+    }
+  };
+
+  const handleSuggestTitles = async () => {
+    if (!keyword.trim() && !title.trim()) {
+      toast({ title: "Enter a keyword or title first", variant: "destructive" });
+      return;
+    }
+    setSuggestingTitles(true);
+    setTitleSuggestions([]);
+    try {
+      const brandName = brands.find(b => b.id === brandId)?.name;
+      const { data, error } = await supabase.functions.invoke("suggest-titles", {
+        body: { keyword: keyword.trim() || undefined, topic: title.trim() || undefined, brandName },
+      });
+      if (error) throw error;
+      if (data?.titles?.length) {
+        setTitleSuggestions(data.titles);
+        toast({ title: `💡 ${data.titles.length} title suggestions ready` });
+      } else {
+        toast({ title: "No suggestions returned", variant: "destructive" });
+      }
+    } catch (err: any) {
+      toast({ title: "Title suggestion failed", description: err.message, variant: "destructive" });
+    } finally {
+      setSuggestingTitles(false);
+    }
+  };
+
+  const handleAutoReferences = async () => {
+    if (!title.trim() && !keyword.trim()) {
+      toast({ title: "Enter a title or keyword first", variant: "destructive" });
+      return;
+    }
+    setFetchingRefs(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("auto-references", {
+        body: { title: title.trim() || undefined, keyword: keyword.trim() || undefined },
+      });
+      if (error) throw error;
+      if (data?.references?.length) {
+        const newLinks = data.references.map((r: any) => r.url).filter((url: string) => !referenceLinks.includes(url));
+        setReferenceLinks([...referenceLinks, ...newLinks]);
+        toast({ title: `🔗 ${newLinks.length} reference links added` });
+      } else {
+        toast({ title: "No references found", variant: "destructive" });
+      }
+    } catch (err: any) {
+      toast({ title: "Auto-reference failed", description: err.message, variant: "destructive" });
+    } finally {
+      setFetchingRefs(false);
     }
   };
 
@@ -228,7 +282,7 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
 
       toast({ title: "Content created" });
       queryClient.invalidateQueries({ queryKey: ["content_items"] });
-      setTitle(""); setKeyword(""); setContext(""); setReferenceLinks([]); setRefLinkInput(""); setExtraKeywords("");
+      setTitle(""); setKeyword(""); setContext(""); setReferenceLinks([]); setRefLinkInput(""); setExtraKeywords(""); setTitleSuggestions([]);
       setOpen(false);
 
       if (runAutopilot && data?.id) {
@@ -333,8 +387,30 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
             </DialogHeader>
             <div className="space-y-4 pt-2">
               <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground">Title</Label>
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs text-muted-foreground">Title</Label>
+                  <Button type="button" size="sm" variant="ghost" className="h-6 text-[10px] gap-1 text-primary hover:text-primary" onClick={handleSuggestTitles} disabled={suggestingTitles || (!keyword.trim() && !title.trim())}>
+                    {suggestingTitles ? <Loader2 className="h-3 w-3 animate-spin" /> : <Lightbulb className="h-3 w-3" />}
+                    AI Titles
+                  </Button>
+                </div>
                 <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="How to Improve Your SEO Rankings" className="bg-background border-border text-sm" />
+                {titleSuggestions.length > 0 && (
+                  <div className="space-y-1.5 rounded-lg border border-primary/20 bg-primary/5 p-2.5">
+                    <p className="text-[10px] font-medium text-primary">Pick a title:</p>
+                    {titleSuggestions.map((s, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        className="w-full text-left rounded-md px-2.5 py-1.5 text-xs hover:bg-primary/10 transition-colors flex items-center justify-between gap-2 group"
+                        onClick={() => { setTitle(s.title); setTitleSuggestions([]); }}
+                      >
+                        <span className="text-foreground">{s.title}</span>
+                        <span className="text-[9px] text-muted-foreground opacity-0 group-hover:opacity-100 shrink-0">{s.style}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
@@ -368,7 +444,13 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
                 <p className="text-[10px] text-muted-foreground text-right">{context.trim().split(/\s+/).filter(Boolean).length} / 1,000 words</p>
               </div>
               <div className="space-y-2">
-                <Label className="text-xs text-muted-foreground flex items-center gap-1"><Link className="h-3 w-3" /> Reference Links</Label>
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs text-muted-foreground flex items-center gap-1"><Link className="h-3 w-3" /> Reference Links</Label>
+                  <Button type="button" size="sm" variant="ghost" className="h-6 text-[10px] gap-1 text-accent hover:text-accent" onClick={handleAutoReferences} disabled={fetchingRefs || (!title.trim() && !keyword.trim())}>
+                    {fetchingRefs ? <Loader2 className="h-3 w-3 animate-spin" /> : <Globe className="h-3 w-3" />}
+                    Auto-Scrape Top 3
+                  </Button>
+                </div>
                 <div className="flex gap-2">
                   <Input value={refLinkInput} onChange={(e) => setRefLinkInput(e.target.value)} placeholder="https://example.com/article" className="bg-background border-border text-sm flex-1" onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); const url = refLinkInput.trim(); if (url && !referenceLinks.includes(url)) { setReferenceLinks([...referenceLinks, url]); setRefLinkInput(""); } } }} />
                   <Button type="button" size="sm" variant="outline" onClick={() => { const url = refLinkInput.trim(); if (url && !referenceLinks.includes(url)) { setReferenceLinks([...referenceLinks, url]); setRefLinkInput(""); } }}>Add</Button>

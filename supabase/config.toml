@@ -71,3 +71,9 @@ verify_jwt = false
 
 [functions.upgrade-internal-links]
 verify_jwt = false
+
+[functions.suggest-titles]
+verify_jwt = false
+
+[functions.auto-references]
+verify_jwt = false

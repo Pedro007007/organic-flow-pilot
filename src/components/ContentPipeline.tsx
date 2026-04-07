@@ -282,7 +282,7 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
 
       toast({ title: "Content created" });
       queryClient.invalidateQueries({ queryKey: ["content_items"] });
-      setTitle(""); setKeyword(""); setContext(""); setReferenceLinks([]); setRefLinkInput(""); setExtraKeywords("");
+      setTitle(""); setKeyword(""); setContext(""); setReferenceLinks([]); setRefLinkInput(""); setExtraKeywords(""); setTitleSuggestions([]);
       setOpen(false);
 
       if (runAutopilot && data?.id) {

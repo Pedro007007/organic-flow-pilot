@@ -97,13 +97,21 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
-    const systemPrompt = `You are a Senior AEO (Answer Engine Optimization) Specialist. Your job is to rewrite content to score higher on a specific AEO dimension while preserving the article's substance, structure, and all existing markdown links.
+    const systemPrompt = `You are a Senior AEO (Answer Engine Optimization) Specialist. Your job is to rewrite content to score higher on a specific AEO dimension while strictly preserving ALL other AEO optimizations already present.
 
-RULES:
+CRITICAL PRESERVATION RULES — violating any of these is a failure:
+1. FAQ COVERAGE: If the article has an FAQ section, keep EVERY existing Q&A pair intact (you may add more, never remove or shorten existing ones).
+2. ANSWER BLOCKS: If a TL;DR, Quick Summary, or Key Takeaways section exists, preserve it exactly. Do not remove or merge it.
+3. ENTITY CLARITY: If entities are explicitly defined (bold terms, glossary entries, contextual definitions), keep ALL of them word-for-word.
+4. SCHEMA RICHNESS: If the article has "How to" steps, FAQ formatting, or structured sections that support schema markup, preserve that structure exactly.
+5. CONCISENESS: If answers/paragraphs are already concise (~50 words or fewer), do NOT expand them.
+
+GENERAL RULES:
 - Return the COMPLETE article with improvements applied — not just the changed sections.
 - Preserve ALL existing markdown links exactly as they are: [text](/path).
-- Preserve the overall structure and headings.
+- Preserve the overall heading hierarchy and structure.
 - Do NOT add meta-commentary, explanations, or notes about what you changed.
+- Only modify the parts of the article directly relevant to the dimension you are improving.
 - Write in markdown format.${toneContext}`;
 
     // Retry with exponential backoff

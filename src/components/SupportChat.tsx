@@ -166,21 +166,30 @@ const SupportChat = () => {
     <>
       {/* Floating trigger button */}
       {!open && (
-        <button
-          onClick={() => setOpen(true)}
-          className="fixed bottom-6 right-6 z-50 flex items-center gap-3 rounded-full bg-gradient-to-r from-slate-700 to-slate-800 pl-3 pr-5 py-2.5 text-white shadow-2xl shadow-slate-800/30 hover:shadow-slate-800/50 transition-all duration-300 hover:scale-105 group"
-        >
-          <div className="relative h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center">
-            <Headset className="h-5 w-5 text-white" />
-            <span className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-green-400 border-2 border-slate-700 animate-pulse" />
-          </div>
-          <span className="text-sm font-bold">Need Help?</span>
-        </button>
+        <div className={`fixed ${CORNER_CLASSES[corner]} z-50 flex items-center gap-1 transition-all duration-500 ease-in-out`}>
+          <button
+            onClick={() => setOpen(true)}
+            className="flex items-center gap-3 rounded-full bg-gradient-to-r from-slate-700 to-slate-800 pl-3 pr-5 py-2.5 text-white shadow-2xl shadow-slate-800/30 hover:shadow-slate-800/50 transition-all duration-300 hover:scale-105 group"
+          >
+            <div className="relative h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center">
+              <Headset className="h-5 w-5 text-white" />
+              <span className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-green-400 border-2 border-slate-700 animate-pulse" />
+            </div>
+            <span className="text-sm font-bold">Need Help?</span>
+          </button>
+          <button
+            onClick={cycleCorner}
+            title="Move to another corner"
+            className="h-7 w-7 rounded-full bg-slate-600/80 hover:bg-slate-500 text-white/80 hover:text-white flex items-center justify-center transition-all duration-200 shadow-md"
+          >
+            <ArrowUpRight className="h-3.5 w-3.5" />
+          </button>
+        </div>
       )}
 
       {/* Chat panel */}
       {open && (
-        <div className="fixed bottom-6 right-6 z-50 flex flex-col w-[380px] max-w-[calc(100vw-2rem)] h-[560px] max-h-[calc(100vh-4rem)] rounded-2xl bg-white shadow-2xl border border-gray-200 overflow-hidden animate-scale-in">
+        <div className={`fixed ${CORNER_CLASSES[corner]} z-50 flex flex-col w-[380px] max-w-[calc(100vw-2rem)] h-[560px] max-h-[calc(100vh-4rem)] rounded-2xl bg-white shadow-2xl border border-gray-200 overflow-hidden animate-scale-in transition-all duration-500 ease-in-out`}>
           {/* Header */}
           <div className="flex items-center gap-3 bg-gradient-to-r from-slate-700 to-slate-800 px-4 py-3">
             <div className="relative h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center flex-shrink-0">

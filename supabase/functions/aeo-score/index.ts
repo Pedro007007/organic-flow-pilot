@@ -48,6 +48,29 @@ serve(async (req) => {
       return new Response(JSON.stringify({ error: "No draft content to score" }), { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
+    const ANALYSIS_WINDOW_CHARS = 16000;
+    const FAQ_SECTION_PATTERN = /(^|\n)##\s+(frequently asked questions|faq|common questions)\b[\s\S]*$/im;
+    const getAeoAnalysisWindow = (rawContent: string) => {
+      const normalized = rawContent.trim();
+      if (normalized.length <= ANALYSIS_WINDOW_CHARS) return normalized;
+
+      const faqMatch = normalized.match(FAQ_SECTION_PATTERN);
+      if (faqMatch?.index !== undefined) {
+        const faqStart = faqMatch.index;
+        const headBudget = Math.max(5000, ANALYSIS_WINDOW_CHARS - (normalized.length - faqStart));
+        const head = normalized.slice(0, headBudget).trimEnd();
+        const faqTail = normalized.slice(faqStart).trimStart();
+        const combined = `${head}\n\n${faqTail}`;
+        return combined.length <= ANALYSIS_WINDOW_CHARS
+          ? combined
+          : `${normalized.slice(0, 8000).trimEnd()}\n\n${normalized.slice(-8000).trimStart()}`;
+      }
+
+      return `${normalized.slice(0, 10000).trimEnd()}\n\n${normalized.slice(-6000).trimStart()}`;
+    };
+
+    const analysisWindow = getAeoAnalysisWindow(content);
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
@@ -59,6 +82,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         model: "google/gemini-3-flash-preview",
+        max_tokens: 2500,
         messages: [
           {
             role: "system",
@@ -66,7 +90,7 @@ serve(async (req) => {
           },
           {
             role: "user",
-            content: `Analyze this content for AEO readiness. Schema types present: ${JSON.stringify(item.schema_types || [])}.\n\nContent:\n${content.slice(0, 8000)}`,
+            content: `Analyze this content for AEO readiness. Schema types present: ${JSON.stringify(item.schema_types || [])}.\n\nContent:\n${analysisWindow}`,
           },
         ],
         tools: [

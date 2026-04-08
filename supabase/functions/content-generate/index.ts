@@ -182,8 +182,8 @@ serve(async (req) => {
     const toneInstruction = brand?.tone_of_voice ? `- Tone of voice: ${brand.tone_of_voice}` : "";
     const styleInstruction = brand?.writing_style ? `- Writing style: ${brand.writing_style}` : "";
     const wordCountInstruction = wp.min_word_count || wp.max_word_count
-      ? `- Target word count: ${wp.min_word_count || 2000}–${wp.max_word_count || 3500} words (MINIMUM ${wp.min_word_count || 2000} words, approximately ${(wp.min_word_count || 2000) * 6}+ characters)`
-      : "- Target word count: 2000–3500 words (MINIMUM 2000 words, approximately 12,000+ characters). Write comprehensive, detailed content.";
+      ? `- Target word count: ${wp.min_word_count || 2500}–${wp.max_word_count || 4000} words (MINIMUM ${wp.min_word_count || 2500} words). Each H2 section must be 200-300+ words.`
+      : "- Target word count: 2500–4000 words (MINIMUM 2500 words, approximately 15,000+ characters). Each H2 section must be 200-300+ words with examples and actionable detail.";
     const clicheInstruction = (wp.avoid_cliches || []).length > 0
       ? `- NEVER use these phrases: ${wp.avoid_cliches.join(", ")}`
       : '- No AI clichés ("In today\'s digital landscape", "Let\'s dive in", etc.)';

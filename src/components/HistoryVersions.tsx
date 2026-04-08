@@ -463,6 +463,10 @@ const HistoryVersions = ({
                           <RotateCcw className="h-3 w-3" />
                           Restore
                         </Button>
+                        <Button size="sm" variant="outline" onClick={() => handleDownloadHtml(v)} className="h-7 text-xs gap-1.5">
+                          <Download className="h-3 w-3" />
+                          Download HTML
+                        </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
                             <Button size="sm" variant="outline" className="h-7 text-xs gap-1.5 border-destructive/30 text-destructive hover:bg-destructive/10">

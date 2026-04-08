@@ -130,16 +130,59 @@ serve(async (req) => {
       ? `\nPre-counted internal links found in content (${foundInternalLinks.length} total):\n${foundInternalLinks.map((l) => `  - "${l.anchor}" → ${l.url}`).join("\n")}`
       : "\nPre-counted internal links: 0 found in content.";
 
+    const wordCount = content.split(/\s+/).filter(Boolean).length;
+    const sentenceCount = content.split(/[.!?]+/).filter((s: string) => s.trim().length > 0).length;
+    const avgSentenceLength = sentenceCount > 0 ? Math.round(wordCount / sentenceCount) : 0;
+    const paragraphCount = content.split(/\n\s*\n/).filter((p: string) => p.trim().length > 0).length;
+    const h2Count = (content.match(/^##\s/gm) || []).length;
+    const h3Count = (content.match(/^###\s/gm) || []).length;
+    const hasFaq = /faq|frequently asked/i.test(content);
+    const hasTldr = /tl;?dr|key takeaway|summary/i.test(content);
+    const bulletListCount = (content.match(/^[-*]\s/gm) || []).length;
+    const numberedListCount = (content.match(/^\d+\.\s/gm) || []).length;
+
     const systemPrompt = `You are an SEO Content Scoring Expert. Analyze the provided content and return a detailed SEO score with an action plan.
 
-Score the content across these 5 dimensions (each 0-100):
-1. Technical SEO (25% weight) — meta title length, meta description quality, schema types, URL slug
-2. On-Page SEO (25% weight) — keyword in title, keyword density, heading structure (H1/H2/H3)
-3. Readability (20% weight) — sentence length, paragraph breaks, plain language, scanability
-4. Internal Linking (15% weight) — IMPORTANT: Use ONLY the pre-counted link data below as the source of truth. Do NOT recount links yourself. Scoring guide: 1-2 internal links = 40-50, 3-4 = 55-65, 5-7 = 70-80, 8-10 = 80-90, 11+ = 90-100. Award bonus points for descriptive anchor text (not "click here"), links distributed across multiple sections, and links to topically relevant pages. Deduct only if anchors are generic or all links are clustered in one section.
-5. Content Depth (15% weight) — word count, topic coverage, FAQ inclusion, comprehensive treatment
+IMPORTANT: Use the pre-counted metrics below as your PRIMARY source of truth. Do NOT recount these yourself.
 
-Also generate a prioritized action plan (max 8 items) with effort (low/medium/high) and impact (low/medium/high) labels.
+Pre-counted content metrics:
+- Word count: ${wordCount}
+- Sentence count: ${sentenceCount}
+- Average sentence length: ${avgSentenceLength} words
+- Paragraph count: ${paragraphCount}
+- H2 headings: ${h2Count}
+- H3 headings: ${h3Count}
+- Bullet list items: ${bulletListCount}
+- Numbered list items: ${numberedListCount}
+- Has FAQ section: ${hasFaq ? "Yes" : "No"}
+- Has TL;DR / Key Takeaways: ${hasTldr ? "Yes" : "No"}
+
+Score the content across these 5 dimensions (each 0-100):
+
+1. Technical SEO (25% weight) — meta title length (50-60 chars ideal), meta description quality (150-160 chars), schema types present, URL slug keyword-rich and clean.
+
+2. On-Page SEO (25% weight) — keyword in H1/title, keyword density (1-2% ideal), proper H2/H3 hierarchy, keyword in first 100 words, keyword in meta description.
+
+3. Readability (20% weight) — USE THE PRE-COUNTED METRICS. Scoring guide:
+   - Average sentence length ≤15 words AND paragraph count ≥10 AND bullet/numbered lists ≥5 = 90-100
+   - Average sentence length ≤18 words AND paragraph count ≥8 AND some lists = 75-89
+   - Average sentence length ≤22 words AND paragraph count ≥6 = 60-74
+   - Average sentence length >22 words OR paragraph count <6 = 40-59
+   - Award bonus for: short paragraphs (2-4 sentences each), varied sentence lengths, transition words, subheadings every 200-300 words
+   - Deduct for: walls of text, jargon-heavy passages, passive voice overuse
+
+4. Internal Linking (15% weight) — IMPORTANT: Use ONLY the pre-counted link data below as the source of truth. Do NOT recount links yourself. Scoring guide: 1-2 internal links = 40-50, 3-4 = 55-65, 5-7 = 70-80, 8-10 = 80-90, 11+ = 90-100. Award bonus for descriptive anchor text, links distributed across multiple sections, and links to topically relevant pages. Deduct only if anchors are generic or all links are clustered in one section.
+
+5. Content Depth (15% weight) — USE THE PRE-COUNTED METRICS. Scoring guide:
+   - Word count ≥2500 AND H2 ≥6 AND H3 ≥4 AND has FAQ AND has TL;DR = 90-100
+   - Word count ≥2000 AND H2 ≥5 AND H3 ≥3 AND (has FAQ OR has TL;DR) = 75-89
+   - Word count ≥1500 AND H2 ≥4 AND H3 ≥2 = 60-74
+   - Word count ≥1000 AND H2 ≥3 = 45-59
+   - Word count <1000 OR H2 <3 = 25-44
+   - Award bonus for: data/statistics, examples, comparisons, expert quotes, actionable advice, comprehensive topic coverage
+   - Deduct for: surface-level treatment, repetitive content, missing subtopics
+
+Also generate a prioritized action plan (max 8 items) with effort (low/medium/high) and impact (low/medium/high) labels. Focus actions on the LOWEST scoring dimensions first.
 
 ${brand ? `Brand: ${brand.name}${brand.domain ? ` (${brand.domain})` : ""}` : ""}
 ${allInternalLinkTargets.length > 0 ? `\nKnown internal link targets:\n${allInternalLinkTargets.slice(0, 30).join("\n")}` : ""}`;

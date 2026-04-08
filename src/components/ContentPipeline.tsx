@@ -335,14 +335,7 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
               });
             } catch { console.warn("Hero image skipped"); }
 
-            // Step 5: SEO Optimization
-            toast({ title: "🔧 Optimizing SEO metadata..." });
-            const optRes = await supabase.functions.invoke("seo-optimize", {
-              body: { contentItemId: data.id, keyword: savedKeyword, brandId: savedBrandId },
-            });
-            if (optRes.error) throw optRes.error;
-
-            toast({ title: "✅ Article & SEO metadata ready!", description: "Content generated and optimized — ready to review." });
+            toast({ title: "✅ Article ready!", description: "Content generated — run SEO Optimization manually when ready." });
             queryClient.invalidateQueries({ queryKey: ["content_items"] });
           } catch (err: any) {
             toast({ title: "Generation failed", description: err.message, variant: "destructive" });

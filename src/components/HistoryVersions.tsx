@@ -37,6 +37,7 @@ import {
   Link,
   Eye,
   Maximize2,
+  Download,
 } from "lucide-react";
 import ContentPreview from "@/components/ContentPreview";
 
@@ -237,6 +238,56 @@ const HistoryVersions = ({
     toast({ title: "Version restored", description: `Restored "${version.version_label || `Version ${version.version_number}`}" to editor` });
   };
 
+  const handleDownloadHtml = (version: ContentVersion) => {
+    const title = version.seo_title || keyword;
+    const meta = version.meta_description || "";
+    const heroImg = version.hero_image_url
+      ? `<img src="${version.hero_image_url}" alt="${title}" style="max-width:100%;border-radius:8px;margin-bottom:24px;" />`
+      : "";
+    const bodyContent = (version.draft_content || "")
+      .replace(/^### (.+)$/gm, "<h3>$1</h3>")
+      .replace(/^## (.+)$/gm, "<h2>$1</h2>")
+      .replace(/^# (.+)$/gm, "<h1>$1</h1>")
+      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+      .replace(/\*(.+?)\*/g, "<em>$1</em>")
+      .replace(/!\[([^\]]*)\]\(([^)]+)\)/g, '<img src="$2" alt="$1" style="max-width:100%;border-radius:8px;margin:16px 0;" />')
+      .replace(/\[([^\]]*)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
+      .replace(/\n\n/g, "</p><p>")
+      .replace(/\n/g, "<br/>");
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="${meta.replace(/"/g, "&quot;")}" />
+  <title>${title}</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 780px; margin: 40px auto; padding: 0 20px; color: #1a1a2e; line-height: 1.7; }
+    h1 { font-size: 2rem; margin-bottom: 8px; }
+    h2 { font-size: 1.4rem; margin-top: 32px; }
+    h3 { font-size: 1.15rem; margin-top: 24px; }
+    img { max-width: 100%; border-radius: 8px; }
+    a { color: #2563eb; }
+    .meta { color: #6b7280; font-size: 0.85rem; margin-bottom: 24px; }
+  </style>
+</head>
+<body>
+  ${heroImg}
+  <h1>${title}</h1>
+  <p class="meta">By ${author} · ${new Date(version.created_at).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}</p>
+  <p>${bodyContent}</p>
+</body>
+</html>`;
+    const blob = new Blob([html], { type: "text/html" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${(version.version_label || `version-${version.version_number}`).replace(/\s+/g, "-").toLowerCase()}.html`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast({ title: "Downloaded", description: "HTML file saved to your downloads" });
+  };
+
   const formatDate = (d: string) => new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
 
   return (
@@ -411,6 +462,10 @@ const HistoryVersions = ({
                         <Button size="sm" variant="outline" onClick={() => handleRestore(v)} className="h-7 text-xs gap-1.5">
                           <RotateCcw className="h-3 w-3" />
                           Restore
+                        </Button>
+                        <Button size="sm" variant="outline" onClick={() => handleDownloadHtml(v)} className="h-7 text-xs gap-1.5">
+                          <Download className="h-3 w-3" />
+                          Download HTML
                         </Button>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>

@@ -90,12 +90,35 @@ async function streamChat({
   onDone();
 }
 
+type Corner = "bottom-right" | "bottom-left" | "top-left" | "top-right";
+const CORNERS: Corner[] = ["bottom-right", "bottom-left", "top-left", "top-right"];
+const CORNER_CLASSES: Record<Corner, string> = {
+  "bottom-right": "bottom-6 right-6",
+  "bottom-left": "bottom-6 left-6",
+  "top-left": "top-6 left-6",
+  "top-right": "top-6 right-6",
+};
+
 const SupportChat = () => {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const [corner, setCorner] = useState<Corner>(() => {
+    try {
+      const saved = localStorage.getItem("support-chat-corner");
+      if (saved && CORNERS.includes(saved as Corner)) return saved as Corner;
+    } catch {}
+    return "bottom-right";
+  });
+
+  const cycleCorner = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const next = CORNERS[(CORNERS.indexOf(corner) + 1) % CORNERS.length];
+    setCorner(next);
+    try { localStorage.setItem("support-chat-corner", next); } catch {}
+  };
 
   useEffect(() => {
     if (scrollRef.current) {

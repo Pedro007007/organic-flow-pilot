@@ -3,36 +3,42 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 const dimensionPrompts: Record<string, string> = {
-  faq_coverage: `Improve FAQ Coverage. The content lacks sufficient Q&A pairs. Your task:
+  faq_coverage:
+    `Improve FAQ Coverage. The content lacks sufficient Q&A pairs. Your task:
 1. Identify the top questions a reader would ask about this topic.
 2. Add a well-structured FAQ section (or expand the existing one) with at least 5-8 Q&A pairs.
 3. Each answer should be concise (under 50 words), direct, and extractable by AI engines.
 4. Use the exact format: ## Frequently Asked Questions\n### Question?\nAnswer.`,
 
-  answer_blocks: `Improve Answer Blocks. The content lacks TL;DR summaries and key takeaways. Your task:
+  answer_blocks:
+    `Improve Answer Blocks. The content lacks TL;DR summaries and key takeaways. Your task:
 1. Add a "TL;DR" or "Quick Summary" block (40-50 words) at the very beginning of the article.
 2. Add a "Key Takeaways" section with 4-6 bullet points summarizing the most important insights.
 3. Ensure each takeaway is a standalone, extractable statement that AI engines can cite directly.
 4. Keep summaries factual and avoid vague language.`,
 
-  entity_clarity: `Improve Entity Clarity. Key entities in the content are not explicitly defined. Your task:
+  entity_clarity:
+    `Improve Entity Clarity. Key entities in the content are not explicitly defined. Your task:
 1. Identify all important entities (people, organizations, products, concepts, standards, regulations).
 2. Add clear, explicit definitions for each entity on first mention using bold text or a glossary.
 3. Add context like dates, versions, or status where applicable (e.g., "ECO4, the UK government energy efficiency scheme active since 2023").
 4. Ensure AI engines can extract entity definitions without ambiguity.`,
 
-  schema_richness: `Improve Schema Richness. The content structure doesn't fully support rich schema markup. Your task:
+  schema_richness:
+    `Improve Schema Richness. The content structure doesn't fully support rich schema markup. Your task:
 1. Structure content to naturally support FAQPage, HowTo, and Article schemas.
 2. For any step-by-step processes, use clear numbered steps with "How to..." headings.
 3. Ensure FAQ sections use consistent Q&A formatting that maps to FAQPage schema.
 4. Add structured "How To" sections where instructional content exists.
 5. Do NOT add raw JSON-LD — just restructure the prose to be schema-friendly.`,
 
-  conciseness: `Improve Conciseness. Answers and key statements are too long for AI extraction. Your task:
+  conciseness:
+    `Improve Conciseness. Answers and key statements are too long for AI extraction. Your task:
 1. Shorten all direct answers to under 50 words each.
 2. Replace narrative-heavy introductions with a direct, factual opening statement.
 3. Break long paragraphs into scannable bullet points or short sentences.
@@ -40,7 +46,13 @@ const dimensionPrompts: Record<string, string> = {
 5. Remove filler phrases, redundant qualifiers, and hedging language.`,
 };
 
-const AEO_DIMENSIONS = ["faq_coverage", "answer_blocks", "entity_clarity", "schema_richness", "conciseness"] as const;
+const AEO_DIMENSIONS = [
+  "faq_coverage",
+  "answer_blocks",
+  "entity_clarity",
+  "schema_richness",
+  "conciseness",
+] as const;
 type AeoDimension = (typeof AEO_DIMENSIONS)[number];
 const HEALTHY_SCORE_THRESHOLD = 80;
 
@@ -53,7 +65,9 @@ type CandidateAssessment = {
   targetScore: number;
   targetGain: number;
   overallScore: number;
-  regressions: Array<{ dimension: AeoDimension; before: number; after: number }>;
+  regressions: Array<
+    { dimension: AeoDimension; before: number; after: number }
+  >;
   totalRegression: number;
 };
 
@@ -79,6 +93,9 @@ const jsonResponse = (body: Record<string, unknown>, status = 200) =>
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+const ANALYSIS_WINDOW_CHARS = 16000;
+const REWRITE_MAX_TOKENS = 16384;
+
 const normalizeScore = (value: unknown) => {
   const parsed = typeof value === "number" ? value : Number(value);
   if (!Number.isFinite(parsed)) return 0;
@@ -91,6 +108,35 @@ const stripMarkdownFence = (value: string) =>
     .replace(/\s*```$/, "")
     .trim();
 
+const FAQ_SECTION_PATTERN =
+  /(^|\n)##\s+(frequently asked questions|faq|common questions)\b[\s\S]*$/im;
+
+function getAeoAnalysisWindow(content: string) {
+  const normalized = content.trim();
+  if (normalized.length <= ANALYSIS_WINDOW_CHARS) return normalized;
+
+  const faqMatch = normalized.match(FAQ_SECTION_PATTERN);
+  if (faqMatch?.index !== undefined) {
+    const faqStart = faqMatch.index;
+    const headBudget = Math.max(
+      5000,
+      ANALYSIS_WINDOW_CHARS - (normalized.length - faqStart),
+    );
+    const head = normalized.slice(0, headBudget).trimEnd();
+    const faqTail = normalized.slice(faqStart).trimStart();
+    const combined = `${head}\n\n${faqTail}`;
+    return combined.length <= ANALYSIS_WINDOW_CHARS
+      ? combined
+      : `${normalized.slice(0, 8000).trimEnd()}\n\n${
+        normalized.slice(-8000).trimStart()
+      }`;
+  }
+
+  return `${normalized.slice(0, 10000).trimEnd()}\n\n${
+    normalized.slice(-6000).trimStart()
+  }`;
+}
+
 function repairAndParseJson(raw: string): unknown {
   let cleaned = raw
     .replace(/```json\s*/gi, "")
@@ -102,7 +148,9 @@ function repairAndParseJson(raw: string): unknown {
   cleaned = cleaned.substring(jsonStart);
 
   // Try direct parse first
-  try { return JSON.parse(cleaned); } catch { /* continue */ }
+  try {
+    return JSON.parse(cleaned);
+  } catch { /* continue */ }
 
   // Remove trailing commas and control chars
   cleaned = cleaned
@@ -110,18 +158,26 @@ function repairAndParseJson(raw: string): unknown {
     .replace(/,\s*]/g, "]")
     .replace(/[\x00-\x1F\x7F]/g, "");
 
-  try { return JSON.parse(cleaned); } catch { /* continue */ }
+  try {
+    return JSON.parse(cleaned);
+  } catch { /* continue */ }
 
   // Repair unbalanced braces/brackets
   let braces = 0, brackets = 0;
   for (const c of cleaned) {
-    if (c === '{') braces++;
-    if (c === '}') braces--;
-    if (c === '[') brackets++;
-    if (c === ']') brackets--;
+    if (c === "{") braces++;
+    if (c === "}") braces--;
+    if (c === "[") brackets++;
+    if (c === "]") brackets--;
   }
-  while (brackets > 0) { cleaned += ']'; brackets--; }
-  while (braces > 0) { cleaned += '}'; braces--; }
+  while (brackets > 0) {
+    cleaned += "]";
+    brackets--;
+  }
+  while (braces > 0) {
+    cleaned += "}";
+    braces--;
+  }
 
   return JSON.parse(cleaned);
 }
@@ -153,15 +209,27 @@ const getTotalRegression = (
     return sum + Math.max(0, before[key] - after[key]);
   }, 0);
 
-const isBetterCandidate = (candidate: CandidateAssessment, best: CandidateAssessment | null) => {
+const isBetterCandidate = (
+  candidate: CandidateAssessment,
+  best: CandidateAssessment | null,
+) => {
   if (!best) return true;
-  if (candidate.targetGain !== best.targetGain) return candidate.targetGain > best.targetGain;
-  if (candidate.regressions.length !== best.regressions.length) return candidate.regressions.length < best.regressions.length;
-  if (candidate.overallScore !== best.overallScore) return candidate.overallScore > best.overallScore;
+  if (candidate.targetGain !== best.targetGain) {
+    return candidate.targetGain > best.targetGain;
+  }
+  if (candidate.regressions.length !== best.regressions.length) {
+    return candidate.regressions.length < best.regressions.length;
+  }
+  if (candidate.overallScore !== best.overallScore) {
+    return candidate.overallScore > best.overallScore;
+  }
   return candidate.totalRegression < best.totalRegression;
 };
 
-const isAcceptableFallback = (candidate: CandidateAssessment, baselineOverallScore: number) => {
+const isAcceptableFallback = (
+  candidate: CandidateAssessment,
+  baselineOverallScore: number,
+) => {
   if (candidate.targetGain <= 0) return false;
   if (candidate.regressions.length === 0) return true;
   if (candidate.overallScore >= baselineOverallScore) return true;
@@ -197,14 +265,17 @@ async function callLovableChat(apiKey: string, body: Record<string, unknown>) {
   let aiResponse: Response | null = null;
 
   for (let attempt = 0; attempt < 5; attempt++) {
-    aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
+    aiResponse = await fetch(
+      "https://ai.gateway.lovable.dev/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
       },
-      body: JSON.stringify(body),
-    });
+    );
 
     if (aiResponse.ok) return aiResponse;
 
@@ -220,12 +291,22 @@ async function callLovableChat(apiKey: string, body: Record<string, unknown>) {
     throw new Error(`AI gateway error: ${aiResponse.status}`);
   }
 
-  throw new Error(aiResponse ? `AI gateway failed after retries (${aiResponse.status})` : "AI gateway failed after retries");
+  throw new Error(
+    aiResponse
+      ? `AI gateway failed after retries (${aiResponse.status})`
+      : "AI gateway failed after retries",
+  );
 }
 
-async function analyzeAeoContent(apiKey: string, content: string, schemaTypes: string[]): Promise<AeoAnalysis> {
+async function analyzeAeoContent(
+  apiKey: string,
+  content: string,
+  schemaTypes: string[],
+): Promise<AeoAnalysis> {
+  const analysisWindow = getAeoAnalysisWindow(content);
   const aiResponse = await callLovableChat(apiKey, {
     model: "google/gemini-3-flash-preview",
+    max_tokens: 2500,
     messages: [
       {
         role: "system",
@@ -234,7 +315,10 @@ async function analyzeAeoContent(apiKey: string, content: string, schemaTypes: s
       },
       {
         role: "user",
-        content: `Analyze this content for AEO readiness. Schema types present: ${JSON.stringify(schemaTypes || [])}.\n\nContent:\n${content.slice(0, 8000)}`,
+        content:
+          `Analyze this content for AEO readiness. Schema types present: ${
+            JSON.stringify(schemaTypes || [])
+          }.\n\nContent:\n${analysisWindow}`,
       },
     ],
     tools: [
@@ -246,11 +330,30 @@ async function analyzeAeoContent(apiKey: string, content: string, schemaTypes: s
           parameters: {
             type: "object",
             properties: {
-              faq_coverage: { type: "integer", description: "0-100: Does content answer questions in Q+A format?" },
-              answer_blocks: { type: "integer", description: "0-100: Are there TL;DR, key takeaways, summaries?" },
-              entity_clarity: { type: "integer", description: "0-100: Are key entities explicitly defined?" },
-              schema_richness: { type: "integer", description: "0-100: Are there schema-friendly structures like FAQPage and HowTo?" },
-              conciseness: { type: "integer", description: "0-100: Are answers under 50 words and extractable by AI?" },
+              faq_coverage: {
+                type: "integer",
+                description:
+                  "0-100: Does content answer questions in Q+A format?",
+              },
+              answer_blocks: {
+                type: "integer",
+                description:
+                  "0-100: Are there TL;DR, key takeaways, summaries?",
+              },
+              entity_clarity: {
+                type: "integer",
+                description: "0-100: Are key entities explicitly defined?",
+              },
+              schema_richness: {
+                type: "integer",
+                description:
+                  "0-100: Are there schema-friendly structures like FAQPage and HowTo?",
+              },
+              conciseness: {
+                type: "integer",
+                description:
+                  "0-100: Are answers under 50 words and extractable by AI?",
+              },
               recommendations: {
                 type: "array",
                 items: {
@@ -259,14 +362,24 @@ async function analyzeAeoContent(apiKey: string, content: string, schemaTypes: s
                     dimension: { type: "string" },
                     issue: { type: "string" },
                     fix: { type: "string" },
-                    priority: { type: "string", enum: ["high", "medium", "low"] },
+                    priority: {
+                      type: "string",
+                      enum: ["high", "medium", "low"],
+                    },
                   },
                   required: ["dimension", "issue", "fix", "priority"],
                   additionalProperties: false,
                 },
               },
             },
-            required: ["faq_coverage", "answer_blocks", "entity_clarity", "schema_richness", "conciseness", "recommendations"],
+            required: [
+              "faq_coverage",
+              "answer_blocks",
+              "entity_clarity",
+              "schema_richness",
+              "conciseness",
+              "recommendations",
+            ],
             additionalProperties: false,
           },
         },
@@ -277,10 +390,13 @@ async function analyzeAeoContent(apiKey: string, content: string, schemaTypes: s
 
   const aiData = await aiResponse.json();
   const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
-  
+
   let parsed: Record<string, unknown>;
   if (toolCall?.function?.arguments) {
-    parsed = repairAndParseJson(toolCall.function.arguments) as Record<string, unknown>;
+    parsed = repairAndParseJson(toolCall.function.arguments) as Record<
+      string,
+      unknown
+    >;
   } else {
     // Fallback: try parsing from message content
     const msgContent = aiData.choices?.[0]?.message?.content || "";
@@ -294,12 +410,16 @@ async function analyzeAeoContent(apiKey: string, content: string, schemaTypes: s
     entity_clarity: normalizeScore(parsed.entity_clarity),
     schema_richness: normalizeScore(parsed.schema_richness),
     conciseness: normalizeScore(parsed.conciseness),
-    recommendations: Array.isArray(parsed.recommendations) ? parsed.recommendations : [],
+    recommendations: Array.isArray(parsed.recommendations)
+      ? parsed.recommendations
+      : [],
   };
 }
 
 serve(async (req) => {
-  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
+  if (req.method === "OPTIONS") {
+    return new Response(null, { headers: corsHeaders });
+  }
 
   try {
     const authHeader = req.headers.get("Authorization");
@@ -307,9 +427,13 @@ serve(async (req) => {
       return jsonResponse({ error: "Unauthorized" }, 401);
     }
 
-    const supabase = createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_ANON_KEY")!, {
-      global: { headers: { Authorization: authHeader } },
-    });
+    const supabase = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_ANON_KEY")!,
+      {
+        global: { headers: { Authorization: authHeader } },
+      },
+    );
 
     const {
       data: { user },
@@ -322,7 +446,10 @@ serve(async (req) => {
 
     const { contentItemId, dimension } = await req.json();
     if (!contentItemId || !dimension) {
-      return jsonResponse({ error: "contentItemId and dimension required" }, 400);
+      return jsonResponse(
+        { error: "contentItemId and dimension required" },
+        400,
+      );
     }
 
     if (!AEO_DIMENSIONS.includes(dimension as AeoDimension)) {
@@ -332,7 +459,10 @@ serve(async (req) => {
     const typedDimension = dimension as AeoDimension;
     const dimPrompt = dimensionPrompts[typedDimension];
 
-    const { data: item } = await supabase.from("content_items").select("*").eq("id", contentItemId).maybeSingle();
+    const { data: item } = await supabase.from("content_items").select("*").eq(
+      "id",
+      contentItemId,
+    ).maybeSingle();
     if (!item) {
       return jsonResponse({ error: "Content item not found" }, 404);
     }
@@ -351,14 +481,20 @@ serve(async (req) => {
         .maybeSingle();
 
       if (brand) {
-        toneContext = `\nBrand voice: ${brand.tone_of_voice || "professional"}. Style: ${brand.writing_style || "authoritative"}.`;
+        toneContext = `\nBrand voice: ${
+          brand.tone_of_voice || "professional"
+        }. Style: ${brand.writing_style || "authoritative"}.`;
       }
     }
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
-    const freshAnalysis = await analyzeAeoContent(LOVABLE_API_KEY, content, item.schema_types || []);
+    const freshAnalysis = await analyzeAeoContent(
+      LOVABLE_API_KEY,
+      content,
+      item.schema_types || [],
+    );
     const freshScores = toScores(freshAnalysis);
 
     const { data: existingScore } = await supabase
@@ -370,16 +506,32 @@ serve(async (req) => {
 
     // Use the MAX of stored scores and fresh analysis per dimension to protect
     // against AI non-determinism causing phantom regressions.
-    const storedScores = existingScore?.scores && typeof existingScore.scores === "object"
-      ? (existingScore.scores as Record<string, unknown>)
-      : null;
+    const storedScores =
+      existingScore?.scores && typeof existingScore.scores === "object"
+        ? (existingScore.scores as Record<string, unknown>)
+        : null;
 
     const baselineScores: ScoreMap = {
-      faq_coverage: Math.max(freshScores.faq_coverage, normalizeScore(storedScores?.faq_coverage ?? 0)),
-      answer_blocks: Math.max(freshScores.answer_blocks, normalizeScore(storedScores?.answer_blocks ?? 0)),
-      entity_clarity: Math.max(freshScores.entity_clarity, normalizeScore(storedScores?.entity_clarity ?? 0)),
-      schema_richness: Math.max(freshScores.schema_richness, normalizeScore(storedScores?.schema_richness ?? 0)),
-      conciseness: Math.max(freshScores.conciseness, normalizeScore(storedScores?.conciseness ?? 0)),
+      faq_coverage: Math.max(
+        freshScores.faq_coverage,
+        normalizeScore(storedScores?.faq_coverage ?? 0),
+      ),
+      answer_blocks: Math.max(
+        freshScores.answer_blocks,
+        normalizeScore(storedScores?.answer_blocks ?? 0),
+      ),
+      entity_clarity: Math.max(
+        freshScores.entity_clarity,
+        normalizeScore(storedScores?.entity_clarity ?? 0),
+      ),
+      schema_richness: Math.max(
+        freshScores.schema_richness,
+        normalizeScore(storedScores?.schema_richness ?? 0),
+      ),
+      conciseness: Math.max(
+        freshScores.conciseness,
+        normalizeScore(storedScores?.conciseness ?? 0),
+      ),
     };
 
     const baselineTargetScore = baselineScores[typedDimension];
@@ -399,7 +551,8 @@ serve(async (req) => {
       });
     }
 
-    const systemPrompt = `You are a Senior AEO (Answer Engine Optimization) Specialist. Your job is to rewrite content to score higher on a specific AEO dimension while strictly preserving ALL other AEO optimizations already present.
+    const systemPrompt =
+      `You are a Senior AEO (Answer Engine Optimization) Specialist. Your job is to rewrite content to score higher on a specific AEO dimension while strictly preserving ALL other AEO optimizations already present.
 
 CRITICAL PRESERVATION RULES — violating any of these is a failure:
 1. FAQ COVERAGE: If the article has an FAQ section, keep EVERY existing Q&A pair intact. You may add more, but never remove or weaken existing ones.
@@ -425,18 +578,23 @@ GENERAL RULES:
     for (let attempt = 1; attempt <= 3; attempt++) {
       const rewriteResponse = await callLovableChat(LOVABLE_API_KEY, {
         model: "google/gemini-3-flash-preview",
+        max_tokens: REWRITE_MAX_TOKENS,
         messages: [
           { role: "system", content: systemPrompt },
           {
             role: "user",
             content: `${dimPrompt}
 
-IMPORTANT: Improve only ${typedDimension}. Keep every other AEO strength intact.${retryFeedback ? `
+IMPORTANT: Improve only ${typedDimension}. Keep every other AEO strength intact.${
+              retryFeedback
+                ? `
 
 Your previous attempt failed validation for these reasons:
 ${retryFeedback}
 
-Fix those issues this time.` : ""}
+Fix those issues this time.`
+                : ""
+            }
 
 Here is the full article to improve:
 
@@ -446,16 +604,26 @@ ${content}`,
       });
 
       const rewriteData = await rewriteResponse.json();
-      const candidate = stripMarkdownFence(rewriteData.choices?.[0]?.message?.content || "");
+      const candidate = stripMarkdownFence(
+        rewriteData.choices?.[0]?.message?.content || "",
+      );
       if (!candidate) {
         throw new Error("No improved content returned");
       }
 
-      const candidateAnalysis = await analyzeAeoContent(LOVABLE_API_KEY, candidate, item.schema_types || []);
+      const candidateAnalysis = await analyzeAeoContent(
+        LOVABLE_API_KEY,
+        candidate,
+        item.schema_types || [],
+      );
       const candidateScores = toScores(candidateAnalysis);
       const candidateTargetScore = candidateScores[typedDimension];
       const candidateOverallScore = getOverallScore(candidateScores);
-      const regressions = getRegressions(baselineScores, candidateScores, typedDimension);
+      const regressions = getRegressions(
+        baselineScores,
+        candidateScores,
+        typedDimension,
+      );
       const targetGain = candidateTargetScore - baselineTargetScore;
       const targetImproved = targetGain > 0;
 
@@ -468,7 +636,11 @@ ${content}`,
           targetGain,
           overallScore: candidateOverallScore,
           regressions,
-          totalRegression: getTotalRegression(baselineScores, candidateScores, typedDimension),
+          totalRegression: getTotalRegression(
+            baselineScores,
+            candidateScores,
+            typedDimension,
+          ),
         };
 
         if (isBetterCandidate(candidateAssessment, bestCandidate)) {
@@ -496,7 +668,10 @@ ${content}`,
     }
 
     if (!approvedContent || !approvedAnalysis) {
-      if (bestCandidate && isAcceptableFallback(bestCandidate, baselineOverallScore)) {
+      if (
+        bestCandidate &&
+        isAcceptableFallback(bestCandidate, baselineOverallScore)
+      ) {
         approvedContent = bestCandidate.content;
         approvedAnalysis = bestCandidate.analysis;
       }
@@ -507,7 +682,8 @@ ${content}`,
         success: false,
         skipped: true,
         reason: "no_safe_improvement",
-        message: "No safe AEO rewrite was found without reducing other strong metrics.",
+        message:
+          "No safe AEO rewrite was found without reducing other strong metrics.",
         dimension: typedDimension,
         improved: content,
         before: baselineScores,
@@ -519,11 +695,26 @@ ${content}`,
 
     const rawFinalScores = toScores(approvedAnalysis);
     const finalScores: ScoreMap = {
-      faq_coverage: Math.max(rawFinalScores.faq_coverage, baselineScores.faq_coverage),
-      answer_blocks: Math.max(rawFinalScores.answer_blocks, baselineScores.answer_blocks),
-      entity_clarity: Math.max(rawFinalScores.entity_clarity, baselineScores.entity_clarity),
-      schema_richness: Math.max(rawFinalScores.schema_richness, baselineScores.schema_richness),
-      conciseness: Math.max(rawFinalScores.conciseness, baselineScores.conciseness),
+      faq_coverage: Math.max(
+        rawFinalScores.faq_coverage,
+        baselineScores.faq_coverage,
+      ),
+      answer_blocks: Math.max(
+        rawFinalScores.answer_blocks,
+        baselineScores.answer_blocks,
+      ),
+      entity_clarity: Math.max(
+        rawFinalScores.entity_clarity,
+        baselineScores.entity_clarity,
+      ),
+      schema_richness: Math.max(
+        rawFinalScores.schema_richness,
+        baselineScores.schema_richness,
+      ),
+      conciseness: Math.max(
+        rawFinalScores.conciseness,
+        baselineScores.conciseness,
+      ),
     };
     const finalOverallScore = getOverallScore(finalScores);
     const contentUpdateTimestamp = new Date().toISOString();
@@ -575,6 +766,8 @@ ${content}`,
     });
   } catch (e) {
     console.error("aeo-fix error:", e);
-    return jsonResponse({ error: e instanceof Error ? e.message : "Unknown error" }, 500);
+    return jsonResponse({
+      error: e instanceof Error ? e.message : "Unknown error",
+    }, 500);
   }
 });

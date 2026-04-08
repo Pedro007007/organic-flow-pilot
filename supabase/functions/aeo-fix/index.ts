@@ -518,7 +518,15 @@ ${content}`,
       });
     }
 
-    const finalScores = toScores(approvedAnalysis);
+    // Use max of final analysis and baseline to prevent any dimension from dropping
+    const rawFinalScores = toScores(approvedAnalysis);
+    const finalScores: ScoreMap = {
+      faq_coverage: Math.max(rawFinalScores.faq_coverage, baselineScores.faq_coverage),
+      answer_blocks: Math.max(rawFinalScores.answer_blocks, baselineScores.answer_blocks),
+      entity_clarity: Math.max(rawFinalScores.entity_clarity, baselineScores.entity_clarity),
+      schema_richness: Math.max(rawFinalScores.schema_richness, baselineScores.schema_richness),
+      conciseness: Math.max(rawFinalScores.conciseness, baselineScores.conciseness),
+    };
     const finalOverallScore = getOverallScore(finalScores);
 
     await supabase

@@ -84,6 +84,16 @@ const FulfilmentDashboard = ({ contentItemId }: FulfilmentDashboardProps) => {
       if (res.error) throw res.error;
       if (res.data?.error) throw new Error(res.data.error);
 
+      if (res.data?.fixed === false) {
+        toast({
+          title: "Fix not saved",
+          description: res.data?.details || `"${item.criterion}" still does not pass on the saved article.`,
+          variant: "destructive",
+        });
+        await fetchFulfilment();
+        return;
+      }
+
       toast({ title: "AI Fix Applied", description: `"${item.criterion}" has been fixed` });
       queryClient.invalidateQueries({ queryKey: ["content_items"] });
       await fetchFulfilment();

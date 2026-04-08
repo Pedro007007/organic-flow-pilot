@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { evaluateFulfilment } from "../_shared/fulfilment.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -24,7 +25,6 @@ Deno.serve(async (req) => {
     if (userError || !user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401, headers: corsHeaders });
     }
-    const userId = user.id;
 
     const { contentItemId } = await req.json();
     if (!contentItemId) throw new Error("contentItemId required");
@@ -34,92 +34,82 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Get the content item - verify it belongs to the authenticated user
-    const { data: content, error: cErr } = await supabase
+    const { data: content, error: contentError } = await supabase
       .from("content_items")
       .select("*")
       .eq("id", contentItemId)
-      .eq("user_id", userId)
+      .eq("user_id", user.id)
       .maybeSingle();
 
-    if (cErr || !content) throw new Error("Content item not found");
+    if (contentError || !content) throw new Error("Content item not found");
 
-    // Get fulfilment criteria for this content
-    const { data: criteria } = await supabase
+    let brandDomain = "";
+    if (content.brand_id) {
+      const { data: brand } = await supabase
+        .from("brands")
+        .select("domain")
+        .eq("id", content.brand_id)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      brandDomain = brand?.domain || "";
+    }
+
+    const { data: criteria, error: criteriaError } = await supabase
       .from("seo_fulfilment")
-      .select("*")
+      .select("id, criterion")
       .eq("content_item_id", contentItemId)
-      .eq("user_id", userId);
+      .eq("user_id", user.id);
 
+    if (criteriaError) throw criteriaError;
     if (!criteria || criteria.length === 0) {
-      return new Response(JSON.stringify({ passed: 0 }), {
+      return new Response(JSON.stringify({ passed: 0, results: [] }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Use AI to check each criterion
-    const prompt = `Analyze this content item and determine which SEO/GEO criteria are met.
+    const evaluation = evaluateFulfilment(content, brandDomain);
+    const checkedAt = new Date().toISOString();
+    const results = criteria.map((row) => {
+      const result = evaluation[row.criterion] || {
+        passed: false,
+        details: "No validator exists for this criterion.",
+      };
 
-Content:
-- Title: ${content.title}
-- SEO Title: ${content.seo_title || "not set"}
-- Meta Description: ${content.meta_description || "not set"}
-- Slug: ${content.slug || "not set"}
-- Schema Types: ${(content.schema_types || []).join(", ") || "none"}
-- Draft (first 1000 chars): ${(content.draft_content || "").substring(0, 1000)}
-- Word count: ~${(content.draft_content || "").split(/\s+/).length}
-
-Criteria to check:
-${criteria.map((c: any) => `- ID: ${c.id} | "${c.criterion}" (${c.category})`).join("\n")}
-
-Return JSON: { "results": [{ "id": "...", "passed": true/false, "details": "brief reason" }] }`;
-
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
-
-    const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${LOVABLE_API_KEY}` },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [{ role: "user", content: prompt }],
-      }),
+      return {
+        id: row.id,
+        criterion: row.criterion,
+        passed: result.passed,
+        details: result.details,
+        checked_at: checkedAt,
+      };
     });
 
-    const aiData = await aiRes.json();
-    console.log("AI response status:", aiRes.status, "body keys:", Object.keys(aiData));
-    const text = aiData?.choices?.[0]?.message?.content || "";
-    if (!text) console.error("Empty AI response:", JSON.stringify(aiData).substring(0, 500));
-
-    let results: any[] = [];
-    try {
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
-        results = parsed.results || [];
-      }
-    } catch {
-      console.error("Failed to parse AI response:", text);
-    }
-
-    // Update each criterion
-    let passedCount = 0;
-    for (const r of results) {
-      if (r.id && typeof r.passed === "boolean") {
-        await supabase
+    const updates = await Promise.all(
+      results.map((result) =>
+        supabase
           .from("seo_fulfilment")
-          .update({ passed: r.passed, details: r.details || null, checked_at: new Date().toISOString() })
-          .eq("id", r.id);
-        if (r.passed) passedCount++;
-      }
-    }
+          .update({
+            passed: result.passed,
+            details: result.details,
+            checked_at: checkedAt,
+          })
+          .eq("id", result.id)
+          .eq("user_id", user.id)
+      )
+    );
 
-    return new Response(JSON.stringify({ passed: passedCount }), {
+    const failedUpdate = updates.find(({ error }) => error);
+    if (failedUpdate?.error) throw failedUpdate.error;
+
+    return new Response(JSON.stringify({
+      passed: results.filter((result) => result.passed).length,
+      results,
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
     console.error("fulfilment-scan error:", err);
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
+    return new Response(JSON.stringify({ error: err instanceof Error ? err.message : "Internal server error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

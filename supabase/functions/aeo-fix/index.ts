@@ -358,10 +358,8 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
-    const baselineAnalysis = await analyzeAeoContent(LOVABLE_API_KEY, content, item.schema_types || []);
-    const baselineScores = toScores(baselineAnalysis);
-    const baselineTargetScore = baselineScores[typedDimension];
-    const baselineOverallScore = getOverallScore(baselineScores);
+    const freshAnalysis = await analyzeAeoContent(LOVABLE_API_KEY, content, item.schema_types || []);
+    const freshScores = toScores(freshAnalysis);
 
     const { data: existingScore } = await supabase
       .from("aeo_scores")
@@ -370,31 +368,25 @@ serve(async (req) => {
       .eq("user_id", user.id)
       .maybeSingle();
 
+    // Use the MAX of stored scores and fresh analysis per dimension to protect
+    // against AI non-determinism causing phantom regressions.
     const storedScores = existingScore?.scores && typeof existingScore.scores === "object"
       ? (existingScore.scores as Record<string, unknown>)
       : null;
+
+    const baselineScores: ScoreMap = {
+      faq_coverage: Math.max(freshScores.faq_coverage, normalizeScore(storedScores?.faq_coverage ?? 0)),
+      answer_blocks: Math.max(freshScores.answer_blocks, normalizeScore(storedScores?.answer_blocks ?? 0)),
+      entity_clarity: Math.max(freshScores.entity_clarity, normalizeScore(storedScores?.entity_clarity ?? 0)),
+      schema_richness: Math.max(freshScores.schema_richness, normalizeScore(storedScores?.schema_richness ?? 0)),
+      conciseness: Math.max(freshScores.conciseness, normalizeScore(storedScores?.conciseness ?? 0)),
+    };
+
+    const baselineTargetScore = baselineScores[typedDimension];
+    const baselineOverallScore = getOverallScore(baselineScores);
+
     if (baselineTargetScore >= HEALTHY_SCORE_THRESHOLD) {
-
-      if (existingScore) {
-        await supabase
-          .from("aeo_scores")
-          .update({
-            overall_score: baselineOverallScore,
-            scores: baselineScores,
-            recommendations: baselineAnalysis.recommendations,
-            created_at: new Date().toISOString(),
-          })
-          .eq("id", existingScore.id);
-      } else {
-        await supabase.from("aeo_scores").insert({
-          content_item_id: contentItemId,
-          user_id: user.id,
-          overall_score: baselineOverallScore,
-          scores: baselineScores,
-          recommendations: baselineAnalysis.recommendations,
-        });
-      }
-
+      // Already healthy — do NOT overwrite stored scores (they may be higher)
       return jsonResponse({
         success: true,
         skipped: true,
@@ -511,26 +503,8 @@ ${content}`,
     }
 
     if (!approvedContent || !approvedAnalysis) {
-      if (existingScore) {
-        await supabase
-          .from("aeo_scores")
-          .update({
-            overall_score: baselineOverallScore,
-            scores: baselineScores,
-            recommendations: baselineAnalysis.recommendations,
-            created_at: new Date().toISOString(),
-          })
-          .eq("id", existingScore.id);
-      } else {
-        await supabase.from("aeo_scores").insert({
-          content_item_id: contentItemId,
-          user_id: user.id,
-          overall_score: baselineOverallScore,
-          scores: baselineScores,
-          recommendations: baselineAnalysis.recommendations,
-        });
-      }
-
+      // Do NOT overwrite stored scores — no content changed, so the stored
+      // scores (which may be higher) should remain untouched.
       return jsonResponse({
         success: false,
         skipped: true,
@@ -544,7 +518,15 @@ ${content}`,
       });
     }
 
-    const finalScores = toScores(approvedAnalysis);
+    // Use max of final analysis and baseline to prevent any dimension from dropping
+    const rawFinalScores = toScores(approvedAnalysis);
+    const finalScores: ScoreMap = {
+      faq_coverage: Math.max(rawFinalScores.faq_coverage, baselineScores.faq_coverage),
+      answer_blocks: Math.max(rawFinalScores.answer_blocks, baselineScores.answer_blocks),
+      entity_clarity: Math.max(rawFinalScores.entity_clarity, baselineScores.entity_clarity),
+      schema_richness: Math.max(rawFinalScores.schema_richness, baselineScores.schema_richness),
+      conciseness: Math.max(rawFinalScores.conciseness, baselineScores.conciseness),
+    };
     const finalOverallScore = getOverallScore(finalScores);
 
     await supabase

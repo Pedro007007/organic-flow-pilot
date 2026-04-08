@@ -503,26 +503,8 @@ ${content}`,
     }
 
     if (!approvedContent || !approvedAnalysis) {
-      if (existingScore) {
-        await supabase
-          .from("aeo_scores")
-          .update({
-            overall_score: baselineOverallScore,
-            scores: baselineScores,
-            recommendations: baselineAnalysis.recommendations,
-            created_at: new Date().toISOString(),
-          })
-          .eq("id", existingScore.id);
-      } else {
-        await supabase.from("aeo_scores").insert({
-          content_item_id: contentItemId,
-          user_id: user.id,
-          overall_score: baselineOverallScore,
-          scores: baselineScores,
-          recommendations: baselineAnalysis.recommendations,
-        });
-      }
-
+      // Do NOT overwrite stored scores — no content changed, so the stored
+      // scores (which may be higher) should remain untouched.
       return jsonResponse({
         success: false,
         skipped: true,

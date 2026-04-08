@@ -37,6 +37,7 @@ import {
   Link,
   Eye,
   Maximize2,
+  Download,
 } from "lucide-react";
 import ContentPreview from "@/components/ContentPreview";
 

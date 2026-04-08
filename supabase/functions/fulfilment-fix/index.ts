@@ -112,21 +112,28 @@ Deno.serve(async (req) => {
 
     if (criterion.includes("Internal links")) {
       const availableLinks = [
-        ...(otherContent || []).map((c: any) => `- \"${c.title}\" → ${c.url || c.slug || ""}`),
+        ...(otherContent || []).map((c: any) => {
+          const url = c.url || (c.slug ? `/blog/${c.slug}` : "");
+          return `- \"${c.title}\" → ${url}`;
+        }),
         ...sitemapUrls.map((u) => `- ${u}`),
       ].join("\n");
+
+      const linkFormatInstruction = brandDomain
+        ? `Use markdown link format [anchor text](https://${brandDomain}/path). All links MUST use the domain ${brandDomain}.`
+        : `Use markdown link format with RELATIVE paths like [anchor text](/blog/slug). All internal links MUST start with a forward slash /.`;
 
       prompt = `You are an SEO expert. The following article is missing internal links (needs at least 3).
 
 Article title: ${content.title}
-Brand domain: ${brandDomain || "unknown"}
+Brand domain: ${brandDomain || "not set"}
 Current draft (markdown):
 ${existingDraft}
 
 Available pages to link to:
 ${availableLinks.substring(0, 4000)}
 
-Add at least 3 contextually relevant internal links naturally within the existing content. Use markdown link format [anchor text](url). Preserve all existing sections and wording unless a small edit is required to place the links. Return the FULL updated draft content with links integrated naturally. Only return the markdown content, no explanations.`;
+Add at least 3 contextually relevant internal links naturally within the existing content. ${linkFormatInstruction} Preserve all existing sections and wording unless a small edit is required to place the links. Return the FULL updated draft content with links integrated naturally. Only return the markdown content, no explanations.`;
     } else if (criterion.includes("Image alt")) {
       prompt = `You are an SEO expert. The following article has images without alt attributes.
 

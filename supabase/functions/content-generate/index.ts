@@ -264,15 +264,7 @@ Output format: Markdown with proper H1, H2, H3 headings.`;
       if (content.length >= MIN_CONTENT_LENGTH) break;
     }
 
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error("AI gateway error:", response.status, errText);
-      await supabase.from("agent_runs").update({ status: "error", error_message: `AI error: ${response.status}`, completed_at: new Date().toISOString() }).eq("id", run?.id);
-      return new Response(JSON.stringify({ error: response.status === 429 ? "Rate limited" : "AI error" }), { status: response.status === 429 ? 429 : 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
-    }
-
-    const aiResult = await response.json();
-    let content = aiResult.choices?.[0]?.message?.content || "";
+    console.log(`Final content length: ${content.length} characters`);
 
     // Generate 2 in-body images with brand-aware prompts
     const imgDefaults = brand?.image_defaults || {};

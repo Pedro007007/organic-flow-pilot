@@ -182,8 +182,8 @@ serve(async (req) => {
     const toneInstruction = brand?.tone_of_voice ? `- Tone of voice: ${brand.tone_of_voice}` : "";
     const styleInstruction = brand?.writing_style ? `- Writing style: ${brand.writing_style}` : "";
     const wordCountInstruction = wp.min_word_count || wp.max_word_count
-      ? `- Target word count: ${wp.min_word_count || 2000}–${wp.max_word_count || 3500} words (MINIMUM ${wp.min_word_count || 2000} words, approximately ${(wp.min_word_count || 2000) * 6}+ characters)`
-      : "- Target word count: 2000–3500 words (MINIMUM 2000 words, approximately 12,000+ characters). Write comprehensive, detailed content.";
+      ? `- Target word count: ${wp.min_word_count || 2500}–${wp.max_word_count || 4000} words (MINIMUM ${wp.min_word_count || 2500} words). Each H2 section must be 200-300+ words.`
+      : "- Target word count: 2500–4000 words (MINIMUM 2500 words, approximately 15,000+ characters). Each H2 section must be 200-300+ words with examples and actionable detail.";
     const clicheInstruction = (wp.avoid_cliches || []).length > 0
       ? `- NEVER use these phrases: ${wp.avoid_cliches.join(", ")}`
       : '- No AI clichés ("In today\'s digital landscape", "Let\'s dive in", etc.)';
@@ -218,31 +218,53 @@ Must Avoid:
 
 Output format: Markdown with proper H1, H2, H3 headings.`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        max_tokens: 16384,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: `Write a complete, in-depth SEO article. The article MUST be at least 2000 words (approximately 12,000+ characters). Do NOT cut short or summarize — cover every section thoroughly with examples, explanations, and actionable advice.\n\nTitle: ${title || keyword}\nKeyword: ${keyword}\nOutline: ${JSON.stringify(outline || "Create your own outline based on the keyword")}${context ? `\n\nCONTEXT & INSTRUCTIONS:\n${context}` : ""}${referenceLinks && referenceLinks.length > 0 ? `\n\nREFERENCE SOURCES (use these as inspiration and factual reference):\n${referenceLinks.map((l: string) => `- ${l}`).join("\n")}` : ""}${extraKeywords && extraKeywords.length > 0 ? `\n\nSECONDARY KEYWORDS (weave these naturally throughout the article):\n${extraKeywords.join(", ")}` : ""}${serpResearch ? `\n\nCOMPETITOR INTELLIGENCE:\n- Content gaps to exploit: ${(serpResearch.content_gaps || []).join(", ")}\n- Competitor weaknesses: ${(serpResearch.competitor_weaknesses || []).join(", ")}\n- FAQ questions to answer: ${(serpResearch.faq_questions || []).join(", ")}\n- Unique angles: ${(serpResearch.unique_angles || []).join(", ")}\n- Target word count: ${serpResearch.recommended_word_count || 2500}+\n- Common headings competitors use: ${(serpResearch.common_headings || []).join(", ")}\n\nCRITICAL: Your article MUST cover everything competitors cover PLUS the content gaps. Be more comprehensive, more actionable, and more expert than all competitors.` : ""}${strategy ? `\n\nCONTENT STRATEGY:\n${JSON.stringify(strategy)}` : ""}\n\nIMPORTANT: Include exactly two image placeholders {{IMAGE_1}} and {{IMAGE_2}} placed at natural visual break points within the article body. Write in Markdown format. Remember: minimum 2000 words, be comprehensive and detailed.` },
-        ],
-      }),
-    });
+    const MIN_CONTENT_LENGTH = 6000;
+    const MAX_ATTEMPTS = 2;
+    let content = "";
 
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error("AI gateway error:", response.status, errText);
-      await supabase.from("agent_runs").update({ status: "error", error_message: `AI error: ${response.status}`, completed_at: new Date().toISOString() }).eq("id", run?.id);
-      return new Response(JSON.stringify({ error: response.status === 429 ? "Rate limited" : "AI error" }), { status: response.status === 429 ? 429 : 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    const userPrompt = `Write a complete, in-depth SEO article. The article MUST be at least 2500 words (approximately 15,000+ characters of markdown). Do NOT cut short, summarize, or abbreviate any section — cover every section thoroughly with real-world examples, step-by-step explanations, comparisons, and actionable advice. Each H2 section should be at least 200-300 words.\n\nTitle: ${title || keyword}\nKeyword: ${keyword}\nOutline: ${JSON.stringify(outline || "Create your own outline based on the keyword")}${context ? `\n\nCONTEXT & INSTRUCTIONS:\n${context}` : ""}${referenceLinks && referenceLinks.length > 0 ? `\n\nREFERENCE SOURCES (use these as inspiration and factual reference):\n${referenceLinks.map((l: string) => `- ${l}`).join("\n")}` : ""}${extraKeywords && extraKeywords.length > 0 ? `\n\nSECONDARY KEYWORDS (weave these naturally throughout the article):\n${extraKeywords.join(", ")}` : ""}${serpResearch ? `\n\nCOMPETITOR INTELLIGENCE:\n- Content gaps to exploit: ${(serpResearch.content_gaps || []).join(", ")}\n- Competitor weaknesses: ${(serpResearch.competitor_weaknesses || []).join(", ")}\n- FAQ questions to answer: ${(serpResearch.faq_questions || []).join(", ")}\n- Unique angles: ${(serpResearch.unique_angles || []).join(", ")}\n- Target word count: ${serpResearch.recommended_word_count || 2500}+\n- Common headings competitors use: ${(serpResearch.common_headings || []).join(", ")}\n\nCRITICAL: Your article MUST cover everything competitors cover PLUS the content gaps. Be more comprehensive, more actionable, and more expert than all competitors.` : ""}${strategy ? `\n\nCONTENT STRATEGY:\n${JSON.stringify(strategy)}` : ""}\n\nIMPORTANT: Include exactly two image placeholders {{IMAGE_1}} and {{IMAGE_2}} placed at natural visual break points within the article body. Write in Markdown format. Remember: MINIMUM 2500 words. Each section must be detailed and substantive. Do NOT write a short article.`;
+
+    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+      const messages = attempt === 0
+        ? [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+          ]
+        : [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
+            { role: "assistant", content: content },
+            { role: "user", content: `The article above is only ${content.length} characters, which is far too short. The MINIMUM is ${MIN_CONTENT_LENGTH} characters. Please rewrite the ENTIRE article from scratch, making it at least 2500 words. Expand every section with more examples, deeper analysis, practical tips, and detailed explanations. Do NOT summarise — write the full article again in Markdown.` },
+          ];
+
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          max_tokens: 16384,
+          messages,
+        }),
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        console.error("AI gateway error:", response.status, errText);
+        await supabase.from("agent_runs").update({ status: "error", error_message: `AI error: ${response.status}`, completed_at: new Date().toISOString() }).eq("id", run?.id);
+        return new Response(JSON.stringify({ error: response.status === 429 ? "Rate limited" : "AI error" }), { status: response.status === 429 ? 429 : 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
+      const aiResult = await response.json();
+      content = aiResult.choices?.[0]?.message?.content || "";
+      console.log(`Attempt ${attempt + 1}: content length = ${content.length} characters`);
+
+      if (content.length >= MIN_CONTENT_LENGTH) break;
     }
 
-    const aiResult = await response.json();
-    let content = aiResult.choices?.[0]?.message?.content || "";
+    console.log(`Final content length: ${content.length} characters`);
 
     // Generate 2 in-body images with brand-aware prompts
     const imgDefaults = brand?.image_defaults || {};

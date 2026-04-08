@@ -199,7 +199,7 @@ ${internalLinkSummary}
 External links found: ${foundExternalLinks.length}
 
 Content:
-${content.substring(0, 10000)}`;
+${content.substring(0, 16000)}`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

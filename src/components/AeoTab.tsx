@@ -114,7 +114,7 @@ const AeoTab = ({ contentId, hasContent, onContentUpdated }: AeoTabProps) => {
     }
   };
 
-  const handleFixDimension = async (dimension: string, label: string, skipRescore = false) => {
+  const handleFixDimension = async (dimension: string, label: string) => {
     setFixingDim(dimension);
     try {
       const res = await supabase.functions.invoke("aeo-fix", {
@@ -129,7 +129,9 @@ const AeoTab = ({ contentId, hasContent, onContentUpdated }: AeoTabProps) => {
         setScore((prev) => ({
           overall_score: res.data.overall_score,
           scores: (res.data.after as Record<string, number>) || prev?.scores || {},
-          recommendations: prev?.recommendations || [],
+          recommendations: Array.isArray(res.data?.recommendations)
+            ? res.data.recommendations
+            : prev?.recommendations || [],
         }));
       }
 
@@ -144,13 +146,8 @@ const AeoTab = ({ contentId, hasContent, onContentUpdated }: AeoTabProps) => {
         return;
       }
 
-      toast({ title: `${label} improved`, description: "Content updated." });
+      toast({ title: `${label} improved`, description: "Protected scores updated without a second re-score." });
       onContentUpdated?.();
-      if (!skipRescore) {
-        setFixingDim(null);
-        await handleScore();
-        return;
-      }
     } catch (err: any) {
       toast({ title: `${label} fix failed`, description: err.message, variant: "destructive" });
     } finally {
@@ -166,10 +163,9 @@ const AeoTab = ({ contentId, hasContent, onContentUpdated }: AeoTabProps) => {
       return;
     }
     for (const dim of lowDims) {
-      await handleFixDimension(dim.key, dim.label, true);
+      await handleFixDimension(dim.key, dim.label);
     }
-    toast({ title: "All fixes applied", description: "Re-scoring automatically…" });
-    await handleScore();
+    toast({ title: "All fixes applied", description: "Protected scores were kept without a second re-score." });
   };
 
   const lowCount = score ? dimensions.filter((d) => (score.scores[d.key] || 0) < THRESHOLD).length : 0;

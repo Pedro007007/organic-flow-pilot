@@ -386,7 +386,6 @@ serve(async (req) => {
     const baselineOverallScore = getOverallScore(baselineScores);
 
     if (baselineTargetScore >= HEALTHY_SCORE_THRESHOLD) {
-      // Already healthy — do NOT overwrite stored scores (they may be higher)
       return jsonResponse({
         success: true,
         skipped: true,
@@ -396,6 +395,7 @@ serve(async (req) => {
         before: baselineScores,
         after: baselineScores,
         overall_score: baselineOverallScore,
+        recommendations: freshAnalysis.recommendations,
       });
     }
 
@@ -503,8 +503,6 @@ ${content}`,
     }
 
     if (!approvedContent || !approvedAnalysis) {
-      // Do NOT overwrite stored scores — no content changed, so the stored
-      // scores (which may be higher) should remain untouched.
       return jsonResponse({
         success: false,
         skipped: true,
@@ -515,10 +513,10 @@ ${content}`,
         before: baselineScores,
         after: baselineScores,
         overall_score: baselineOverallScore,
+        recommendations: freshAnalysis.recommendations,
       });
     }
 
-    // Use max of final analysis and baseline to prevent any dimension from dropping
     const rawFinalScores = toScores(approvedAnalysis);
     const finalScores: ScoreMap = {
       faq_coverage: Math.max(rawFinalScores.faq_coverage, baselineScores.faq_coverage),
@@ -528,10 +526,15 @@ ${content}`,
       conciseness: Math.max(rawFinalScores.conciseness, baselineScores.conciseness),
     };
     const finalOverallScore = getOverallScore(finalScores);
+    const contentUpdateTimestamp = new Date().toISOString();
 
     await supabase
       .from("content_items")
-      .update({ draft_content: approvedContent, updated_at: new Date().toISOString() })
+      .update({
+        draft_content: approvedContent,
+        seo_score: finalOverallScore,
+        updated_at: contentUpdateTimestamp,
+      })
       .eq("id", contentItemId);
 
     const { data: existingScoreFinal } = await supabase
@@ -548,7 +551,7 @@ ${content}`,
           overall_score: finalOverallScore,
           scores: finalScores,
           recommendations: approvedAnalysis.recommendations,
-          created_at: new Date().toISOString(),
+          created_at: contentUpdateTimestamp,
         })
         .eq("id", existingScoreFinal.id);
     } else {
@@ -568,6 +571,7 @@ ${content}`,
       before: baselineScores,
       after: finalScores,
       overall_score: finalOverallScore,
+      recommendations: approvedAnalysis.recommendations,
     });
   } catch (e) {
     console.error("aeo-fix error:", e);

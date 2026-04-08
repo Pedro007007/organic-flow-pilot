@@ -79,7 +79,12 @@ const getInternalLinks = (markdown?: string | null, brandDomain?: string | null)
     const isRelative = normalizedUrl.startsWith("/") && !normalizedUrl.startsWith("//");
     const isSameDomain = normalizedDomain ? normalizeDomain(normalizedUrl).includes(normalizedDomain) : false;
 
-    if (isRelative || isSameDomain) {
+    // When no brand domain is set, also count links to common internal paths
+    const isLikelyInternal = !normalizedDomain && isRelative;
+    // Also count links containing /blog/ as internal when no domain is set
+    const isBlogPath = !normalizedDomain && ABSOLUTE_URL_PATTERN.test(url) && /\/blog\//.test(normalizedUrl);
+
+    if (isRelative || isSameDomain || isLikelyInternal || isBlogPath) {
       urls.add(url);
     }
   }

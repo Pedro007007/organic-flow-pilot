@@ -1,19 +1,25 @@
 
 
-## Plan: Add Executive Support Navigator to All Pages
+## Plan: Draggable Support Chat Bubble
 
 ### What We're Doing
-Move the `<SupportChat />` component from only the PublicReport page into the global App layout so it appears on every page — dashboard, landing, blog, public report, etc.
+Make the floating "Need Help?" chat bubble repositionable by letting the user click to cycle it between the four screen corners (bottom-right → bottom-left → top-left → top-right → repeat). A single click on a small "move" handle will snap it to the next corner position.
 
 ### Changes
 
 | File | Action |
 |------|--------|
-| `src/App.tsx` | Add `<SupportChat />` inside the `<BrowserRouter>` block, after `<Routes>`, so it renders globally on every page |
-| `src/pages/PublicReport.tsx` | Remove the duplicate `<SupportChat />` import and usage (since it's now global) |
+| `src/components/SupportChat.tsx` | Add corner-cycling logic with a small move/arrow button on the bubble |
 
 ### How It Works
-- The floating "Need Help?" button will appear in the bottom-right corner on every page
-- Clicking it opens the chat panel with the Executive Support Navigator
-- No other files need to change — the edge function and component already exist
+- Add a `corner` state that cycles through `bottom-right`, `bottom-left`, `top-left`, `top-right`
+- A small arrow icon (e.g. `Move` from lucide) appears on the floating button — clicking it moves the bubble to the next corner
+- The chat panel also repositions to match the active corner
+- Position is persisted in `localStorage` so it remembers across sessions
+- Smooth CSS transition when moving between corners
+
+### Technical Details
+- Corner positions mapped to Tailwind classes: `bottom-6 right-6`, `bottom-6 left-6`, `top-6 left-6`, `top-6 right-6`
+- The move button is separate from the "open chat" click target to avoid accidental repositioning
+- Both the closed bubble and the open panel share the same corner state
 

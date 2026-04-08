@@ -22,6 +22,7 @@ import Contact from "./pages/Contact";
 import Tools from "./pages/Tools";
 import Pricing from "./pages/Pricing";
 import CheckoutSuccess from "./pages/CheckoutSuccess";
+import SupportChat from "./components/SupportChat";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +53,7 @@ const App = () => (
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
+            <SupportChat />
           </BrowserRouter>
         </AuthProvider>
       </TooltipProvider>

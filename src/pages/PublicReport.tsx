@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Lock, Globe } from "lucide-react";
 import ReportPreview from "@/components/ReportPreview";
-import SupportChat from "@/components/SupportChat";
 
 const defaultSettings = {
   headline_text: "Your SEO Report",
@@ -157,7 +156,6 @@ const PublicReport = () => {
       <div className="max-w-3xl mx-auto">
         <ReportPreview settings={settings} scanData={scan} isPublic />
       </div>
-      <SupportChat />
     </div>
   );
 };

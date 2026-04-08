@@ -79,6 +79,9 @@ const jsonResponse = (body: Record<string, unknown>, status = 200) =>
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+const ANALYSIS_WINDOW_CHARS = 16000;
+const REWRITE_MAX_TOKENS = 16384;
+
 const normalizeScore = (value: unknown) => {
   const parsed = typeof value === "number" ? value : Number(value);
   if (!Number.isFinite(parsed)) return 0;
@@ -90,6 +93,27 @@ const stripMarkdownFence = (value: string) =>
     .replace(/^```(?:markdown)?\s*/i, "")
     .replace(/\s*```$/, "")
     .trim();
+
+const FAQ_SECTION_PATTERN = /(^|\n)##\s+(frequently asked questions|faq|common questions)\b[\s\S]*$/im;
+
+function getAeoAnalysisWindow(content: string) {
+  const normalized = content.trim();
+  if (normalized.length <= ANALYSIS_WINDOW_CHARS) return normalized;
+
+  const faqMatch = normalized.match(FAQ_SECTION_PATTERN);
+  if (faqMatch?.index !== undefined) {
+    const faqStart = faqMatch.index;
+    const headBudget = Math.max(5000, ANALYSIS_WINDOW_CHARS - (normalized.length - faqStart));
+    const head = normalized.slice(0, headBudget).trimEnd();
+    const faqTail = normalized.slice(faqStart).trimStart();
+    const combined = `${head}\n\n${faqTail}`;
+    return combined.length <= ANALYSIS_WINDOW_CHARS
+      ? combined
+      : `${normalized.slice(0, 8000).trimEnd()}\n\n${normalized.slice(-8000).trimStart()}`;
+  }
+
+  return `${normalized.slice(0, 10000).trimEnd()}\n\n${normalized.slice(-6000).trimStart()}`;
+}
 
 function repairAndParseJson(raw: string): unknown {
   let cleaned = raw
@@ -224,8 +248,10 @@ async function callLovableChat(apiKey: string, body: Record<string, unknown>) {
 }
 
 async function analyzeAeoContent(apiKey: string, content: string, schemaTypes: string[]): Promise<AeoAnalysis> {
+  const analysisWindow = getAeoAnalysisWindow(content);
   const aiResponse = await callLovableChat(apiKey, {
     model: "google/gemini-3-flash-preview",
+    max_tokens: 2500,
     messages: [
       {
         role: "system",
@@ -234,7 +260,7 @@ async function analyzeAeoContent(apiKey: string, content: string, schemaTypes: s
       },
       {
         role: "user",
-        content: `Analyze this content for AEO readiness. Schema types present: ${JSON.stringify(schemaTypes || [])}.\n\nContent:\n${content.slice(0, 8000)}`,
+        content: `Analyze this content for AEO readiness. Schema types present: ${JSON.stringify(schemaTypes || [])}.\n\nContent:\n${analysisWindow}`,
       },
     ],
     tools: [
@@ -425,6 +451,7 @@ GENERAL RULES:
     for (let attempt = 1; attempt <= 3; attempt++) {
       const rewriteResponse = await callLovableChat(LOVABLE_API_KEY, {
         model: "google/gemini-3-flash-preview",
+        max_tokens: REWRITE_MAX_TOKENS,
         messages: [
           { role: "system", content: systemPrompt },
           {

@@ -1,34 +1,42 @@
 
 
-## Problem Analysis
+## Plan: Add "Executive Support Navigator" AI Chatbot to the Public Report (Lead Capture) Page
 
-The app uses dark mode globally. This means `text-foreground` is near-white (`hsl(210, 20%, 96%)`), making all text invisible on the light silver right panel and the white left panel. The logo is also designed for dark backgrounds and disappears on light ones.
+### What We're Building
+A floating AI chatbot on the `/report/:reportId` page (PublicReport.tsx) that uses the system prompt you provided. It will appear as a floating button in the bottom-right corner — similar to the existing Daniela chatbot but with different branding, persona, and escalation email.
 
-## Plan
+### Architecture
 
-### 1. Fix text and logo visibility on both panels
-Replace all Tailwind theme color classes (`text-foreground`, `text-foreground/60`, etc.) with hardcoded dark colors so they are always readable regardless of the global theme.
+**1. New Edge Function: `support-chat`**
+- Clone the `daniela-chat` edge function structure (streaming via Lovable AI Gateway)
+- Replace the system prompt with the full "Executive Support Navigator" prompt you provided
+- Use `google/gemini-3-flash-preview` model (same as Daniela for speed)
+- Keep the same rate limiting and input validation
 
-**Left panel**: Use explicit dark text colors like `text-gray-900`, `text-gray-700`, `text-gray-500` instead of `text-foreground`.
+**2. New Component: `SupportChat.tsx`**
+- Floating chat widget (bottom-right corner), similar to DanielaChat but:
+  - Branded as "Executive Support Navigator" with a headset/support icon instead of Daniela's avatar
+  - No lead capture form gate (the page itself already captures email before showing the report)
+  - Color scheme: professional blue/slate to match the report page aesthetic
+  - Suggestions: "I need help with my report", "How do I improve my SEO score?", "I have a billing question", "I need to speak to management"
+- Streams responses with markdown rendering (reuses the same SSE streaming logic from DanielaChat)
 
-**Right panel**: Same approach - use `text-gray-900` for headings, `text-gray-600` for subtitles, `text-gray-800` for labels. The "Back to home" link, toggle links, and footer links all need explicit dark colors.
+**3. Integration into PublicReport.tsx**
+- Import and render `<SupportChat />` on the unlocked report view (after email gate)
+- The chatbot floats over the report content, always accessible
 
-**Logo**: Increase size to `h-[160px]` on the left panel. No filter needed since both panels are light. Use `drop-shadow-md` for subtle depth.
+### Files to Create/Edit
 
-### 2. Add email verification enforcement
-After login, check if the user's email is confirmed. If not, block access and show a message with a "Resend verification email" option.
-
-**Changes to `src/pages/Auth.tsx`**:
-- After `signInWithPassword` succeeds, check `session.user.email_confirmed_at`
-- If null/undefined, sign the user out immediately, show a toast explaining they need to verify their email first
-- Add a "Resend verification" button that calls `supabase.auth.resend({ type: 'signup', email })`
-
-**File**: `src/pages/Auth.tsx` only - all changes in one file.
+| File | Action |
+|------|--------|
+| `supabase/functions/support-chat/index.ts` | Create — new edge function with the Executive Support Navigator system prompt |
+| `src/components/SupportChat.tsx` | Create — floating chat widget component |
+| `src/pages/PublicReport.tsx` | Edit — add `<SupportChat />` to the unlocked report view |
 
 ### Technical Details
 
-- No database changes needed - email verification is handled by the auth system
-- The project already sends confirmation emails on signup (`emailRedirectTo` is set)
-- Auto-confirm is NOT enabled (correct behavior - users must verify)
-- The `resend` API allows re-sending the confirmation if the user didn't receive it
+- The support chat edge function will use the same streaming SSE pattern as `daniela-chat`
+- The system prompt will include the escalation email as `info@searcheraa.com` (as specified)
+- The chatbot will be visible on both the email gate screen and the unlocked report, giving visitors immediate access to support
+- No database tables needed — this is a stateless chat (no conversation persistence required)
 

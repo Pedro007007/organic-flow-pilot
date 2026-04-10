@@ -104,7 +104,7 @@ serve(async (req) => {
     const { data: run } = await supabase.from("agent_runs").insert({
       user_id: userId,
       agent_name: "Content Generation",
-      agent_description: "Writes human-quality, intent-based SEO content with internal links and images",
+      agent_description: "Writes human-quality, intent-based SEO content with internal links",
       status: "running",
       started_at: new Date().toISOString(),
     }).select("id").single();

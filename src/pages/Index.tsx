@@ -29,7 +29,8 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useSubscription } from "@/hooks/useSubscription";
 import { hasFeatureAccess, getRequiredTier, getTierLabel } from "@/lib/featureGating";
 
-import { Activity, Loader2, Zap, FileText, Search, Bot, BarChart3, Key, Gift, Users, Sparkles, Lock, Sun, Moon } from "lucide-react";
+import { Activity, Loader2, Zap, FileText, Search, Bot, BarChart3, Key, Gift, Users, Sparkles, Lock, Sun, Moon, Headset } from "lucide-react";
+import SupportChat from "@/components/SupportChat";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "next-themes";
@@ -44,6 +45,7 @@ const Index = () => {
   const navigate = useNavigate();
   const { subscribed, tier } = useSubscription();
   const { theme, setTheme } = useTheme();
+  const [showChat, setShowChat] = useState(false);
 
   // Gate check: redirect locked sections back to dashboard
   const isSectionLocked = (section: string) => !hasFeatureAccess(section, tier, subscribed);
@@ -152,6 +154,18 @@ const Index = () => {
                 {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
               </button>
               <NotificationBell />
+              <button
+                onClick={() => setShowChat(!showChat)}
+                title="Support Chat"
+                className={`relative p-2 rounded-lg transition-all duration-200 ${
+                  showChat
+                    ? "bg-primary/10 text-primary"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
+                }`}
+              >
+                <Headset className="h-4 w-4" />
+                <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-green-400" />
+              </button>
               <button
                 onClick={signOut}
                 className="text-xs text-muted-foreground hover:text-foreground transition-colors ml-1"
@@ -360,6 +374,7 @@ const Index = () => {
 
         {activeSection === "saas-admin" && <SaasOwnerDashboard />}
       </main>
+      <SupportChat open={showChat} onClose={() => setShowChat(false)} />
     </div>
   );
 };

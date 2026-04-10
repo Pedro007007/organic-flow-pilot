@@ -219,13 +219,19 @@ Must Avoid:
 Output format: Markdown with proper H1, H2, H3 headings.`;
 
     const MIN_CONTENT_LENGTH = 6000;
-    const MAX_ATTEMPTS = 2;
+    const MAX_ATTEMPTS = 3;
+    const MODELS = ["google/gemini-2.5-flash", "google/gemini-3-flash-preview", "google/gemini-2.5-pro"];
     let content = "";
 
-    const userPrompt = `Write a complete, in-depth SEO article. The article MUST be at least 2500 words (approximately 15,000+ characters of markdown). Do NOT cut short, summarize, or abbreviate any section — cover every section thoroughly with real-world examples, step-by-step explanations, comparisons, and actionable advice. Each H2 section should be at least 200-300 words.\n\nTitle: ${title || keyword}\nKeyword: ${keyword}\nOutline: ${JSON.stringify(outline || "Create your own outline based on the keyword")}${context ? `\n\nCONTEXT & INSTRUCTIONS:\n${context}` : ""}${referenceLinks && referenceLinks.length > 0 ? `\n\nREFERENCE SOURCES (use these as inspiration and factual reference):\n${referenceLinks.map((l: string) => `- ${l}`).join("\n")}` : ""}${extraKeywords && extraKeywords.length > 0 ? `\n\nSECONDARY KEYWORDS (weave these naturally throughout the article):\n${extraKeywords.join(", ")}` : ""}${serpResearch ? `\n\nCOMPETITOR INTELLIGENCE:\n- Content gaps to exploit: ${(serpResearch.content_gaps || []).join(", ")}\n- Competitor weaknesses: ${(serpResearch.competitor_weaknesses || []).join(", ")}\n- FAQ questions to answer: ${(serpResearch.faq_questions || []).join(", ")}\n- Unique angles: ${(serpResearch.unique_angles || []).join(", ")}\n- Target word count: ${serpResearch.recommended_word_count || 2500}+\n- Common headings competitors use: ${(serpResearch.common_headings || []).join(", ")}\n\nCRITICAL: Your article MUST cover everything competitors cover PLUS the content gaps. Be more comprehensive, more actionable, and more expert than all competitors.` : ""}${strategy ? `\n\nCONTENT STRATEGY:\n${JSON.stringify(strategy)}` : ""}\n\nIMPORTANT: Include exactly two image placeholders {{IMAGE_1}} and {{IMAGE_2}} placed at natural visual break points within the article body. Write in Markdown format. Remember: MINIMUM 2500 words. Each section must be detailed and substantive. Do NOT write a short article.`;
-
     for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
-      const messages = attempt === 0
+      const model = attempt === 0 ? MODELS[0] : MODELS[Math.min(attempt, MODELS.length - 1)];
+      console.log(`Attempt ${attempt + 1}/${MAX_ATTEMPTS} using model: ${model}`);
+
+      if (attempt > 0) {
+        await new Promise(r => setTimeout(r, 2000 * attempt));
+      }
+
+      const messages = attempt === 0 || !content
         ? [
             { role: "system", content: systemPrompt },
             { role: "user", content: userPrompt },
@@ -237,36 +243,65 @@ Output format: Markdown with proper H1, H2, H3 headings.`;
             { role: "user", content: `The article above is only ${content.length} characters, which is far too short. The MINIMUM is ${MIN_CONTENT_LENGTH} characters. Please rewrite the ENTIRE article from scratch, making it at least 2500 words. Expand every section with more examples, deeper analysis, practical tips, and detailed explanations. Do NOT summarise — write the full article again in Markdown.` },
           ];
 
-      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
-          max_tokens: 16384,
-          messages,
-        }),
-      });
+      let response: Response;
+      try {
+        response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            model,
+            max_tokens: 16384,
+            messages,
+          }),
+        });
+      } catch (fetchErr) {
+        console.error(`Attempt ${attempt + 1}: fetch error:`, fetchErr);
+        if (attempt < MAX_ATTEMPTS - 1) continue;
+        await supabase.from("agent_runs").update({ status: "error", error_message: "Network error contacting AI", completed_at: new Date().toISOString() }).eq("id", run?.id);
+        return new Response(JSON.stringify({ error: "Failed to reach AI service. Please try again." }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
 
       if (!response.ok) {
         const errText = await response.text();
-        console.error("AI gateway error:", response.status, errText);
+        console.error(`Attempt ${attempt + 1}: AI gateway error ${response.status}:`, errText);
+        if (response.status === 429) {
+          if (attempt < MAX_ATTEMPTS - 1) { await new Promise(r => setTimeout(r, 5000)); continue; }
+          await supabase.from("agent_runs").update({ status: "error", error_message: "Rate limited", completed_at: new Date().toISOString() }).eq("id", run?.id);
+          return new Response(JSON.stringify({ error: "Rate limited — please try again shortly" }), { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        }
+        if (attempt < MAX_ATTEMPTS - 1) continue;
         await supabase.from("agent_runs").update({ status: "error", error_message: `AI error: ${response.status}`, completed_at: new Date().toISOString() }).eq("id", run?.id);
-        return new Response(JSON.stringify({ error: response.status === 429 ? "Rate limited" : "AI error" }), { status: response.status === 429 ? 429 : 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+        return new Response(JSON.stringify({ error: "AI error" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
 
       const rawText = await response.text();
+      const trimmed = rawText.trim();
+      
+      if (!trimmed || trimmed.length < 50) {
+        console.error(`Attempt ${attempt + 1}: AI returned empty/whitespace response (${rawText.length} raw chars)`);
+        if (attempt < MAX_ATTEMPTS - 1) continue;
+        await supabase.from("agent_runs").update({ status: "error", error_message: "AI returned empty response", completed_at: new Date().toISOString() }).eq("id", run?.id);
+        return new Response(JSON.stringify({ error: "AI returned an empty response. Please try again." }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+
       let aiResult: any;
       try {
-        aiResult = JSON.parse(rawText);
+        aiResult = JSON.parse(trimmed);
       } catch (parseErr) {
-        console.error(`Attempt ${attempt + 1}: Failed to parse AI response (${rawText.length} chars). Truncated: ${rawText.slice(-100)}`);
+        console.error(`Attempt ${attempt + 1}: Failed to parse AI response (${trimmed.length} chars). First 200: ${trimmed.slice(0, 200)}`);
         if (attempt < MAX_ATTEMPTS - 1) continue;
         await supabase.from("agent_runs").update({ status: "error", error_message: "AI returned truncated response", completed_at: new Date().toISOString() }).eq("id", run?.id);
         return new Response(JSON.stringify({ error: "AI returned an incomplete response. Please try again." }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
+
+      const finishReason = aiResult.choices?.[0]?.finish_reason;
+      if (finishReason === "length" || finishReason === "max_tokens") {
+        console.warn(`Attempt ${attempt + 1}: Response truncated by model (finish_reason: ${finishReason})`);
+      }
+
       content = aiResult.choices?.[0]?.message?.content || "";
       console.log(`Attempt ${attempt + 1}: content length = ${content.length} characters`);
 

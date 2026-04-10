@@ -2,10 +2,11 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Loader2, Zap, ArrowUpRight, ArrowDownRight, Minus } from "lucide-react";
+import { Loader2, Zap, Wand2 } from "lucide-react";
 
 interface OptimizationTabProps {
   contentItemId: string;

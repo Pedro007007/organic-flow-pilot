@@ -228,10 +228,18 @@ const OptimizationTab = ({ contentItemId }: OptimizationTabProps) => {
             {job?.completed_at ? `Last scanned: ${job.completed_at.split("T")[0]}` : "No scans yet"}
           </p>
         </div>
-        <Button size="sm" onClick={handleScan} disabled={scanning} className="gap-1.5">
-          {scanning ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5" />}
-          {job ? "Re-scan" : "Run Optimization Scan"}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button size="sm" onClick={handleScan} disabled={scanning || fixingAll} className="gap-1.5">
+            {scanning ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5" />}
+            {job ? "Re-scan" : "Run Optimization Scan"}
+          </Button>
+          {hasLowScores && (
+            <Button size="sm" variant="outline" onClick={handleFixAll} disabled={!!fixingDimension || fixingAll || scanning} className="gap-1.5">
+              {fixingAll ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Wand2 className="h-3.5 w-3.5" />}
+              Fix All Low Scores
+            </Button>
+          )}
+        </div>
       </div>
 
       {!job || job.status === "error" ? (

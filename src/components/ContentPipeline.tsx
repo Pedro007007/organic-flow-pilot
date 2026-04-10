@@ -382,13 +382,6 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
       });
       if (genRes.error) throw genRes.error;
 
-      // Step 4: Hero Image Generation is now manual to keep pipeline responsive
-      toast({ title: "🔧 Autopilot: Optimizing SEO..." });
-      const optRes = await supabase.functions.invoke("seo-optimize", {
-        body: { contentItemId, keyword: kw, brandId: pipelineBrandId },
-      });
-      if (optRes.error) throw optRes.error;
-
       // Step 4: SEO Optimization
       toast({ title: "🔧 Autopilot: Optimizing SEO..." });
       const optRes = await supabase.functions.invoke("seo-optimize", {

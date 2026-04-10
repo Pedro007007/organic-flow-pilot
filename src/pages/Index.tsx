@@ -374,6 +374,7 @@ const Index = () => {
 
         {activeSection === "saas-admin" && <SaasOwnerDashboard />}
       </main>
+      <SupportChat open={showChat} onClose={() => setShowChat(false)} />
     </div>
   );
 };

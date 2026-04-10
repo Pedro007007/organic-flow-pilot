@@ -246,7 +246,7 @@ const ContentDetail = ({ contentId, onBack }: ContentDetailProps) => {
       const content = res.data?.content || "";
       setDraftContent(content);
       setItem((prev: any) => ({ ...prev, status: "writing" }));
-      toast({ title: "Content generated", description: `${content.length} characters written` });
+      toast({ title: "Content generated", description: `${content.length} characters written — images can be added manually below.` });
       queryClient.invalidateQueries({ queryKey: ["content_items"] });
     } catch (err: any) {
       toast({ title: "Generation failed", description: err.message, variant: "destructive" });

@@ -410,7 +410,7 @@ Output format: Markdown with proper H1, H2, H3 headings.`;
       status: "completed",
       items_processed: 1,
       completed_at: new Date().toISOString(),
-      result: { content_length: content.length, content_item_id: contentItemId, body_images: imageUrls.filter(Boolean).length, brand: brand?.name || null },
+      result: { content_length: content.length, content_item_id: contentItemId, body_images: 0, brand: brand?.name || null },
     }).eq("id", run?.id);
 
     return new Response(JSON.stringify({ success: true, content }), {

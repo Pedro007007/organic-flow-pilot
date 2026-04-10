@@ -2,10 +2,11 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { Loader2, Zap, ArrowUpRight, ArrowDownRight, Minus } from "lucide-react";
+import { Loader2, Zap, Wand2 } from "lucide-react";
 
 interface OptimizationTabProps {
   contentItemId: string;
@@ -97,9 +98,12 @@ const ScoreRing = ({ score }: { score: number }) => {
 const OptimizationTab = ({ contentItemId }: OptimizationTabProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [job, setJob] = useState<OptimizationJob | null>(null);
   const [loading, setLoading] = useState(true);
   const [scanning, setScanning] = useState(false);
+  const [fixingDimension, setFixingDimension] = useState<string | null>(null);
+  const [fixingAll, setFixingAll] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -152,6 +156,60 @@ const OptimizationTab = ({ contentItemId }: OptimizationTabProps) => {
     }
   };
 
+  const handleFixDimension = async (dimension: string) => {
+    if (!job?.action_plan) return;
+    setFixingDimension(dimension);
+    try {
+      const actions = job.action_plan
+        .filter((a) => a.dimension === dimension)
+        .map((a) => a.action);
+      
+      const res = await supabase.functions.invoke("content-section-rewrite", {
+        body: {
+          contentItemId,
+          sectionHeading: dimensionLabels[dimension]?.label || dimension,
+          articleTopic: "SEO optimization fixes",
+          instructions: `Apply these SEO improvements to the article content:\n${actions.map((a, i) => `${i + 1}. ${a}`).join("\n")}`,
+          mode: "seo-fix",
+        },
+      });
+      if (res.error) throw res.error;
+      
+      toast({ title: "AI Fix Applied", description: `${dimensionLabels[dimension]?.label} improvements applied` });
+      queryClient.invalidateQueries({ queryKey: ["content_items"] });
+      
+      // Re-scan to update scores
+      await handleScan();
+    } catch (err: any) {
+      toast({ title: "Fix failed", description: err.message, variant: "destructive" });
+    } finally {
+      setFixingDimension(null);
+    }
+  };
+
+  const handleFixAll = async () => {
+    if (!job?.scores) return;
+    setFixingAll(true);
+    const lowDimensions = Object.entries(job.scores)
+      .filter(([_, score]) => score < 75)
+      .sort(([, a], [, b]) => a - b)
+      .map(([key]) => key);
+
+    if (lowDimensions.length === 0) {
+      toast({ title: "All dimensions scoring well!" });
+      setFixingAll(false);
+      return;
+    }
+
+    for (const dim of lowDimensions) {
+      await handleFixDimension(dim);
+    }
+    setFixingAll(false);
+    toast({ title: "All fixes applied", description: "Scores have been updated" });
+  };
+
+  const hasLowScores = job?.scores && Object.values(job.scores).some((s) => s < 75);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -170,10 +228,18 @@ const OptimizationTab = ({ contentItemId }: OptimizationTabProps) => {
             {job?.completed_at ? `Last scanned: ${job.completed_at.split("T")[0]}` : "No scans yet"}
           </p>
         </div>
-        <Button size="sm" onClick={handleScan} disabled={scanning} className="gap-1.5">
-          {scanning ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5" />}
-          {job ? "Re-scan" : "Run Optimization Scan"}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button size="sm" onClick={handleScan} disabled={scanning || fixingAll} className="gap-1.5">
+            {scanning ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5" />}
+            {job ? "Re-scan" : "Run Optimization Scan"}
+          </Button>
+          {hasLowScores && (
+            <Button size="sm" variant="outline" onClick={handleFixAll} disabled={!!fixingDimension || fixingAll || scanning} className="gap-1.5">
+              {fixingAll ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Wand2 className="h-3.5 w-3.5" />}
+              Fix All Low Scores
+            </Button>
+          )}
+        </div>
       </div>
 
       {!job || job.status === "error" ? (
@@ -199,6 +265,18 @@ const OptimizationTab = ({ contentItemId }: OptimizationTabProps) => {
                         <div className="flex items-center gap-2">
                           <span className="text-muted-foreground">{weight}</span>
                           <span className={`font-mono font-semibold ${getScoreColor(score)}`}>{score}</span>
+                          {score < 75 && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleFixDimension(key)}
+                              disabled={fixingDimension === key || fixingAll || scanning}
+                              className="h-5 px-1.5 text-[10px] gap-1"
+                            >
+                              {fixingDimension === key ? <Loader2 className="h-3 w-3 animate-spin" /> : <Wand2 className="h-3 w-3" />}
+                              Fix
+                            </Button>
+                          )}
                         </div>
                       </div>
                       <div className="h-2 rounded-full bg-muted overflow-hidden">

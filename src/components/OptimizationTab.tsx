@@ -98,9 +98,12 @@ const ScoreRing = ({ score }: { score: number }) => {
 const OptimizationTab = ({ contentItemId }: OptimizationTabProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [job, setJob] = useState<OptimizationJob | null>(null);
   const [loading, setLoading] = useState(true);
   const [scanning, setScanning] = useState(false);
+  const [fixingDimension, setFixingDimension] = useState<string | null>(null);
+  const [fixingAll, setFixingAll] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -152,6 +155,60 @@ const OptimizationTab = ({ contentItemId }: OptimizationTabProps) => {
       setScanning(false);
     }
   };
+
+  const handleFixDimension = async (dimension: string) => {
+    if (!job?.action_plan) return;
+    setFixingDimension(dimension);
+    try {
+      const actions = job.action_plan
+        .filter((a) => a.dimension === dimension)
+        .map((a) => a.action);
+      
+      const res = await supabase.functions.invoke("content-section-rewrite", {
+        body: {
+          contentItemId,
+          sectionHeading: dimensionLabels[dimension]?.label || dimension,
+          articleTopic: "SEO optimization fixes",
+          instructions: `Apply these SEO improvements to the article content:\n${actions.map((a, i) => `${i + 1}. ${a}`).join("\n")}`,
+          mode: "seo-fix",
+        },
+      });
+      if (res.error) throw res.error;
+      
+      toast({ title: "AI Fix Applied", description: `${dimensionLabels[dimension]?.label} improvements applied` });
+      queryClient.invalidateQueries({ queryKey: ["content_items"] });
+      
+      // Re-scan to update scores
+      await handleScan();
+    } catch (err: any) {
+      toast({ title: "Fix failed", description: err.message, variant: "destructive" });
+    } finally {
+      setFixingDimension(null);
+    }
+  };
+
+  const handleFixAll = async () => {
+    if (!job?.scores) return;
+    setFixingAll(true);
+    const lowDimensions = Object.entries(job.scores)
+      .filter(([_, score]) => score < 75)
+      .sort(([, a], [, b]) => a - b)
+      .map(([key]) => key);
+
+    if (lowDimensions.length === 0) {
+      toast({ title: "All dimensions scoring well!" });
+      setFixingAll(false);
+      return;
+    }
+
+    for (const dim of lowDimensions) {
+      await handleFixDimension(dim);
+    }
+    setFixingAll(false);
+    toast({ title: "All fixes applied", description: "Scores have been updated" });
+  };
+
+  const hasLowScores = job?.scores && Object.values(job.scores).some((s) => s < 75);
 
   if (loading) {
     return (

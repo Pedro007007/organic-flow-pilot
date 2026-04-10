@@ -160,6 +160,19 @@ const OptimizationTab = ({ contentItemId }: OptimizationTabProps) => {
     if (!job?.action_plan) return;
     setFixingDimension(dimension);
     try {
+      // Fetch article content first
+      const { data: item } = await supabase
+        .from("content_items")
+        .select("draft_content, keyword, title")
+        .eq("id", contentItemId)
+        .maybeSingle();
+
+      if (!item?.draft_content) {
+        toast({ title: "No content to fix", description: "This article has no draft content yet.", variant: "destructive" });
+        setFixingDimension(null);
+        return;
+      }
+
       const actions = job.action_plan
         .filter((a) => a.dimension === dimension)
         .map((a) => a.action);
@@ -167,8 +180,10 @@ const OptimizationTab = ({ contentItemId }: OptimizationTabProps) => {
       const res = await supabase.functions.invoke("content-section-rewrite", {
         body: {
           contentItemId,
+          sectionContent: item.draft_content.substring(0, 16000),
           sectionHeading: dimensionLabels[dimension]?.label || dimension,
-          articleTopic: "SEO optimization fixes",
+          articleTopic: item.title || item.keyword || "SEO optimization fixes",
+          targetKeyword: item.keyword,
           instructions: `Apply these SEO improvements to the article content:\n${actions.map((a, i) => `${i + 1}. ${a}`).join("\n")}`,
           mode: "seo-fix",
         },

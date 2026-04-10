@@ -330,9 +330,6 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
             // Step 4: Hero Image is now manual to keep Create Blog fast and reliable
             toast({ title: "✅ Article ready!", description: "Content and SEO metadata generated — add hero/body images manually when ready." });
             queryClient.invalidateQueries({ queryKey: ["content_items"] });
-
-            toast({ title: "✅ Article ready!", description: "Content and SEO metadata generated — add hero/body images manually when ready." });
-            queryClient.invalidateQueries({ queryKey: ["content_items"] });
           } catch (err: any) {
             toast({ title: "Generation failed", description: err.message, variant: "destructive" });
             queryClient.invalidateQueries({ queryKey: ["content_items"] });

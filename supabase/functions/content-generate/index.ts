@@ -257,7 +257,16 @@ Output format: Markdown with proper H1, H2, H3 headings.`;
         return new Response(JSON.stringify({ error: response.status === 429 ? "Rate limited" : "AI error" }), { status: response.status === 429 ? 429 : 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
       }
 
-      const aiResult = await response.json();
+      const rawText = await response.text();
+      let aiResult: any;
+      try {
+        aiResult = JSON.parse(rawText);
+      } catch (parseErr) {
+        console.error(`Attempt ${attempt + 1}: Failed to parse AI response (${rawText.length} chars). Truncated: ${rawText.slice(-100)}`);
+        if (attempt < MAX_ATTEMPTS - 1) continue;
+        await supabase.from("agent_runs").update({ status: "error", error_message: "AI returned truncated response", completed_at: new Date().toISOString() }).eq("id", run?.id);
+        return new Response(JSON.stringify({ error: "AI returned an incomplete response. Please try again." }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
       content = aiResult.choices?.[0]?.message?.content || "";
       console.log(`Attempt ${attempt + 1}: content length = ${content.length} characters`);
 

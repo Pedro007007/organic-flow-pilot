@@ -41,6 +41,7 @@ interface SidebarNavProps {
 
 const navItems = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { id: "brands", label: "Brands", icon: Tag },
   { id: "llm-search", label: "Keyword Research", icon: Sparkles },
   { id: "keywords", label: "Keywords", icon: Search },
   { id: "content", label: "Content", icon: FileText },
@@ -52,7 +53,6 @@ const navItems = [
   { id: "reports", label: "Reports", icon: FileBarChart },
   { id: "leads", label: "Leads", icon: Users },
   { id: "checklist", label: "Checklist", icon: ListChecks },
-  { id: "brands", label: "Brands", icon: Tag },
 ];
 
 export const headerNavItems = [

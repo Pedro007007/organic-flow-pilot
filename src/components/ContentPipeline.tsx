@@ -327,13 +327,9 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
             });
             if (genRes.error) throw genRes.error;
 
-            // Step 4: Hero Image
-            toast({ title: "🎨 Generating hero image..." });
-            try {
-              await supabase.functions.invoke("generate-hero-image", {
-                body: { contentItemId: data.id, keyword: savedKeyword, title: savedTitle, brandId: savedBrandId },
-              });
-            } catch { console.warn("Hero image skipped"); }
+            // Step 4: Hero Image is now manual to keep Create Blog fast and reliable
+            toast({ title: "✅ Article ready!", description: "Content and SEO metadata generated — add hero/body images manually when ready." });
+            queryClient.invalidateQueries({ queryKey: ["content_items"] });
 
             toast({ title: "✅ Article ready!", description: "Content and SEO metadata generated — add hero/body images manually when ready." });
             queryClient.invalidateQueries({ queryKey: ["content_items"] });
@@ -389,24 +385,21 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
       });
       if (genRes.error) throw genRes.error;
 
-      // Step 4: Hero Image Generation
-      toast({ title: "🎨 Autopilot: Generating hero image..." });
-      try {
-        await supabase.functions.invoke("generate-hero-image", {
-          body: { contentItemId, keyword: kw, title: ttl, brandId: pipelineBrandId },
-        });
-      } catch {
-        console.warn("Hero image generation skipped");
-      }
-
-      // Step 5: SEO Optimization
+      // Step 4: Hero Image Generation is now manual to keep pipeline responsive
       toast({ title: "🔧 Autopilot: Optimizing SEO..." });
       const optRes = await supabase.functions.invoke("seo-optimize", {
         body: { contentItemId, keyword: kw, brandId: pipelineBrandId },
       });
       if (optRes.error) throw optRes.error;
 
-      // Step 6: Publishing
+      // Step 4: SEO Optimization
+      toast({ title: "🔧 Autopilot: Optimizing SEO..." });
+      const optRes = await supabase.functions.invoke("seo-optimize", {
+        body: { contentItemId, keyword: kw, brandId: pipelineBrandId },
+      });
+      if (optRes.error) throw optRes.error;
+
+      // Step 5: Publishing
       toast({ title: "📤 Autopilot: Publishing..." });
       const pubRes = await supabase.functions.invoke("publish-webhook", {
         body: { contentItemId },

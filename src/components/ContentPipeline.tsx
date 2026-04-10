@@ -335,7 +335,7 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
               });
             } catch { console.warn("Hero image skipped"); }
 
-            toast({ title: "✅ Article ready!", description: "Content generated — run SEO Optimization manually when ready." });
+            toast({ title: "✅ Article ready!", description: "Content and SEO metadata generated — add hero/body images manually when ready." });
             queryClient.invalidateQueries({ queryKey: ["content_items"] });
           } catch (err: any) {
             toast({ title: "Generation failed", description: err.message, variant: "destructive" });

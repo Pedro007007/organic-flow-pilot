@@ -265,6 +265,18 @@ const OptimizationTab = ({ contentItemId }: OptimizationTabProps) => {
                         <div className="flex items-center gap-2">
                           <span className="text-muted-foreground">{weight}</span>
                           <span className={`font-mono font-semibold ${getScoreColor(score)}`}>{score}</span>
+                          {score < 75 && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleFixDimension(key)}
+                              disabled={fixingDimension === key || fixingAll || scanning}
+                              className="h-5 px-1.5 text-[10px] gap-1"
+                            >
+                              {fixingDimension === key ? <Loader2 className="h-3 w-3 animate-spin" /> : <Wand2 className="h-3 w-3" />}
+                              Fix
+                            </Button>
+                          )}
                         </div>
                       </div>
                       <div className="h-2 rounded-full bg-muted overflow-hidden">

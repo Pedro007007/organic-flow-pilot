@@ -310,7 +310,14 @@ Output format: Markdown with proper H1, H2, H3 headings.`;
           continue;
         }
 
-        const imgResult = await imgRes.json();
+        let imgResult: any;
+        try {
+          imgResult = await imgRes.json();
+        } catch {
+          console.warn(`Body image ${i + 1}: failed to parse response`);
+          imageUrls.push("");
+          continue;
+        }
         const imageData = imgResult.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
         if (!imageData) {

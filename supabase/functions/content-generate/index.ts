@@ -218,6 +218,19 @@ Must Avoid:
 
 Output format: Markdown with proper H1, H2, H3 headings.`;
 
+    // Build user prompt from available data
+    const serpBlock = serpResearch
+      ? `\n\nSERP Research:\n- Avg competitor word count: ${serpResearch.avg_word_count || "N/A"}\n- Common headings: ${(serpResearch.common_headings || []).join(", ")}\n- Content gaps to fill: ${(serpResearch.content_gaps || []).join("; ")}\n- FAQ questions to answer: ${(serpResearch.faq_questions || []).join("; ")}\n- Unique angles: ${(serpResearch.unique_angles || []).join("; ")}`
+      : "";
+    const contextBlock = context ? `\n\nAdditional context: ${context}` : "";
+    const extraKwBlock = extraKeywords?.length ? `\nSecondary keywords to weave in: ${extraKeywords.join(", ")}` : "";
+    const refBlock = referenceLinks?.length ? `\nReference links for inspiration: ${referenceLinks.join(", ")}` : "";
+    const outlineBlock = outline ? `\n\nOutline to follow:\n${outline}` : "";
+
+    const userPrompt = `Write a comprehensive, expert-level SEO article.
+Topic/Keyword: ${keyword}
+Title: ${title || keyword}${serpBlock}${contextBlock}${extraKwBlock}${refBlock}${outlineBlock}`;
+
     const MIN_CONTENT_LENGTH = 6000;
     const MAX_ATTEMPTS = 3;
     const MODELS = ["google/gemini-2.5-flash", "google/gemini-3-flash-preview", "google/gemini-2.5-pro"];

@@ -180,7 +180,7 @@ const OptimizationTab = ({ contentItemId }: OptimizationTabProps) => {
       const res = await supabase.functions.invoke("content-section-rewrite", {
         body: {
           contentItemId,
-          sectionContent: item.draft_content.substring(0, 16000),
+          sectionContent: item.draft_content,
           sectionHeading: dimensionLabels[dimension]?.label || dimension,
           articleTopic: item.title || item.keyword || "SEO optimization fixes",
           targetKeyword: item.keyword,

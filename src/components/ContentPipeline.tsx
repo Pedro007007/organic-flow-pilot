@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { FileText, Plus, Rocket, Loader2, Search, Filter, CheckSquare, Square, Download, Tag, X, Link, Sparkles, Trash2, EyeOff, Lightbulb, Globe } from "lucide-react";
+import GenerationOverlay from "@/components/GenerationOverlay";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -69,6 +70,9 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
   const [suggestingTitles, setSuggestingTitles] = useState(false);
   const [titleSuggestions, setTitleSuggestions] = useState<{ title: string; style: string }[]>([]);
   const [fetchingRefs, setFetchingRefs] = useState(false);
+  const [showGenOverlay, setShowGenOverlay] = useState(false);
+  const [genStage, setGenStage] = useState("researching");
+  const [genDone, setGenDone] = useState(false);
 
   const handleAiSuggest = async () => {
     if (!title.trim()) {
@@ -294,14 +298,21 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
       if (data?.id) {
         if (runAutopilot) {
           setAutopilot(true);
+          setGenDone(false);
+          setGenStage("researching");
+          setShowGenOverlay(true);
           await runFullPipeline(data.id, savedKeyword, savedTitle, savedBrandId, savedContext, savedRefLinks, savedExtraKw);
+          setGenDone(true);
           setAutopilot(false);
         } else {
           // Generate article + SEO metadata (no publish)
           setAutopilot(true);
+          setGenDone(false);
+          setGenStage("researching");
+          setShowGenOverlay(true);
           try {
             // Step 1: SERP Research
-            toast({ title: "🔍 Researching competitors..." });
+            setGenStage("researching");
             let serpResearch: any = null;
             try {
               const serpRes = await supabase.functions.invoke("serp-research", {
@@ -311,7 +322,7 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
             } catch { console.warn("SERP research skipped"); }
 
             // Step 2: Content Strategy
-            toast({ title: "📋 Building strategy..." });
+            setGenStage("strategizing");
             let strategy: any = null;
             try {
               const stratRes = await supabase.functions.invoke("content-strategy", {
@@ -321,17 +332,17 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
             } catch { console.warn("Content strategy skipped"); }
 
             // Step 3: Content Generation
-            toast({ title: "✍️ Writing content..." });
+            setGenStage("writing");
             const genRes = await supabase.functions.invoke("content-generate", {
               body: { contentItemId: data.id, keyword: savedKeyword, title: savedTitle, serpResearch, strategy, brandId: savedBrandId, context: savedContext, referenceLinks: savedRefLinks, extraKeywords: savedExtraKw },
             });
             if (genRes.error) throw genRes.error;
 
-            // Step 4: Hero Image is now manual to keep Create Blog fast and reliable
-            toast({ title: "✅ Article ready!", description: "Content and SEO metadata generated — add hero/body images manually when ready." });
+            setGenDone(true);
             queryClient.invalidateQueries({ queryKey: ["content_items"] });
           } catch (err: any) {
             toast({ title: "Generation failed", description: err.message, variant: "destructive" });
+            setShowGenOverlay(false);
             queryClient.invalidateQueries({ queryKey: ["content_items"] });
           } finally {
             setAutopilot(false);
@@ -348,7 +359,7 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
   const runFullPipeline = async (contentItemId: string, kw: string, ttl: string, pipelineBrandId?: string, pipelineContext?: string, pipelineRefLinks?: string[], pipelineExtraKw?: string[]) => {
     try {
       // Step 1: SERP Research
-      toast({ title: "🔍 Autopilot: Researching competitors..." });
+      setGenStage("researching");
       let serpResearch: any = null;
       try {
         const serpRes = await supabase.functions.invoke("serp-research", {
@@ -362,7 +373,7 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
       }
 
       // Step 2: Content Strategy (with SERP data)
-      toast({ title: "📋 Autopilot: Building strategy..." });
+      setGenStage("strategizing");
       let strategy: any = null;
       try {
         const stratRes = await supabase.functions.invoke("content-strategy", {
@@ -376,35 +387,36 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
       }
 
       // Step 3: Content Generation (with SERP + strategy)
-      toast({ title: "✍️ Autopilot: Writing content..." });
+      setGenStage("writing");
       const genRes = await supabase.functions.invoke("content-generate", {
         body: { contentItemId, keyword: kw, title: ttl, serpResearch, strategy, brandId: pipelineBrandId, context: pipelineContext, referenceLinks: pipelineRefLinks, extraKeywords: pipelineExtraKw },
       });
       if (genRes.error) throw genRes.error;
 
       // Step 4: SEO Optimization
-      toast({ title: "🔧 Autopilot: Optimizing SEO..." });
+      setGenStage("optimizing");
       const optRes = await supabase.functions.invoke("seo-optimize", {
         body: { contentItemId, keyword: kw, brandId: pipelineBrandId },
       });
       if (optRes.error) throw optRes.error;
 
       // Step 5: Publishing
-      toast({ title: "📤 Autopilot: Publishing..." });
+      setGenStage("publishing");
       const pubRes = await supabase.functions.invoke("publish-webhook", {
         body: { contentItemId },
       });
       if (pubRes.error) throw pubRes.error;
 
-      toast({ title: "✅ Autopilot complete!", description: pubRes.data?.url || "Content published" });
       queryClient.invalidateQueries({ queryKey: ["content_items"] });
     } catch (err: any) {
       toast({ title: "Autopilot failed", description: err.message, variant: "destructive" });
+      setShowGenOverlay(false);
       queryClient.invalidateQueries({ queryKey: ["content_items"] });
     }
   };
 
   return (
+    <>
     <div className="rounded-xl border border-border/40 bg-card/30 backdrop-blur-xl shadow-md overflow-hidden">
       <div className="border-b border-border/30 px-5 py-4 flex items-center justify-between">
         <div>
@@ -705,6 +717,14 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
         )}
       </div>
     </div>
+
+      <GenerationOverlay
+        open={showGenOverlay}
+        stage={genStage}
+        done={genDone}
+        onDismiss={() => setShowGenOverlay(false)}
+      />
+    </>
   );
 };
 

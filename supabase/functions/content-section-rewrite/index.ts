@@ -222,7 +222,9 @@ Consider yourself a senior editor at a top SEO agency and write accordingly.`;
         model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: `Rewrite this section:\n\n${sectionContent}` },
+          { role: "user", content: isSeoFix
+            ? `Apply the requested improvements to this article:\n\n${sectionContent}`
+            : `Rewrite this section:\n\n${sectionContent}` },
         ],
       }),
     });
@@ -243,8 +245,30 @@ Consider yourself a senior editor at a top SEO agency and write accordingly.`;
       throw new Error("AI gateway error");
     }
 
-    const data = await response.json();
-    const result = data.choices?.[0]?.message?.content || "";
+    const aiData = await response.json();
+    const result = aiData.choices?.[0]?.message?.content || "";
+
+    // In seo-fix mode, save the improved content back to the content item
+    if (isSeoFix && contentItemId && result.length > 100) {
+      const supabase = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_ANON_KEY")!,
+        { global: { headers: { Authorization: authHeader! } } }
+      );
+
+      // Check content retention ratio
+      const originalLength = sectionContent.length;
+      const newLength = result.length;
+      if (newLength / originalLength >= 0.85) {
+        await supabase.from("content_items").update({ draft_content: result }).eq("id", contentItemId);
+        console.log(`SEO fix saved: ${originalLength} → ${newLength} chars`);
+      } else {
+        console.warn(`SEO fix rejected: content too short (${newLength}/${originalLength} = ${(newLength/originalLength*100).toFixed(0)}%)`);
+        return new Response(JSON.stringify({ result, warning: "Content was not saved because it was significantly shorter than the original." }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
 
     return new Response(JSON.stringify({ result }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

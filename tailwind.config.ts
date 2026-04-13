@@ -104,6 +104,10 @@ export default {
           "0%, 100%": { left: "0%", width: "33%" },
           "50%": { left: "67%", width: "33%" },
         },
+        "scale-in": {
+          from: { opacity: "0", transform: "scale(0.92)" },
+          to: { opacity: "1", transform: "scale(1)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",

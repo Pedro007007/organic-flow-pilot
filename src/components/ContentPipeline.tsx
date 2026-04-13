@@ -416,6 +416,7 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
   };
 
   return (
+    <>
     <div className="rounded-xl border border-border/40 bg-card/30 backdrop-blur-xl shadow-md overflow-hidden">
       <div className="border-b border-border/30 px-5 py-4 flex items-center justify-between">
         <div>

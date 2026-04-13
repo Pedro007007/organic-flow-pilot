@@ -42,6 +42,7 @@ async function callAiImageWithRetries({
           model: currentModel,
           messages: [{ role: "user", content: prompt }],
           modalities: ["image", "text"],
+          max_tokens: 8192,
         }),
       });
 

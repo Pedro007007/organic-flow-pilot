@@ -49,10 +49,20 @@ async function callAiImageWithRetries({
       const responseText = await response.text();
 
       if (response.ok) {
+        // Treat empty body as retryable
+        if (!responseText || responseText.trim().length === 0) {
+          console.warn(`AI returned empty body (${currentModel}), attempt ${attempt}/${maxAttempts}`);
+          if (attempt === maxAttempts) {
+            console.warn(`Model ${currentModel} returned empty responses, trying next model...`);
+            break;
+          }
+          await sleep(3000 * 2 ** (attempt - 1));
+          continue;
+        }
         return { ok: true as const, status: response.status, body: responseText };
       }
 
-      console.error(`AI image generation error (${currentModel}):`, response.status, responseText);
+      console.error(`AI image generation error (${currentModel}):`, response.status, responseText.substring(0, 300));
 
       const isRetryable = RETRYABLE_AI_STATUS_CODES.has(response.status);
       if (!isRetryable) {

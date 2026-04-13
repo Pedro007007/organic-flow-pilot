@@ -376,10 +376,31 @@ Ultra high resolution, ${dimensionHint}.${customPrompt ? `\n\nCLIENT CREATIVE DI
       return new Response(JSON.stringify({ error: "AI returned invalid response — please retry" }), { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    const imageData = aiResult.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    let imageData = aiResult.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+
+    // If the primary attempt returned text but no image, retry once with a different model
+    if (!imageData) {
+      const textReply = aiResult.choices?.[0]?.message?.content || "";
+      console.warn("No image in AI result. Model reply:", textReply.substring(0, 200));
+      console.warn("Retrying with fallback model google/gemini-3-pro-image-preview...");
+
+      const retryResponse = await callAiImageWithRetries({
+        apiKey: LOVABLE_API_KEY,
+        model: "google/gemini-3-pro-image-preview",
+        prompt: imagePrompt,
+        maxAttempts: 3,
+      });
+
+      if (retryResponse.ok) {
+        try {
+          const retryResult = JSON.parse(retryResponse.body);
+          imageData = retryResult.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+        } catch { /* will fall through to error */ }
+      }
+    }
 
     if (!imageData) {
-      console.error("No image in AI result:", JSON.stringify(aiResult).substring(0, 500));
+      console.error("No image after all retries");
       await supabaseAuth.from("agent_runs").update({ status: "error", error_message: "No image returned from AI", completed_at: new Date().toISOString() }).eq("id", run?.id);
       return new Response(JSON.stringify({ error: "No image generated — please retry" }), { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }

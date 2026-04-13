@@ -298,14 +298,21 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
       if (data?.id) {
         if (runAutopilot) {
           setAutopilot(true);
+          setGenDone(false);
+          setGenStage("researching");
+          setShowGenOverlay(true);
           await runFullPipeline(data.id, savedKeyword, savedTitle, savedBrandId, savedContext, savedRefLinks, savedExtraKw);
+          setGenDone(true);
           setAutopilot(false);
         } else {
           // Generate article + SEO metadata (no publish)
           setAutopilot(true);
+          setGenDone(false);
+          setGenStage("researching");
+          setShowGenOverlay(true);
           try {
             // Step 1: SERP Research
-            toast({ title: "🔍 Researching competitors..." });
+            setGenStage("researching");
             let serpResearch: any = null;
             try {
               const serpRes = await supabase.functions.invoke("serp-research", {
@@ -315,7 +322,7 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
             } catch { console.warn("SERP research skipped"); }
 
             // Step 2: Content Strategy
-            toast({ title: "📋 Building strategy..." });
+            setGenStage("strategizing");
             let strategy: any = null;
             try {
               const stratRes = await supabase.functions.invoke("content-strategy", {
@@ -325,17 +332,17 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
             } catch { console.warn("Content strategy skipped"); }
 
             // Step 3: Content Generation
-            toast({ title: "✍️ Writing content..." });
+            setGenStage("writing");
             const genRes = await supabase.functions.invoke("content-generate", {
               body: { contentItemId: data.id, keyword: savedKeyword, title: savedTitle, serpResearch, strategy, brandId: savedBrandId, context: savedContext, referenceLinks: savedRefLinks, extraKeywords: savedExtraKw },
             });
             if (genRes.error) throw genRes.error;
 
-            // Step 4: Hero Image is now manual to keep Create Blog fast and reliable
-            toast({ title: "✅ Article ready!", description: "Content and SEO metadata generated — add hero/body images manually when ready." });
+            setGenDone(true);
             queryClient.invalidateQueries({ queryKey: ["content_items"] });
           } catch (err: any) {
             toast({ title: "Generation failed", description: err.message, variant: "destructive" });
+            setShowGenOverlay(false);
             queryClient.invalidateQueries({ queryKey: ["content_items"] });
           } finally {
             setAutopilot(false);

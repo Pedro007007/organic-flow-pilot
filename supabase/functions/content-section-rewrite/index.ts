@@ -223,7 +223,7 @@ Consider yourself a senior editor at a top SEO agency and write accordingly.`;
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: isSeoFix
-            ? `Apply the requested improvements to this article:\n\n${sectionContent}`
+            ? `Apply the requested improvements to this article:\n\n${sectionContent.substring(0, 16000)}`
             : `Rewrite this section:\n\n${sectionContent}` },
         ],
       }),

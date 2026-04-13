@@ -117,7 +117,7 @@ If improvements require adding bullet lists, transition words, or breaking up pa
 CRITICAL RULES
 ------------------------------
 1. Apply EVERY improvement listed above
-2. Keep ALL existing content — do NOT remove sections, headings, links, FAQ, schema, images, or references
+2. Keep ALL existing content — do NOT remove sections, headings, links, FAQ, schema, images, references, or the CTA footer
 3. Keep ALL markdown formatting (headings ##, links [text](url), bold **, lists, images ![alt](url))
 4. DO NOT summarize, condense, or paraphrase existing content — keep the original wording where no fix is needed
 5. For Readability fixes:
@@ -295,9 +295,20 @@ Consider yourself a senior editor at a top SEO agency and write accordingly.`;
       const fullContent = sectionContent;
       const tail = fullContent.length > AI_WINDOW ? fullContent.substring(AI_WINDOW) : "";
 
+      // Extract CTA footer from original content so we can re-append if AI strips it
+      const ctaPattern = /\n---\n\n\*Ready to grow your online presence\?.*$/s;
+      const ctaMatch = fullContent.match(ctaPattern);
+      const originalCta = ctaMatch ? ctaMatch[0] : "";
+
       // Accept if best attempt is at least 70% (lenient since AI adds structure but condenses prose)
       if (bestRatio >= 0.70) {
-        const finalContent = tail ? bestResult + tail : bestResult;
+        let finalContent = tail ? bestResult + tail : bestResult;
+
+        // Re-append CTA footer if it was in the original but missing from the rewrite
+        if (originalCta && !finalContent.includes("Ready to grow your online presence")) {
+          finalContent = finalContent.trimEnd() + "\n" + originalCta;
+        }
+
         await supabase.from("content_items").update({ draft_content: finalContent }).eq("id", contentItemId);
         console.log(`SEO fix saved: sent ${contentForAi.length} → got ${bestResult.length} chars (${(bestRatio * 100).toFixed(0)}%), tail ${tail.length}, final ${finalContent.length}`);
       } else {

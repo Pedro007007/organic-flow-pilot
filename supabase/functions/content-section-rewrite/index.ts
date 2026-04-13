@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { sectionContent, sectionHeading, articleTopic, targetKeyword, searchIntent, funnelStage, brandId } = await req.json();
+    const { sectionContent, sectionHeading, articleTopic, targetKeyword, searchIntent, funnelStage, brandId, contentItemId, instructions, mode } = await req.json();
 
     if (!sectionContent?.trim()) {
       return new Response(
@@ -70,7 +70,60 @@ serve(async (req) => {
       clicheInstruction = `- NEVER use these phrases: ${cliches.join(", ")}`;
     }
 
-    const systemPrompt = `You are an elite-level SEO + AEO content editor and conversion copywriter.
+    const isSeoFix = mode === "seo-fix" && instructions;
+
+    const systemPrompt = isSeoFix
+      ? `You are an elite SEO content optimizer. You will receive an ENTIRE article and a set of specific SEO improvement actions to apply.
+
+Your job is to rewrite the ENTIRE article applying ALL of the requested improvements while preserving the article's meaning, structure, and all existing content.
+
+------------------------------
+BRAND CONTEXT
+------------------------------
+${brandContext}
+
+Tone Instructions:
+${toneInstruction}
+
+Style Instructions:
+${styleInstruction}
+
+${clicheInstruction}
+
+------------------------------
+ARTICLE CONTEXT
+------------------------------
+Article Topic: ${articleTopic || "N/A"}
+Target Keyword: ${targetKeyword || "N/A"}
+
+------------------------------
+REQUIRED IMPROVEMENTS
+------------------------------
+${instructions}
+
+------------------------------
+CRITICAL RULES
+------------------------------
+1. Apply EVERY improvement listed above
+2. Keep ALL existing content — do NOT remove sections, headings, links, FAQ, schema, or references
+3. Keep ALL markdown formatting (headings, links, bold, lists, images)
+4. For Readability fixes specifically:
+   - Break long sentences (>20 words) into shorter ones
+   - Split large paragraphs into 2-4 sentence paragraphs
+   - Add bullet/numbered lists where appropriate
+   - Use transition words between sections
+   - Keep average sentence length ≤15 words
+   - Ensure at least 10+ paragraphs
+   - Add at least 5 bullet/numbered list items throughout
+5. The output must be the COMPLETE article, not a partial section
+6. Do NOT add commentary, notes, or explanations
+7. Do NOT shorten the article — it must be at least as long as the original
+
+------------------------------
+OUTPUT
+------------------------------
+Return the COMPLETE rewritten article in clean Markdown. Nothing else.`
+      : `You are an elite-level SEO + AEO content editor and conversion copywriter.
 
 You are NOT writing from scratch.
 You are improving and rewriting a SPECIFIC SECTION of an existing article.
@@ -169,7 +222,9 @@ Consider yourself a senior editor at a top SEO agency and write accordingly.`;
         model: "google/gemini-3-flash-preview",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: `Rewrite this section:\n\n${sectionContent}` },
+          { role: "user", content: isSeoFix
+            ? `Apply the requested improvements to this article:\n\n${sectionContent}`
+            : `Rewrite this section:\n\n${sectionContent}` },
         ],
       }),
     });
@@ -190,8 +245,30 @@ Consider yourself a senior editor at a top SEO agency and write accordingly.`;
       throw new Error("AI gateway error");
     }
 
-    const data = await response.json();
-    const result = data.choices?.[0]?.message?.content || "";
+    const aiData = await response.json();
+    const result = aiData.choices?.[0]?.message?.content || "";
+
+    // In seo-fix mode, save the improved content back to the content item
+    if (isSeoFix && contentItemId && result.length > 100) {
+      const supabase = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_ANON_KEY")!,
+        { global: { headers: { Authorization: authHeader! } } }
+      );
+
+      // Check content retention ratio
+      const originalLength = sectionContent.length;
+      const newLength = result.length;
+      if (newLength / originalLength >= 0.85) {
+        await supabase.from("content_items").update({ draft_content: result }).eq("id", contentItemId);
+        console.log(`SEO fix saved: ${originalLength} → ${newLength} chars`);
+      } else {
+        console.warn(`SEO fix rejected: content too short (${newLength}/${originalLength} = ${(newLength/originalLength*100).toFixed(0)}%)`);
+        return new Response(JSON.stringify({ result, warning: "Content was not saved because it was significantly shorter than the original." }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
 
     return new Response(JSON.stringify({ result }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

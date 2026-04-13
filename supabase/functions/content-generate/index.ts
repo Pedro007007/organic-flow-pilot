@@ -1,6 +1,58 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+const AI_GATEWAY_URL = "https://ai.gateway.lovable.dev/v1/chat/completions";
+const IMAGE_MODELS = [
+  "google/gemini-3.1-flash-image-preview",
+  "google/gemini-3-pro-image-preview",
+  "google/gemini-2.5-flash-image",
+];
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+async function generateBodyImage(apiKey: string, keyword: string, title: string, index: number, brand: any): Promise<string | null> {
+  const imgStyle = brand?.image_defaults?.style || "modern editorial";
+  const palette = brand?.image_defaults?.color_palette || "dark blue, electric purple, white";
+  const prompt = "Generate a high-quality, professional 16:9 editorial illustration for a blog article.\n" +
+    "Topic: " + (title || keyword) + "\n" +
+    "This is body image #" + (index + 1) + " placed within the article to visually support the content.\n\n" +
+    "STYLE: " + imgStyle + "\n" +
+    "COLOUR PALETTE: " + palette + "\n" +
+    "COMPOSITION: Clean, no text or words, visually relevant to the topic, 1920x1080 pixels landscape.\n" +
+    "The image should look like premium editorial photography or illustration, NOT a stock photo.";
+
+  for (const model of IMAGE_MODELS) {
+    try {
+      const res = await fetch(AI_GATEWAY_URL, {
+        method: "POST",
+        headers: { Authorization: "Bearer " + apiKey, "Content-Type": "application/json" },
+        body: JSON.stringify({ model, messages: [{ role: "user", content: prompt }], modalities: ["image", "text"] }),
+      });
+      if (!res.ok) {
+        console.warn("Body image " + (index + 1) + " model " + model + " failed: " + res.status);
+        if (res.status === 429) { await sleep(3000); continue; }
+        continue;
+      }
+      const data = await res.json();
+      const imageData = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+      if (imageData) return imageData;
+    } catch (e) {
+      console.warn("Body image " + (index + 1) + " model " + model + " error:", e);
+    }
+  }
+  return null;
+}
+
+async function uploadBase64Image(supabaseAdmin: any, base64Url: string, userId: string, contentItemId: string, suffix: string): Promise<string | null> {
+  const match = base64Url.match(/^data:image\/(\w+);base64,(.+)$/);
+  if (!match) return null;
+  const format = match[1];
+  const binary = Uint8Array.from(atob(match[2]), (c) => c.charCodeAt(0));
+  const fileName = userId + "/" + contentItemId + "-body-" + suffix + "-" + Date.now() + "." + format;
+  const { error } = await supabaseAdmin.storage.from("content-images").upload(fileName, binary, { contentType: "image/" + format, upsert: true });
+  if (error) { console.error("Body image upload error:", error); return null; }
+  const { data } = supabaseAdmin.storage.from("content-images").getPublicUrl(fileName);
+  return data.publicUrl;
+}
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
@@ -323,9 +375,40 @@ Title: ${title || keyword}${serpBlock}${contextBlock}${extraKwBlock}${refBlock}$
 
     console.log(`Final content length: ${content.length} characters`);
 
-    // Keep content generation fast and reliable: body/hero images are generated separately from the editor UI.
-    content = content.replace("{{IMAGE_1}}", "");
-    content = content.replace("{{IMAGE_2}}", "");
+    // Generate body images in parallel and replace placeholders
+    const hasPlaceholder1 = content.includes("{{IMAGE_1}}");
+    const hasPlaceholder2 = content.includes("{{IMAGE_2}}");
+    let bodyImagesGenerated = 0;
+
+    if (hasPlaceholder1 || hasPlaceholder2) {
+      console.log("Generating body images...");
+      const imagePromises: Promise<string | null>[] = [];
+      if (hasPlaceholder1) imagePromises.push(generateBodyImage(LOVABLE_API_KEY, keyword, title, 0, brand));
+      if (hasPlaceholder2) imagePromises.push(generateBodyImage(LOVABLE_API_KEY, keyword, title, 1, brand));
+
+      const imageResults = await Promise.allSettled(imagePromises);
+      const base64Images = imageResults.map((r) => r.status === "fulfilled" ? r.value : null);
+
+      let imgIdx = 0;
+      for (const placeholder of ["{{IMAGE_1}}", "{{IMAGE_2}}"]) {
+        if (!content.includes(placeholder)) continue;
+        const base64 = base64Images[imgIdx] || null;
+        if (base64 && contentItemId) {
+          const publicUrl = await uploadBase64Image(supabaseAdmin, base64, userId, contentItemId, `${imgIdx + 1}`);
+          if (publicUrl) {
+            content = content.replace(placeholder, `\n\n![${title || keyword} - illustration ${imgIdx + 1}](${publicUrl})\n\n`);
+            bodyImagesGenerated++;
+            console.log(`Body image ${imgIdx + 1} inserted: ${publicUrl}`);
+          } else {
+            content = content.replace(placeholder, "");
+          }
+        } else {
+          content = content.replace(placeholder, "");
+        }
+        imgIdx++;
+      }
+      console.log(`Body images generated: ${bodyImagesGenerated}/2`);
+    }
 
     // Build brand-aware CTA paragraph
     const brandName = brand?.name || "us";
@@ -423,7 +506,7 @@ Title: ${title || keyword}${serpBlock}${contextBlock}${extraKwBlock}${refBlock}$
       status: "completed",
       items_processed: 1,
       completed_at: new Date().toISOString(),
-      result: { content_length: content.length, content_item_id: contentItemId, body_images: 0, brand: brand?.name || null },
+      result: { content_length: content.length, content_item_id: contentItemId, body_images: bodyImagesGenerated, brand: brand?.name || null },
     }).eq("id", run?.id);
 
     return new Response(JSON.stringify({ success: true, content }), {

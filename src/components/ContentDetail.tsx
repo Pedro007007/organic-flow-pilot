@@ -541,8 +541,36 @@ ${body}
         if (oldMatch) {
           newContent = draftContent.replace(oldMatch, newMarkdown);
         } else {
+          // Insert images at well-spaced positions: find H2 headings and place after them
           const lines = draftContent.split("\n");
-          const insertPoint = Math.min(Math.floor(lines.length * ((slotIndex + 1) / 3)), lines.length);
+          const h2Indices = lines.reduce<number[]>((acc, line, idx) => {
+            if (/^## /.test(line)) acc.push(idx);
+            return acc;
+          }, []);
+
+          let insertPoint: number;
+          if (h2Indices.length >= 3) {
+            // Place image 1 after ~1/3 of headings, image 2 after ~2/3
+            const targetH2 = h2Indices[Math.floor(h2Indices.length * ((slotIndex + 1) / 3)) - 1] || h2Indices[Math.floor(h2Indices.length / 2)];
+            // Insert after the heading + its first paragraph (skip 2-3 lines)
+            insertPoint = Math.min(targetH2 + 3, lines.length);
+          } else {
+            // Fallback: distribute evenly through article
+            insertPoint = Math.min(Math.floor(lines.length * ((slotIndex + 1) / 3)), lines.length);
+          }
+
+          // Ensure we don't insert right next to another image
+          const nearbyImageCheck = 8;
+          for (let offset = 0; offset < nearbyImageCheck; offset++) {
+            const checkAbove = insertPoint - offset - 1;
+            const checkBelow = insertPoint + offset;
+            if ((checkAbove >= 0 && /^!\[/.test(lines[checkAbove])) || (checkBelow < lines.length && /^!\[/.test(lines[checkBelow]))) {
+              // Move further down to space out
+              insertPoint = Math.min(insertPoint + nearbyImageCheck, lines.length);
+              break;
+            }
+          }
+
           lines.splice(insertPoint, 0, "", newMarkdown, "");
           newContent = lines.join("\n");
         }

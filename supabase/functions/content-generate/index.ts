@@ -376,9 +376,40 @@ Title: ${title || keyword}${serpBlock}${contextBlock}${extraKwBlock}${refBlock}$
 
     console.log(`Final content length: ${content.length} characters`);
 
-    // Keep content generation fast and reliable: body/hero images are generated separately from the editor UI.
-    content = content.replace("{{IMAGE_1}}", "");
-    content = content.replace("{{IMAGE_2}}", "");
+    // Generate body images in parallel and replace placeholders
+    const hasPlaceholder1 = content.includes("{{IMAGE_1}}");
+    const hasPlaceholder2 = content.includes("{{IMAGE_2}}");
+    let bodyImagesGenerated = 0;
+
+    if (hasPlaceholder1 || hasPlaceholder2) {
+      console.log("Generating body images...");
+      const imagePromises: Promise<string | null>[] = [];
+      if (hasPlaceholder1) imagePromises.push(generateBodyImage(LOVABLE_API_KEY, keyword, title, 0, brand));
+      if (hasPlaceholder2) imagePromises.push(generateBodyImage(LOVABLE_API_KEY, keyword, title, 1, brand));
+
+      const imageResults = await Promise.allSettled(imagePromises);
+      const base64Images = imageResults.map((r) => r.status === "fulfilled" ? r.value : null);
+
+      let imgIdx = 0;
+      for (const placeholder of ["{{IMAGE_1}}", "{{IMAGE_2}}"]) {
+        if (!content.includes(placeholder)) continue;
+        const base64 = base64Images[imgIdx] || null;
+        if (base64 && contentItemId) {
+          const publicUrl = await uploadBase64Image(supabaseAdmin, base64, userId, contentItemId, `${imgIdx + 1}`);
+          if (publicUrl) {
+            content = content.replace(placeholder, `\n\n![${title || keyword} - illustration ${imgIdx + 1}](${publicUrl})\n\n`);
+            bodyImagesGenerated++;
+            console.log(`Body image ${imgIdx + 1} inserted: ${publicUrl}`);
+          } else {
+            content = content.replace(placeholder, "");
+          }
+        } else {
+          content = content.replace(placeholder, "");
+        }
+        imgIdx++;
+      }
+      console.log(`Body images generated: ${bodyImagesGenerated}/2`);
+    }
 
     // Build brand-aware CTA paragraph
     const brandName = brand?.name || "us";

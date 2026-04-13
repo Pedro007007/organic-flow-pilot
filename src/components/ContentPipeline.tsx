@@ -359,7 +359,7 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
   const runFullPipeline = async (contentItemId: string, kw: string, ttl: string, pipelineBrandId?: string, pipelineContext?: string, pipelineRefLinks?: string[], pipelineExtraKw?: string[]) => {
     try {
       // Step 1: SERP Research
-      toast({ title: "🔍 Autopilot: Researching competitors..." });
+      setGenStage("researching");
       let serpResearch: any = null;
       try {
         const serpRes = await supabase.functions.invoke("serp-research", {
@@ -373,7 +373,7 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
       }
 
       // Step 2: Content Strategy (with SERP data)
-      toast({ title: "📋 Autopilot: Building strategy..." });
+      setGenStage("strategizing");
       let strategy: any = null;
       try {
         const stratRes = await supabase.functions.invoke("content-strategy", {
@@ -387,30 +387,30 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
       }
 
       // Step 3: Content Generation (with SERP + strategy)
-      toast({ title: "✍️ Autopilot: Writing content..." });
+      setGenStage("writing");
       const genRes = await supabase.functions.invoke("content-generate", {
         body: { contentItemId, keyword: kw, title: ttl, serpResearch, strategy, brandId: pipelineBrandId, context: pipelineContext, referenceLinks: pipelineRefLinks, extraKeywords: pipelineExtraKw },
       });
       if (genRes.error) throw genRes.error;
 
       // Step 4: SEO Optimization
-      toast({ title: "🔧 Autopilot: Optimizing SEO..." });
+      setGenStage("optimizing");
       const optRes = await supabase.functions.invoke("seo-optimize", {
         body: { contentItemId, keyword: kw, brandId: pipelineBrandId },
       });
       if (optRes.error) throw optRes.error;
 
       // Step 5: Publishing
-      toast({ title: "📤 Autopilot: Publishing..." });
+      setGenStage("publishing");
       const pubRes = await supabase.functions.invoke("publish-webhook", {
         body: { contentItemId },
       });
       if (pubRes.error) throw pubRes.error;
 
-      toast({ title: "✅ Autopilot complete!", description: pubRes.data?.url || "Content published" });
       queryClient.invalidateQueries({ queryKey: ["content_items"] });
     } catch (err: any) {
       toast({ title: "Autopilot failed", description: err.message, variant: "destructive" });
+      setShowGenOverlay(false);
       queryClient.invalidateQueries({ queryKey: ["content_items"] });
     }
   };

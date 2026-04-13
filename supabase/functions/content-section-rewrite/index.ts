@@ -256,14 +256,22 @@ Consider yourself a senior editor at a top SEO agency and write accordingly.`;
         { global: { headers: { Authorization: authHeader! } } }
       );
 
-      // Check content retention ratio
-      const originalLength = sectionContent.length;
+      // If the original content was longer than what we sent to the AI (16k window),
+      // merge the AI rewrite with the remaining tail to prevent truncation
+      const AI_WINDOW = 16000;
+      const fullContent = sectionContent;
+      const sentToAi = fullContent.substring(0, AI_WINDOW);
+      const tail = fullContent.length > AI_WINDOW ? fullContent.substring(AI_WINDOW) : "";
+
+      // Check content retention ratio against what was actually sent to AI
+      const sentLength = sentToAi.length;
       const newLength = result.length;
-      if (newLength / originalLength >= 0.85) {
-        await supabase.from("content_items").update({ draft_content: result }).eq("id", contentItemId);
-        console.log(`SEO fix saved: ${originalLength} → ${newLength} chars`);
+      if (newLength / sentLength >= 0.80) {
+        const finalContent = tail ? result + tail : result;
+        await supabase.from("content_items").update({ draft_content: finalContent }).eq("id", contentItemId);
+        console.log(`SEO fix saved: sent ${sentLength} → got ${newLength} chars, tail ${tail.length} chars, final ${finalContent.length} chars`);
       } else {
-        console.warn(`SEO fix rejected: content too short (${newLength}/${originalLength} = ${(newLength/originalLength*100).toFixed(0)}%)`);
+        console.warn(`SEO fix rejected: content too short (${newLength}/${sentLength} = ${(newLength/sentLength*100).toFixed(0)}%)`);
         return new Response(JSON.stringify({ result, warning: "Content was not saved because it was significantly shorter than the original." }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });

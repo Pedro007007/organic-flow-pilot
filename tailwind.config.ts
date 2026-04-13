@@ -116,6 +116,7 @@ export default {
         "slide-in": "slide-in 0.3s ease-out",
         gradient: "gradient 3s ease infinite",
         "underline-slide": "underline-slide 3s ease-in-out infinite",
+        "scale-in": "scale-in 0.3s ease-out",
       },
     },
   },

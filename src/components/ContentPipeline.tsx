@@ -716,6 +716,14 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
         )}
       </div>
     </div>
+
+      <GenerationOverlay
+        open={showGenOverlay}
+        stage={genStage}
+        done={genDone}
+        onDismiss={() => setShowGenOverlay(false)}
+      />
+    </>
   );
 };
 

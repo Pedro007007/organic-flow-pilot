@@ -507,7 +507,7 @@ Title: ${title || keyword}${serpBlock}${contextBlock}${extraKwBlock}${refBlock}$
       status: "completed",
       items_processed: 1,
       completed_at: new Date().toISOString(),
-      result: { content_length: content.length, content_item_id: contentItemId, body_images: 0, brand: brand?.name || null },
+      result: { content_length: content.length, content_item_id: contentItemId, body_images: bodyImagesGenerated, brand: brand?.name || null },
     }).eq("id", run?.id);
 
     return new Response(JSON.stringify({ success: true, content }), {

@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { FileText, Plus, Rocket, Loader2, Search, Filter, CheckSquare, Square, Download, Tag, X, Link, Sparkles, Trash2, EyeOff, Lightbulb, Globe } from "lucide-react";
+import GenerationOverlay from "@/components/GenerationOverlay";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

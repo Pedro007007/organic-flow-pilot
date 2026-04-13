@@ -117,7 +117,7 @@ If improvements require adding bullet lists, transition words, or breaking up pa
 CRITICAL RULES
 ------------------------------
 1. Apply EVERY improvement listed above
-2. Keep ALL existing content — do NOT remove sections, headings, links, FAQ, schema, images, or references
+2. Keep ALL existing content — do NOT remove sections, headings, links, FAQ, schema, images, references, or the CTA footer
 3. Keep ALL markdown formatting (headings ##, links [text](url), bold **, lists, images ![alt](url))
 4. DO NOT summarize, condense, or paraphrase existing content — keep the original wording where no fix is needed
 5. For Readability fixes:

@@ -70,6 +70,9 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
   const [suggestingTitles, setSuggestingTitles] = useState(false);
   const [titleSuggestions, setTitleSuggestions] = useState<{ title: string; style: string }[]>([]);
   const [fetchingRefs, setFetchingRefs] = useState(false);
+  const [showGenOverlay, setShowGenOverlay] = useState(false);
+  const [genStage, setGenStage] = useState("researching");
+  const [genDone, setGenDone] = useState(false);
 
   const handleAiSuggest = async () => {
     if (!title.trim()) {

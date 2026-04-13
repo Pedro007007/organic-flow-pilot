@@ -1,27 +1,43 @@
 
 
-## Plan: Move Support Chat to Header Bar
+## Plan: Article Generation Loading Overlay with Rotating Messages
 
 ### What We're Doing
-Replace the floating chat bubble with a header icon button (like the Gift, Team, Settings icons) so the support chat is always accessible from the top toolbar — consistent with the existing UI pattern.
+Add a fullscreen (or modal) loading overlay that appears while an article is being generated. It shows an animated progress indicator with rotating inspirational/fun phrases that cycle through until the content is fully written, ending with a celebration message.
 
 ### Changes
 
 | File | Action |
 |------|--------|
-| `src/pages/Index.tsx` | Add a Headset icon button in the header (next to NotificationBell) that toggles a chat panel |
-| `src/components/SupportChat.tsx` | Refactor to accept an `open`/`onClose` prop instead of managing its own floating trigger; remove all corner-cycling and floating bubble code; render only the chat panel (as a dropdown/popover anchored to the header button) |
-| `src/App.tsx` | Keep SupportChat inside the dashboard route only (no change needed) |
+| `src/components/ContentPipeline.tsx` | Add state for showing the loading overlay + rotating message index. Show overlay during article generation (both normal and autopilot flows). Dismiss on completion/error. |
+| `src/components/GenerationOverlay.tsx` | **New file** — A modal overlay component with animated spinner/progress, rotating phrases, and a final celebration state. |
 
 ### How It Works
-1. A `Headset` icon button is added to the header row, right next to the notification bell and theme toggle — same size, same styling
-2. Clicking it opens the chat panel as a fixed dropdown anchored to the top-right area (similar to how notification panels work)
-3. The floating bubble, corner-cycling logic, and localStorage corner persistence are all removed
-4. The chat panel keeps all existing functionality: streaming messages, suggestions, markdown rendering
+
+1. **New `GenerationOverlay` component** renders a centered modal backdrop with:
+   - A pulsing/spinning animation (e.g. animated pen/sparkle icon)
+   - A rotating phrase that changes every ~3 seconds from a curated list:
+     - "Your masterpiece is being crafted..."
+     - "Researching the competition..."
+     - "Weaving words into gold..."
+     - "Polishing every paragraph..."
+     - "Adding that SEO magic..."
+     - "Almost there, perfection takes time..."
+     - "Your content is taking shape..."
+     - ~10-12 total phrases
+   - A subtle progress bar or step indicator reflecting the current pipeline stage (SERP → Strategy → Writing → Done)
+
+2. **In `ContentPipeline.tsx`**:
+   - Add `showGenOverlay` boolean state
+   - Set `true` when generation starts (after the dialog closes), set `false` on completion or error
+   - Pass current stage name to the overlay so it can show contextual messages alongside the rotating fun phrases
+   - On success, briefly show a confetti burst + "Your masterpiece has been created! 🎉" before auto-dismissing
+
+3. The overlay blocks interaction during generation so users don't navigate away, giving clear feedback that work is in progress.
 
 ### Technical Details
-- `SupportChat` receives `open: boolean` and `onClose: () => void` props
-- The trigger button lives in `Index.tsx` header, managing `showChat` state
-- Chat panel renders as a fixed/absolute positioned card dropping down from the header area (top-right)
-- Green online dot stays on the Headset icon to indicate availability
+- Phrase rotation via `useEffect` + `setInterval` every 3 seconds cycling through an array
+- Stage prop: `"researching" | "strategizing" | "writing" | "optimizing" | "publishing" | "done"`
+- Confetti on completion using existing `canvas-confetti` dependency
+- Component uses Tailwind animations (`animate-pulse`, `animate-spin`) and backdrop blur
 

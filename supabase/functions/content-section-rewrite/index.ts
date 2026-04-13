@@ -72,10 +72,15 @@ serve(async (req) => {
 
     const isSeoFix = mode === "seo-fix" && instructions;
 
-    const systemPrompt = isSeoFix
-      ? `You are an elite SEO content optimizer. You will receive an ENTIRE article and a set of specific SEO improvement actions to apply.
+    // For SEO fix mode, count the original words so AI knows the target
+    const AI_WINDOW = 16000;
+    const contentForAi = sectionContent.substring(0, AI_WINDOW);
+    const originalWordCount = contentForAi.split(/\s+/).filter((w: string) => w.length > 0).length;
 
-Your job is to rewrite the ENTIRE article applying ALL of the requested improvements while preserving the article's meaning, structure, and all existing content.
+    const systemPrompt = isSeoFix
+      ? `You are an elite SEO content optimizer. You will receive an article and specific SEO improvements to apply.
+
+Your job is to apply the improvements IN-PLACE — modify sentences, add lists, break paragraphs — while keeping ALL existing content intact.
 
 ------------------------------
 BRAND CONTEXT
@@ -102,22 +107,28 @@ REQUIRED IMPROVEMENTS
 ${instructions}
 
 ------------------------------
+ABSOLUTE LENGTH REQUIREMENT
+------------------------------
+The original article is approximately ${originalWordCount} words.
+Your output MUST be at least ${originalWordCount} words. This is NON-NEGOTIABLE.
+If improvements require adding bullet lists, transition words, or breaking up paragraphs, this naturally ADDS words — the output should be LONGER, not shorter.
+
+------------------------------
 CRITICAL RULES
 ------------------------------
 1. Apply EVERY improvement listed above
-2. Keep ALL existing content — do NOT remove sections, headings, links, FAQ, schema, or references
-3. Keep ALL markdown formatting (headings, links, bold, lists, images)
-4. For Readability fixes specifically:
-   - Break long sentences (>20 words) into shorter ones
+2. Keep ALL existing content — do NOT remove sections, headings, links, FAQ, schema, images, or references
+3. Keep ALL markdown formatting (headings ##, links [text](url), bold **, lists, images ![alt](url))
+4. DO NOT summarize, condense, or paraphrase existing content — keep the original wording where no fix is needed
+5. For Readability fixes:
+   - Break long sentences (>20 words) into 2 shorter sentences
    - Split large paragraphs into 2-4 sentence paragraphs
-   - Add bullet/numbered lists where appropriate
+   - Add bullet/numbered lists where appropriate (at least 5 list items total)
    - Use transition words between sections
-   - Keep average sentence length ≤15 words
-   - Ensure at least 10+ paragraphs
-   - Add at least 5 bullet/numbered list items throughout
-5. The output must be the COMPLETE article, not a partial section
-6. Do NOT add commentary, notes, or explanations
-7. Do NOT shorten the article — it must be at least as long as the original
+   - But NEVER delete content to improve readability — only restructure it
+6. The output must be the COMPLETE article
+7. Do NOT add commentary, notes, or explanations
+8. Your output MUST be at least ${originalWordCount} words — count carefully
 
 ------------------------------
 OUTPUT
@@ -212,73 +223,92 @@ Consider yourself a senior editor at a top SEO agency and write accordingly.`;
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: isSeoFix
-            ? `Apply the requested improvements to this article:\n\n${sectionContent.substring(0, 16000)}`
-            : `Rewrite this section:\n\n${sectionContent}` },
-        ],
-      }),
-    });
+    // Retry up to 2 times for SEO fix if content is too short
+    const MAX_ATTEMPTS = isSeoFix ? 2 : 1;
+    const MIN_RETENTION = 0.88;
+    let bestResult = "";
+    let bestRatio = 0;
 
-    if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again shortly." }), {
-          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+    for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+      const userMessage = isSeoFix
+        ? `Apply the requested improvements to this article. The article is ${originalWordCount} words — your output MUST be at least ${originalWordCount} words:\n\n${contentForAi}`
+        : `Rewrite this section:\n\n${sectionContent}`;
+
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "google/gemini-2.5-flash",
+          messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userMessage },
+          ],
+        }),
+      });
+
+      if (!response.ok) {
+        if (response.status === 429) {
+          return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again shortly." }), {
+            status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        if (response.status === 402) {
+          return new Response(JSON.stringify({ error: "AI credits exhausted. Please add funds." }), {
+            status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        const t = await response.text();
+        console.error("AI gateway error:", response.status, t);
+        throw new Error("AI gateway error");
       }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: "AI credits exhausted. Please add funds." }), {
-          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+
+      const aiData = await response.json();
+      const result = aiData.choices?.[0]?.message?.content || "";
+      const ratio = result.length / contentForAi.length;
+
+      console.log(`SEO fix attempt ${attempt + 1}: ${contentForAi.length} → ${result.length} chars (${(ratio * 100).toFixed(0)}%)`);
+
+      if (ratio > bestRatio) {
+        bestResult = result;
+        bestRatio = ratio;
       }
-      const t = await response.text();
-      console.error("AI gateway error:", response.status, t);
-      throw new Error("AI gateway error");
+
+      if (ratio >= MIN_RETENTION) break;
+
+      if (attempt < MAX_ATTEMPTS - 1) {
+        console.log("Content too short, retrying with stronger prompt...");
+      }
     }
 
-    const aiData = await response.json();
-    const result = aiData.choices?.[0]?.message?.content || "";
-
     // In seo-fix mode, save the improved content back to the content item
-    if (isSeoFix && contentItemId && result.length > 100) {
+    if (isSeoFix && contentItemId && bestResult.length > 100) {
       const supabase = createClient(
         Deno.env.get("SUPABASE_URL")!,
         Deno.env.get("SUPABASE_ANON_KEY")!,
         { global: { headers: { Authorization: authHeader! } } }
       );
 
-      // If the original content was longer than what we sent to the AI (16k window),
-      // merge the AI rewrite with the remaining tail to prevent truncation
-      const AI_WINDOW = 16000;
+      // Merge AI rewrite with any content beyond the AI window
       const fullContent = sectionContent;
-      const sentToAi = fullContent.substring(0, AI_WINDOW);
       const tail = fullContent.length > AI_WINDOW ? fullContent.substring(AI_WINDOW) : "";
 
-      // Check content retention ratio against what was actually sent to AI
-      const sentLength = sentToAi.length;
-      const newLength = result.length;
-      if (newLength / sentLength >= 0.80) {
-        const finalContent = tail ? result + tail : result;
+      // Accept if best attempt is at least 70% (lenient since AI adds structure but condenses prose)
+      if (bestRatio >= 0.70) {
+        const finalContent = tail ? bestResult + tail : bestResult;
         await supabase.from("content_items").update({ draft_content: finalContent }).eq("id", contentItemId);
-        console.log(`SEO fix saved: sent ${sentLength} → got ${newLength} chars, tail ${tail.length} chars, final ${finalContent.length} chars`);
+        console.log(`SEO fix saved: sent ${contentForAi.length} → got ${bestResult.length} chars (${(bestRatio * 100).toFixed(0)}%), tail ${tail.length}, final ${finalContent.length}`);
       } else {
-        console.warn(`SEO fix rejected: content too short (${newLength}/${sentLength} = ${(newLength/sentLength*100).toFixed(0)}%)`);
-        return new Response(JSON.stringify({ result, warning: "Content was not saved because it was significantly shorter than the original." }), {
+        console.warn(`SEO fix rejected: best attempt too short (${bestResult.length}/${contentForAi.length} = ${(bestRatio * 100).toFixed(0)}%)`);
+        return new Response(JSON.stringify({ result: bestResult, warning: "Content was not saved because it was significantly shorter than the original." }), {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
     }
 
-    return new Response(JSON.stringify({ result }), {
+    return new Response(JSON.stringify({ result: bestResult || "" }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {

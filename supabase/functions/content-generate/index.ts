@@ -12,24 +12,23 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 async function generateBodyImage(apiKey: string, keyword: string, title: string, index: number, brand: any): Promise<string | null> {
   const imgStyle = brand?.image_defaults?.style || "modern editorial";
   const palette = brand?.image_defaults?.color_palette || "dark blue, electric purple, white";
-  const prompt = `Generate a high-quality, professional 16:9 editorial illustration for a blog article.
-Topic: ${title || keyword}
-This is body image #${index + 1} placed within the article to visually support the content.
-
-STYLE: ${imgStyle}
-COLOUR PALETTE: ${palette}
-COMPOSITION: Clean, no text or words, visually relevant to the topic, 1920x1080 pixels landscape.
-The image should look like premium editorial photography or illustration, NOT a stock photo.`;
+  const prompt = "Generate a high-quality, professional 16:9 editorial illustration for a blog article.\n" +
+    "Topic: " + (title || keyword) + "\n" +
+    "This is body image #" + (index + 1) + " placed within the article to visually support the content.\n\n" +
+    "STYLE: " + imgStyle + "\n" +
+    "COLOUR PALETTE: " + palette + "\n" +
+    "COMPOSITION: Clean, no text or words, visually relevant to the topic, 1920x1080 pixels landscape.\n" +
+    "The image should look like premium editorial photography or illustration, NOT a stock photo.";
 
   for (const model of IMAGE_MODELS) {
     try {
       const res = await fetch(AI_GATEWAY_URL, {
         method: "POST",
-        headers: { Authorization: \`Bearer \${apiKey}\`, "Content-Type": "application/json" },
+        headers: { Authorization: "Bearer " + apiKey, "Content-Type": "application/json" },
         body: JSON.stringify({ model, messages: [{ role: "user", content: prompt }], modalities: ["image", "text"] }),
       });
       if (!res.ok) {
-        console.warn(\`Body image \${index + 1} model \${model} failed: \${res.status}\`);
+        console.warn("Body image " + (index + 1) + " model " + model + " failed: " + res.status);
         if (res.status === 429) { await sleep(3000); continue; }
         continue;
       }
@@ -37,7 +36,7 @@ The image should look like premium editorial photography or illustration, NOT a 
       const imageData = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
       if (imageData) return imageData;
     } catch (e) {
-      console.warn(\`Body image \${index + 1} model \${model} error:\`, e);
+      console.warn("Body image " + (index + 1) + " model " + model + " error:", e);
     }
   }
   return null;
@@ -48,8 +47,8 @@ async function uploadBase64Image(supabaseAdmin: any, base64Url: string, userId: 
   if (!match) return null;
   const format = match[1];
   const binary = Uint8Array.from(atob(match[2]), (c) => c.charCodeAt(0));
-  const fileName = \`\${userId}/\${contentItemId}-body-\${suffix}-\${Date.now()}.\${format}\`;
-  const { error } = await supabaseAdmin.storage.from("content-images").upload(fileName, binary, { contentType: \`image/\${format}\`, upsert: true });
+  const fileName = userId + "/" + contentItemId + "-body-" + suffix + "-" + Date.now() + "." + format;
+  const { error } = await supabaseAdmin.storage.from("content-images").upload(fileName, binary, { contentType: "image/" + format, upsert: true });
   if (error) { console.error("Body image upload error:", error); return null; }
   const { data } = supabaseAdmin.storage.from("content-images").getPublicUrl(fileName);
   return data.publicUrl;

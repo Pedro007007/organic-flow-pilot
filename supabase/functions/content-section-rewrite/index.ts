@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { sectionContent, sectionHeading, articleTopic, targetKeyword, searchIntent, funnelStage, brandId } = await req.json();
+    const { sectionContent, sectionHeading, articleTopic, targetKeyword, searchIntent, funnelStage, brandId, contentItemId, instructions, mode } = await req.json();
 
     if (!sectionContent?.trim()) {
       return new Response(

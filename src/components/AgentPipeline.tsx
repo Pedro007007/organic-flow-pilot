@@ -36,6 +36,22 @@ const AgentPipeline = ({ agents }: AgentPipelineProps) => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [runningAgents, setRunningAgents] = useState<Set<string>>(new Set());
+  const [keywords, setKeywords] = useState<{ id: string; keyword: string; search_intent: string; supporting_keywords: string[] | null }[]>([]);
+  const [contentList, setContentList] = useState<{ id: string; title: string; keyword: string }[]>([]);
+  const [targetKeywordId, setTargetKeywordId] = useState<string>("__latest__");
+  const [targetContentId, setTargetContentId] = useState<string>("__latest__");
+
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const [{ data: kws }, { data: items }] = await Promise.all([
+        supabase.from("keywords").select("id, keyword, search_intent, supporting_keywords").order("created_at", { ascending: false }).limit(50),
+        supabase.from("content_items").select("id, title, keyword").order("updated_at", { ascending: false }).limit(50),
+      ]);
+      setKeywords(kws || []);
+      setContentList(items || []);
+    })();
+  }, [user]);
 
   const handleRunAgent = async (agent: AgentStatus) => {
     const fnName = agentFunctionMap[agent.name];
@@ -54,19 +70,25 @@ const AgentPipeline = ({ agents }: AgentPipelineProps) => {
       } else if (fnName === "monitor-refresh") {
         body = {};
       } else if (fnName === "content-strategy" || fnName === "serp-research") {
-        // These need a keyword — fetch from the most recent keyword
-        const { data: latestKw } = await supabase
-          .from("keywords")
-          .select("keyword, search_intent, supporting_keywords")
-          .order("created_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        if (!latestKw) {
-          toast({ title: "No keywords found", description: "Run Keyword Discovery first", variant: "destructive" });
+        // Need a keyword — use selected target or latest
+        let kw = targetKeywordId !== "__latest__"
+          ? keywords.find((k) => k.id === targetKeywordId)
+          : null;
+        if (!kw) {
+          const { data: latestKw } = await supabase
+            .from("keywords")
+            .select("keyword, search_intent, supporting_keywords")
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          kw = latestKw as any;
+        }
+        if (!kw) {
+          toast({ title: "No keyword selected", description: "Pick a keyword above or run Keyword Discovery first", variant: "destructive" });
           setRunningAgents((prev) => { const next = new Set(prev); next.delete(agent.name); return next; });
           return;
         }
-        body = { keyword: latestKw.keyword, searchIntent: latestKw.search_intent, supportingKeywords: latestKw.supporting_keywords || [] };
+        body = { keyword: kw.keyword, searchIntent: kw.search_intent, supportingKeywords: kw.supporting_keywords || [] };
       } else if (fnName === "seo-optimize" || fnName === "content-generate" || fnName === "generate-hero-image" || fnName === "publish-webhook") {
         // These agents require a contentItemId — fetch the most recent content item
         const { data: latestContent } = await supabase

@@ -145,6 +145,41 @@ const AgentPipeline = ({ agents }: AgentPipelineProps) => {
           <Bot className="h-4 w-4 text-primary" />
           <h2 className="text-sm font-semibold text-foreground">Agent Pipeline</h2>
         </div>
+
+        {/* Target picker */}
+        <div className="mb-4 rounded-md border border-border/60 bg-muted/20 p-3 space-y-2">
+          <div className="flex items-center gap-1.5">
+            <Target className="h-3.5 w-3.5 text-primary" />
+            <p className="text-[11px] font-semibold text-foreground uppercase tracking-wide">Run target</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div>
+              <label className="text-[10px] text-muted-foreground">Keyword (for Strategy / SERP)</label>
+              <Select value={targetKeywordId} onValueChange={setTargetKeywordId}>
+                <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__latest__">Latest keyword</SelectItem>
+                  {keywords.map((k) => (
+                    <SelectItem key={k.id} value={k.id}>{k.keyword}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className="text-[10px] text-muted-foreground">Article (for Generate / SEO / Publish)</label>
+              <Select value={targetContentId} onValueChange={setTargetContentId}>
+                <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__latest__">Latest article</SelectItem>
+                  {contentList.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+
         <div className="space-y-1">
           {agents.map((agent, i) => {
             const isRunning = runningAgents.has(agent.name) || agent.status === "running";

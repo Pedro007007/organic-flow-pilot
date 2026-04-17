@@ -395,50 +395,7 @@ Title: ${title || keyword}${serpBlock}${contextBlock}${extraKwBlock}${refBlock}$
     // Normalize all markdown links to use the brand's domain (fixes relative paths and cross-brand URLs)
     content = normalizeMarkdownLinks(content, preferredDomain);
 
-    // Generate Technical SEO metadata via tool calling
-    let seoMetadata: { seo_title: string; meta_description: string; slug: string; schema_types: string[] } = {
-      seo_title: "",
-      meta_description: "",
-      slug: "",
-      schema_types: ["Article"],
-    };
-
-    try {
-      const metaRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash-lite",
-          messages: [
-            { role: "system", content: "You are an elite SEO metadata specialist. Generate optimised metadata for the given article." },
-            { role: "user", content: `Generate SEO metadata for this article.\n\nTitle: ${title || keyword}\nKeyword: ${keyword}\n\nFirst 500 chars of content:\n${content.slice(0, 500)}` },
-          ],
-          tools: [
-            {
-              type: "function",
-              function: {
-                name: "set_seo_metadata",
-                description: "Set the SEO metadata for the article",
-                parameters: {
-                  type: "object",
-                  properties: {
-                    seo_title: { type: "string", description: "SEO title, 50-60 chars, keyword first, compelling" },
-                    meta_description: { type: "string", description: "Meta description, 150-160 chars, includes keyword and CTA" },
-                    slug: { type: "string", description: "URL-safe slug, lowercase, hyphens, max 60 chars, keyword-rich, no stop words" },
-                    schema_types: { type: "array", items: { type: "string" }, description: "Schema.org types e.g. Article, FAQPage, HowTo" },
-                  },
-                  required: ["seo_title", "meta_description", "slug", "schema_types"],
-                  additionalProperties: false,
-                },
-              },
-            },
-          ],
-          tool_choice: { type: "function", function: { name: "set_seo_metadata" } },
-        }),
-      });
+    // (SEO metadata + body images run in the background below to avoid the 150s edge timeout)
 
     // Save content immediately (without images yet) so we can return fast and avoid 150s timeout
     if (contentItemId) {

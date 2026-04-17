@@ -90,19 +90,25 @@ const AgentPipeline = ({ agents }: AgentPipelineProps) => {
         }
         body = { keyword: kw.keyword, searchIntent: kw.search_intent, supportingKeywords: kw.supporting_keywords || [] };
       } else if (fnName === "seo-optimize" || fnName === "content-generate" || fnName === "generate-hero-image" || fnName === "publish-webhook") {
-        // These agents require a contentItemId — fetch the most recent content item
-        const { data: latestContent } = await supabase
-          .from("content_items")
-          .select("id, keyword")
-          .order("updated_at", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-        if (!latestContent) {
-          toast({ title: "No content items found", description: "Create a content item first", variant: "destructive" });
+        // Need a content item — use selected target or latest
+        let item = targetContentId !== "__latest__"
+          ? contentList.find((c) => c.id === targetContentId)
+          : null;
+        if (!item) {
+          const { data: latestContent } = await supabase
+            .from("content_items")
+            .select("id, title, keyword")
+            .order("updated_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          item = latestContent as any;
+        }
+        if (!item) {
+          toast({ title: "No content selected", description: "Pick an article above or create one first", variant: "destructive" });
           setRunningAgents((prev) => { const next = new Set(prev); next.delete(agent.name); return next; });
           return;
         }
-        body = { contentItemId: latestContent.id, keyword: latestContent.keyword };
+        body = { contentItemId: item.id, keyword: item.keyword };
       }
 
       const res = await supabase.functions.invoke(fnName, { body });

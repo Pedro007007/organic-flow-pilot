@@ -532,28 +532,3 @@ Title: ${title || keyword}${serpBlock}${contextBlock}${extraKwBlock}${refBlock}$
     });
   }
 });
-        meta_description: seoMetadata.meta_description || null,
-        slug: seoMetadata.slug || null,
-        schema_types: seoMetadata.schema_types,
-      }).eq("id", contentItemId).eq("user_id", userId);
-    }
-
-    await supabase.from("agent_runs").update({
-      status: "completed",
-      items_processed: 1,
-      completed_at: new Date().toISOString(),
-      result: { content_length: content.length, content_item_id: contentItemId, body_images: bodyImagesGenerated, brand: brand?.name || null },
-    }).eq("id", run?.id);
-
-    return new Response(JSON.stringify({ success: true, content }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  } catch (e) {
-    console.error("content-generate error:", e);
-    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
-});

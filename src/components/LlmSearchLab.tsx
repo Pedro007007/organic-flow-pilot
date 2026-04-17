@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { Loader2, Search, Plus, Sparkles, Clock, Target, AlertTriangle, TrendingUp, DollarSign, HelpCircle, ChevronDown } from "lucide-react";
+import { Loader2, Search, Plus, Sparkles, Clock, Target, AlertTriangle, TrendingUp, DollarSign, HelpCircle, ChevronDown, FileText } from "lucide-react";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 
 interface MonthlySearch {
@@ -344,22 +344,39 @@ const LlmSearchLab = () => {
                       )}
                     </td>
                     <td className="px-4 py-3">
-                      {q.match_type !== "matched" && (
+                      <div className="flex items-center justify-end gap-1">
+                        {q.match_type !== "matched" && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-7 text-xs gap-1"
+                            disabled={addingKeyword === q.query}
+                            onClick={() => handleAddKeyword(q)}
+                            title="Add to keyword tracker"
+                          >
+                            {addingKeyword === q.query ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <Plus className="h-3 w-3" />
+                            )}
+                            Add
+                          </Button>
+                        )}
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="h-7 text-xs gap-1"
-                          disabled={addingKeyword === q.query}
-                          onClick={() => handleAddKeyword(q)}
+                          className="h-7 text-xs gap-1 text-primary hover:text-primary hover:bg-primary/10"
+                          onClick={() => {
+                            window.dispatchEvent(new CustomEvent("searchera:create-content", {
+                              detail: { keyword: q.query, title: "" },
+                            }));
+                          }}
+                          title="Create content targeting this keyword"
                         >
-                          {addingKeyword === q.query ? (
-                            <Loader2 className="h-3 w-3 animate-spin" />
-                          ) : (
-                            <Plus className="h-3 w-3" />
-                          )}
-                          Add
+                          <FileText className="h-3 w-3" />
+                          Create
                         </Button>
-                      )}
+                      </div>
                     </td>
                   </tr>
                 ))}

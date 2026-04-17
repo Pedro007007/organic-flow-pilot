@@ -441,6 +441,7 @@ Title: ${title || keyword}${serpBlock}${contextBlock}${extraKwBlock}${refBlock}$
       }
 
       // Generate SEO metadata in background
+      console.log("[content-generate] Generating SEO metadata...");
       let seoMetadata: { seo_title: string; meta_description: string; slug: string; schema_types: string[] } = {
         seo_title: "", meta_description: "", slug: "", schema_types: ["Article"],
       };
@@ -487,20 +488,42 @@ Title: ${title || keyword}${serpBlock}${contextBlock}${extraKwBlock}${refBlock}$
               schema_types: Array.isArray(parsed.schema_types) ? parsed.schema_types : ["Article"],
             };
           }
+        } else {
+          console.warn("[content-generate] SEO metadata HTTP error:", metaRes.status, await metaRes.text());
         }
       } catch (metaErr) {
-        console.warn("Background SEO metadata error:", metaErr);
+        console.warn("[content-generate] SEO metadata failed:", metaErr);
       }
 
+      // Build JSON-LD structured data from metadata
+      const structuredData = {
+        "@context": "https://schema.org",
+        "@type": seoMetadata.schema_types?.[0] || "Article",
+        headline: seoMetadata.seo_title || title || keyword,
+        description: seoMetadata.meta_description || "",
+        keywords: keyword,
+        
+        author: { "@type": "Organization", name: brand?.name || "Editorial Team" },
+        publisher: { "@type": "Organization", name: brand?.name || "Editorial Team" },
+        datePublished: new Date().toISOString(),
+        dateModified: new Date().toISOString(),
+      };
+
       if (contentItemId) {
-        await supabase.from("content_items").update({
+        const { error: updErr } = await supabase.from("content_items").update({
           draft_content: workingContent,
           status: "writing",
           seo_title: seoMetadata.seo_title || null,
           meta_description: seoMetadata.meta_description || null,
           slug: seoMetadata.slug || null,
           schema_types: seoMetadata.schema_types,
+          structured_data: structuredData,
         }).eq("id", contentItemId).eq("user_id", userId);
+        if (updErr) {
+          console.error("[content-generate] Final update failed:", updErr);
+        } else {
+          console.log("[content-generate] SEO metadata saved:", { seo_title: seoMetadata.seo_title, slug: seoMetadata.slug, has_schema: true });
+        }
       }
 
       await supabase.from("agent_runs").update({

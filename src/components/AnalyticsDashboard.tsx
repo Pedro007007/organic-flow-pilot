@@ -145,13 +145,40 @@ const AnalyticsDashboard = () => {
   }
 
   const hasData = (snapshots?.length || 0) + (keywords?.length || 0) + (content?.length || 0) > 0;
+  const noSnapshots = (snapshots?.length || 0) === 0;
 
   if (!hasData) {
+    const notConfigured = !gscStatus?.configured;
+    const notConnected = gscStatus?.configured && !gscStatus?.connected;
     return (
-      <div className="rounded-xl border border-border/40 bg-card/30 backdrop-blur-xl p-8 text-center shadow-md">
-        <p className="text-sm text-muted-foreground">
-          No analytics data yet. Run agents to populate keywords, content, and performance snapshots.
-        </p>
+      <div className="rounded-xl border border-border/40 bg-card/30 backdrop-blur-xl p-8 text-center shadow-md space-y-4">
+        <AlertCircle className="h-8 w-8 text-muted-foreground mx-auto" />
+        {notConfigured ? (
+          <>
+            <p className="text-sm font-semibold text-foreground">Google Search Console not configured</p>
+            <p className="text-xs text-muted-foreground max-w-md mx-auto">
+              Set up GSC credentials in Settings to start tracking real impressions, clicks, and rankings.
+            </p>
+          </>
+        ) : notConnected ? (
+          <>
+            <p className="text-sm font-semibold text-foreground">Connect Google Search Console</p>
+            <p className="text-xs text-muted-foreground max-w-md mx-auto">
+              You're not connected yet. Open Settings → Integrations to link your GSC account.
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="text-sm font-semibold text-foreground">No analytics data yet</p>
+            <p className="text-xs text-muted-foreground max-w-md mx-auto">
+              GSC is connected but you haven't synced. Click below to import your first snapshot.
+            </p>
+            <Button size="sm" onClick={handleSyncGsc} disabled={syncing}>
+              {syncing ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="mr-1.5 h-3.5 w-3.5" />}
+              Sync Now
+            </Button>
+          </>
+        )}
       </div>
     );
   }

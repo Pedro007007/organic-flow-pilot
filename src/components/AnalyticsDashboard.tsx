@@ -1,8 +1,10 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, TrendingUp, MousePointer, Eye, Hash } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Loader2, TrendingUp, MousePointer, Eye, Hash, RefreshCw, Link2, AlertCircle } from "lucide-react";
 import KeywordMovers from "@/components/analytics/KeywordMovers";
 import AiCitationRate from "@/components/analytics/AiCitationRate";
 import TopPagesPerformance from "@/components/analytics/TopPagesPerformance";

@@ -83,7 +83,7 @@ const AnalyticsDashboard = () => {
         .from("keywords")
         .select("*")
         .order("impressions", { ascending: false })
-        .limit(20);
+        .limit(200);
       if (error) throw error;
       return data || [];
     },
@@ -120,11 +120,23 @@ const AnalyticsDashboard = () => {
 
   const keywordRankings = useMemo(() => {
     if (!keywords?.length) return [];
-    return keywords.slice(0, 10).map((k) => ({
-      keyword: k.keyword.length > 30 ? k.keyword.slice(0, 30) + "…" : k.keyword,
-      position: Number(k.position),
-      impressions: k.impressions,
-    }));
+    const map = new Map<string, { keyword: string; impressions: number; positions: number[] }>();
+    for (const k of keywords) {
+      const key = k.keyword.trim().toLowerCase();
+      const entry = map.get(key) ?? { keyword: k.keyword, impressions: 0, positions: [] };
+      entry.impressions += k.impressions ?? 0;
+      const pos = Number(k.position);
+      if (pos > 0) entry.positions.push(pos);
+      map.set(key, entry);
+    }
+    return Array.from(map.values())
+      .map((e) => ({
+        keyword: e.keyword.length > 30 ? e.keyword.slice(0, 30) + "…" : e.keyword,
+        impressions: e.impressions,
+        position: e.positions.length ? e.positions.reduce((a, b) => a + b, 0) / e.positions.length : 0,
+      }))
+      .sort((a, b) => b.impressions - a.impressions)
+      .slice(0, 10);
   }, [keywords]);
 
   const contentByStatus = useMemo(() => {
@@ -289,7 +301,7 @@ const AnalyticsDashboard = () => {
 
       {/* Keyword rankings bar chart */}
       {keywordRankings.length > 0 && (
-        <ChartCard title="Top Keywords by Position">
+        <ChartCard title="Top Keywords by Impressions">
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={keywordRankings} layout="vertical" margin={{ left: 20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />

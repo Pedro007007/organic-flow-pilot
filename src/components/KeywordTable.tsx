@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { ArrowUpRight, ArrowDownRight, Minus, Search, Filter, ArrowUpDown, Download } from "lucide-react";
+import { ArrowUpRight, ArrowDownRight, Minus, Search, Filter, ArrowUpDown, Download, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -148,6 +148,7 @@ const KeywordTable = ({ keywords }: KeywordTableProps) => {
               <th className="px-3 py-3 text-right"><SortHeader label="Position" sortKeyName="position" /></th>
               <th className="px-3 py-3 text-right"><SortHeader label="CTR" sortKeyName="ctr" /></th>
               <th className="px-5 py-3"><SortHeader label="Opportunity" sortKeyName="opportunity" /></th>
+              <th className="px-3 py-3 text-right text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -185,11 +186,27 @@ const KeywordTable = ({ keywords }: KeywordTableProps) => {
                     {kw.opportunity}
                   </span>
                 </td>
+                <td className="px-3 py-3 text-right">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-7 text-xs gap-1 text-primary hover:text-primary hover:bg-primary/10"
+                    onClick={() => {
+                      window.dispatchEvent(new CustomEvent("searchera:create-content", {
+                        detail: { keyword: kw.keyword, title: "" },
+                      }));
+                    }}
+                    title="Create content targeting this keyword"
+                  >
+                    <FileText className="h-3 w-3" />
+                    Create
+                  </Button>
+                </td>
               </tr>
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-5 py-8 text-center text-sm text-muted-foreground">
+                <td colSpan={7} className="px-5 py-8 text-center text-sm text-muted-foreground">
                   No keywords match your filters.
                 </td>
               </tr>

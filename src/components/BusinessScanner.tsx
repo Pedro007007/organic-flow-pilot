@@ -117,29 +117,43 @@ const BusinessScanner = () => {
             </Button>
           </div>
 
-          {/* Score Cards */}
-          <div className="rounded-xl border border-border bg-success/5 p-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="rounded-lg border border-border bg-card p-4 space-y-2">
-                <p className="text-xs font-semibold text-foreground">Competitor Website</p>
-                <p className="text-[11px] text-muted-foreground font-mono">URL: {activeScan.domain}</p>
-                <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground">Overall Score</p>
-                  <Progress value={65} className="h-2" />
-                  <p className="text-xs font-mono text-foreground">65/100</p>
+          {/* Score Cards (real data) */}
+          {(() => {
+            const kwCount = Array.isArray(keywords) ? keywords.length : 0;
+            const schemaCount = Array.isArray(schemas) ? schemas.length : 0;
+            const hasMeta = !!(metaPatterns?.title || metaPatterns?.description);
+            // Deterministic score from real signals: keywords (max 50), schema (max 25), meta (25)
+            const score = Math.min(
+              100,
+              Math.round(Math.min(kwCount, 25) * 2) + Math.min(schemaCount, 5) * 5 + (hasMeta ? 25 : 0)
+            );
+            return (
+              <div className="rounded-xl border border-border bg-card p-6">
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                  <div className="rounded-lg border border-border bg-muted/20 p-4 space-y-2">
+                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Site Score</p>
+                    <Progress value={score} className="h-2" />
+                    <p className="text-sm font-mono text-foreground">{score}/100</p>
+                  </div>
+                  <div className="rounded-lg border border-border bg-muted/20 p-4 space-y-1">
+                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Keywords Found</p>
+                    <p className="text-2xl font-bold text-foreground">{kwCount}</p>
+                  </div>
+                  <div className="rounded-lg border border-border bg-muted/20 p-4 space-y-1">
+                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Schema Types</p>
+                    <p className="text-2xl font-bold text-foreground">{schemaCount}</p>
+                  </div>
+                  <div className="rounded-lg border border-border bg-muted/20 p-4 space-y-1">
+                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Meta Patterns</p>
+                    <p className="text-2xl font-bold text-foreground">{hasMeta ? "Detected" : "—"}</p>
+                  </div>
                 </div>
+                <p className="mt-3 text-[11px] text-muted-foreground">
+                  Score is computed from real scan signals: keyword coverage, schema markup, and meta patterns. No comparison data is fetched yet.
+                </p>
               </div>
-              <div className="rounded-lg border border-border bg-card p-4 space-y-2">
-                <p className="text-xs font-semibold text-foreground">Your Website</p>
-                <p className="text-[11px] text-muted-foreground font-mono">Compared against your content</p>
-                <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground">Overall Score</p>
-                  <Progress value={75} className="h-2" />
-                  <p className="text-xs font-mono text-foreground">75/100</p>
-                </div>
-              </div>
-            </div>
-          </div>
+            );
+          })()}
 
           {/* Content Gap Analysis */}
           <div className="space-y-4">

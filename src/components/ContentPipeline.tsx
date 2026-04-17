@@ -159,6 +159,19 @@ const ContentPipeline = ({ content, onSelectItem }: ContentPipelineProps) => {
     });
   }, [user]);
 
+  // Listen for "Create content from keyword" events fired by KeywordTable / LlmSearchLab
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { keyword?: string; title?: string } | undefined;
+      if (!detail) return;
+      if (detail.keyword) setKeyword(detail.keyword);
+      if (detail.title) setTitle(detail.title);
+      setOpen(true);
+    };
+    window.addEventListener("searchera:create-content", handler);
+    return () => window.removeEventListener("searchera:create-content", handler);
+  }, []);
+
   // Filters
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");

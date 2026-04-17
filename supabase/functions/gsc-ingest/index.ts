@@ -36,7 +36,6 @@ serve(async (req) => {
 
     const { rows, date } = await req.json();
 
-    // rows: Array of { page, query, clicks, impressions, ctr, position }
     if (!Array.isArray(rows) || rows.length === 0) {
       return new Response(JSON.stringify({ error: "rows array required" }), {
         status: 400,
@@ -46,7 +45,6 @@ serve(async (req) => {
 
     const snapshotDate = date || new Date().toISOString().split("T")[0];
 
-    // Aggregate totals
     let totalClicks = 0;
     let totalImpressions = 0;
     let totalPosition = 0;
@@ -60,7 +58,6 @@ serve(async (req) => {
     const avgPosition = rows.length > 0 ? (totalPosition / rows.length).toFixed(1) : "0";
     const avgCtr = totalImpressions > 0 ? ((totalClicks / totalImpressions) * 100).toFixed(1) : "0";
 
-    // Upsert performance snapshots
     const snapshots = [
       { label: "Total Impressions", value: totalImpressions.toLocaleString(), change: 0, change_label: "vs prev period" },
       { label: "Total Clicks", value: totalClicks.toLocaleString(), change: 0, change_label: "vs prev period" },
@@ -69,7 +66,7 @@ serve(async (req) => {
     ];
 
     const inserts = snapshots.map((s) => ({
-      user_id: user.id,
+      user_id: userId,
       label: s.label,
       value: s.value,
       change: s.change,
@@ -80,11 +77,10 @@ serve(async (req) => {
     const { error: snapError } = await supabase.from("performance_snapshots").insert(inserts);
     if (snapError) throw snapError;
 
-    // Also upsert per-page data as keyword rows if query is present
     const keywordInserts = rows
       .filter((r: any) => r.query)
       .map((r: any) => ({
-        user_id: user.id,
+        user_id: userId,
         keyword: r.query,
         impressions: r.impressions || 0,
         clicks: r.clicks || 0,

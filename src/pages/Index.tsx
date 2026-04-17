@@ -77,6 +77,17 @@ const Index = () => {
 
   useRealtimeSubscription();
 
+  // When a Keyword row or LLM result triggers "Create content", jump to the Content section.
+  // ContentPipeline listens to the same event to open its dialog with the keyword prefilled.
+  useEffect(() => {
+    const handler = () => {
+      setSelectedContentId(null);
+      setActiveSection("content");
+    };
+    window.addEventListener("searchera:create-content", handler);
+    return () => window.removeEventListener("searchera:create-content", handler);
+  }, []);
+
   const handleSelectContent = (id: string) => {
     setSelectedContentId(id);
     setActiveSection("content-detail");

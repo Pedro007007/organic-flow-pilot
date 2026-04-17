@@ -440,31 +440,141 @@ Title: ${title || keyword}${serpBlock}${contextBlock}${extraKwBlock}${refBlock}$
         }),
       });
 
-      if (metaRes.ok) {
-        const metaResult = await metaRes.json();
-        const toolCall = metaResult.choices?.[0]?.message?.tool_calls?.[0];
-        if (toolCall?.function?.arguments) {
-          const parsed = JSON.parse(toolCall.function.arguments);
-          seoMetadata = {
-            seo_title: (parsed.seo_title || "").slice(0, 70),
-            meta_description: (parsed.meta_description || "").slice(0, 170),
-            slug: (parsed.slug || "").toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 60),
-            schema_types: Array.isArray(parsed.schema_types) ? parsed.schema_types : ["Article"],
-          };
-        }
-      } else {
-        console.warn("SEO metadata generation failed:", metaRes.status);
-      }
-    } catch (metaErr) {
-      console.warn("SEO metadata error:", metaErr);
-    }
-
-    // Update content item if provided
+    // Save content immediately (without images yet) so we can return fast and avoid 150s timeout
     if (contentItemId) {
       await supabase.from("content_items").update({
         draft_content: content,
         status: "writing",
-        seo_title: seoMetadata.seo_title || null,
+      }).eq("id", contentItemId).eq("user_id", userId);
+    }
+
+    // Background: generate body images, generate SEO metadata, update DB
+    const backgroundWork = (async () => {
+      let bodyImagesGenerated = 0;
+      let workingContent = content;
+
+      if ((hasPlaceholder1 || hasPlaceholder2) && contentItemId) {
+        try {
+          const imagePromises: Promise<string | null>[] = [];
+          if (hasPlaceholder1) imagePromises.push(generateBodyImage(LOVABLE_API_KEY, keyword, title, 0, brand));
+          if (hasPlaceholder2) imagePromises.push(generateBodyImage(LOVABLE_API_KEY, keyword, title, 1, brand));
+          const imageResults = await Promise.allSettled(imagePromises);
+          const base64Images = imageResults.map((r) => r.status === "fulfilled" ? r.value : null);
+
+          let imgIdx = 0;
+          for (const placeholder of ["{{IMAGE_1}}", "{{IMAGE_2}}"]) {
+            if (!workingContent.includes(placeholder)) continue;
+            const base64 = base64Images[imgIdx] || null;
+            if (base64) {
+              const publicUrl = await uploadBase64Image(supabaseAdmin, base64, userId, contentItemId, `${imgIdx + 1}`);
+              if (publicUrl) {
+                workingContent = workingContent.replace(placeholder, `\n\n![${title || keyword} - illustration ${imgIdx + 1}](${publicUrl})\n\n`);
+                bodyImagesGenerated++;
+              } else {
+                workingContent = workingContent.replace(placeholder, "");
+              }
+            } else {
+              workingContent = workingContent.replace(placeholder, "");
+            }
+            imgIdx++;
+          }
+        } catch (e) {
+          console.error("Background body image error:", e);
+        }
+      }
+
+      // Generate SEO metadata in background
+      let seoMetadata: { seo_title: string; meta_description: string; slug: string; schema_types: string[] } = {
+        seo_title: "", meta_description: "", slug: "", schema_types: ["Article"],
+      };
+      try {
+        const metaRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+          body: JSON.stringify({
+            model: "google/gemini-2.5-flash-lite",
+            messages: [
+              { role: "system", content: "You are an elite SEO metadata specialist. Generate optimised metadata for the given article." },
+              { role: "user", content: `Generate SEO metadata for this article.\n\nTitle: ${title || keyword}\nKeyword: ${keyword}\n\nFirst 500 chars of content:\n${workingContent.slice(0, 500)}` },
+            ],
+            tools: [{
+              type: "function",
+              function: {
+                name: "set_seo_metadata",
+                description: "Set the SEO metadata for the article",
+                parameters: {
+                  type: "object",
+                  properties: {
+                    seo_title: { type: "string" },
+                    meta_description: { type: "string" },
+                    slug: { type: "string" },
+                    schema_types: { type: "array", items: { type: "string" } },
+                  },
+                  required: ["seo_title", "meta_description", "slug", "schema_types"],
+                  additionalProperties: false,
+                },
+              },
+            }],
+            tool_choice: { type: "function", function: { name: "set_seo_metadata" } },
+          }),
+        });
+        if (metaRes.ok) {
+          const metaResult = await metaRes.json();
+          const toolCall = metaResult.choices?.[0]?.message?.tool_calls?.[0];
+          if (toolCall?.function?.arguments) {
+            const parsed = JSON.parse(toolCall.function.arguments);
+            seoMetadata = {
+              seo_title: (parsed.seo_title || "").slice(0, 70),
+              meta_description: (parsed.meta_description || "").slice(0, 170),
+              slug: (parsed.slug || "").toLowerCase().replace(/[^a-z0-9-]/g, "").slice(0, 60),
+              schema_types: Array.isArray(parsed.schema_types) ? parsed.schema_types : ["Article"],
+            };
+          }
+        }
+      } catch (metaErr) {
+        console.warn("Background SEO metadata error:", metaErr);
+      }
+
+      if (contentItemId) {
+        await supabase.from("content_items").update({
+          draft_content: workingContent,
+          status: "writing",
+          seo_title: seoMetadata.seo_title || null,
+          meta_description: seoMetadata.meta_description || null,
+          slug: seoMetadata.slug || null,
+          schema_types: seoMetadata.schema_types,
+        }).eq("id", contentItemId).eq("user_id", userId);
+      }
+
+      await supabase.from("agent_runs").update({
+        status: "completed",
+        items_processed: 1,
+        completed_at: new Date().toISOString(),
+        result: { content_length: workingContent.length, content_item_id: contentItemId, body_images: bodyImagesGenerated, brand: brand?.name || null },
+      }).eq("id", run?.id);
+    })();
+
+    // @ts-ignore — EdgeRuntime is provided by Supabase Edge runtime
+    if (typeof EdgeRuntime !== "undefined" && EdgeRuntime.waitUntil) {
+      // @ts-ignore
+      EdgeRuntime.waitUntil(backgroundWork);
+    } else {
+      // Fallback: don't await, fire-and-forget
+      backgroundWork.catch((e) => console.error("background error:", e));
+    }
+
+    return new Response(JSON.stringify({ success: true, content, background: true }), {
+      status: 202,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  } catch (e) {
+    console.error("content-generate error:", e);
+    return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
+});
         meta_description: seoMetadata.meta_description || null,
         slug: seoMetadata.slug || null,
         schema_types: seoMetadata.schema_types,

@@ -502,7 +502,7 @@ Title: ${title || keyword}${serpBlock}${contextBlock}${extraKwBlock}${refBlock}$
         headline: seoMetadata.seo_title || title || keyword,
         description: seoMetadata.meta_description || "",
         keywords: keyword,
-        image: heroImageUrl || undefined,
+        
         author: { "@type": "Organization", name: brand?.name || "Editorial Team" },
         publisher: { "@type": "Organization", name: brand?.name || "Editorial Team" },
         datePublished: new Date().toISOString(),

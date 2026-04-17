@@ -1,12 +1,13 @@
-import { useState, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
-import { Bot, CheckCircle2, Loader2, AlertCircle, Pause, Play, HelpCircle, ChevronDown } from "lucide-react";
+import { Bot, CheckCircle2, Loader2, AlertCircle, Pause, Play, HelpCircle, ChevronDown, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import type { AgentStatus } from "@/types/seo";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const statusConfig: Record<string, { icon: typeof Pause; color: string; bg: string; label: string; animate?: boolean }> = {
   idle: { icon: Pause, color: "text-muted-foreground", bg: "bg-muted", label: "Idle" },

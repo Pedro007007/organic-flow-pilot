@@ -12,7 +12,10 @@ import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
-  CheckCircle2, Circle, Minus, ChevronDown, Loader2, Sparkles, ListChecks, Info, ArrowRight, FileText, Globe, Zap,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
+  CheckCircle2, Circle, Minus, ChevronDown, Loader2, Sparkles, ListChecks, Info, FileText, Globe,
 } from "lucide-react";
 
 const DEFAULT_CHECKLIST: { category: string; items: { label: string; description: string }[] }[] = [
@@ -67,6 +70,8 @@ const DEFAULT_CHECKLIST: { category: string; items: { label: string; description
   },
 ];
 
+const SITE_SCOPE = "__site__";
+
 const SeoChecklist = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -76,17 +81,37 @@ const SeoChecklist = () => {
   const [openCategories, setOpenCategories] = useState<string[]>(
     DEFAULT_CHECKLIST.map((c) => c.category)
   );
+  const [scope, setScope] = useState<string>(SITE_SCOPE);
+  const [contentItems, setContentItems] = useState<{ id: string; title: string }[]>([]);
+
+  useEffect(() => {
+    if (!user) return;
+    fetchContentItems();
+  }, [user]);
 
   useEffect(() => {
     if (!user) return;
     fetchChecklist();
-  }, [user]);
+  }, [user, scope]);
+
+  const fetchContentItems = async () => {
+    if (!user) return;
+    const { data } = await supabase
+      .from("content_items")
+      .select("id, title")
+      .eq("user_id", user.id)
+      .order("updated_at", { ascending: false })
+      .limit(100);
+    setContentItems(data || []);
+  };
 
   const fetchChecklist = async () => {
     if (!user) return;
     setLoading(true);
-    const { data, error } = await supabase
-      .from("seo_checklists").select("*").eq("user_id", user.id).is("content_item_id", null);
+    const query = supabase.from("seo_checklists").select("*").eq("user_id", user.id);
+    const { data, error } = scope === SITE_SCOPE
+      ? await query.is("content_item_id", null)
+      : await query.eq("content_item_id", scope);
     if (error) { toast({ title: "Failed to load checklist", variant: "destructive" }); setLoading(false); return; }
     if (!data || data.length === 0) { await initializeChecklist(); } else { setItems(data); }
     setLoading(false);
@@ -94,8 +119,17 @@ const SeoChecklist = () => {
 
   const initializeChecklist = async () => {
     if (!user) return;
+    const isArticle = scope !== SITE_SCOPE;
     const rows = DEFAULT_CHECKLIST.flatMap((cat) =>
-      cat.items.map((item) => ({ user_id: user.id, category: cat.category, item_label: item.label, description: item.description, status: "pending", auto_verified: false }))
+      cat.items.map((item) => ({
+        user_id: user.id,
+        category: cat.category,
+        item_label: item.label,
+        description: item.description,
+        status: "pending",
+        auto_verified: false,
+        ...(isArticle ? { content_item_id: scope } : {}),
+      }))
     );
     const { data, error } = await supabase.from("seo_checklists").insert(rows).select();
     if (error) { toast({ title: "Failed to create checklist", variant: "destructive" }); return; }
@@ -113,7 +147,8 @@ const SeoChecklist = () => {
   const handleAutoCheck = async () => {
     setVerifying(true);
     try {
-      const res = await supabase.functions.invoke("checklist-verify", { body: {} });
+      const body = scope === SITE_SCOPE ? {} : { contentItemId: scope };
+      const res = await supabase.functions.invoke("checklist-verify", { body });
       if (res.error) throw res.error;
       toast({ title: "Auto-check complete", description: `${res.data?.verified || 0} items verified` });
       await fetchChecklist();
@@ -137,9 +172,9 @@ const SeoChecklist = () => {
     return <Circle className="h-4 w-4 text-muted-foreground/50" />;
   };
 
-  if (loading) {
-    return <div className="flex items-center justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-primary" /></div>;
-  }
+  const scopeLabel = scope === SITE_SCOPE
+    ? "Workspace (site-wide)"
+    : contentItems.find((c) => c.id === scope)?.title || "Article";
 
   return (
     <div className="space-y-8">
@@ -150,111 +185,125 @@ const SeoChecklist = () => {
           <h1 className="text-2xl font-bold text-foreground">AI-Powered SEO Checklist</h1>
         </div>
         <p className="text-base text-foreground/70 max-w-lg mx-auto">
-          Generate a personalized, step-by-step SEO checklist powered by AI. Identify missing optimizations, track progress, and receive smart suggestions tailored to your website's goals.
+          Pick a workspace-wide checklist or run it against a specific article. Auto-check uses AI to verify items against your real content.
         </p>
-        <Button onClick={handleAutoCheck} disabled={verifying} className="mx-auto">
-          {verifying ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Sparkles className="mr-1.5 h-4 w-4" />}
-          Auto-Check with AI
-        </Button>
       </div>
 
-      {/* Overall Score */}
-      <div className="rounded-xl border border-border bg-success/5 p-6">
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <p className="text-sm font-bold text-foreground">Overall Completion</p>
-            <p className="text-xs text-muted-foreground">{doneItems} of {totalItems} items completed</p>
-          </div>
-          <div className="text-right">
-            <p className="text-2xl font-bold text-foreground">{overallPercent}</p>
-            <p className="text-[10px] text-muted-foreground">Score</p>
-          </div>
+      {/* Scope picker */}
+      <div className="rounded-xl border border-border bg-card p-5 space-y-3">
+        <div className="flex items-center gap-2">
+          {scope === SITE_SCOPE
+            ? <Globe className="h-4 w-4 text-primary" />
+            : <FileText className="h-4 w-4 text-primary" />}
+          <p className="text-sm font-semibold text-foreground">Checklist scope</p>
         </div>
-        <Progress value={overallPercent} className="h-2.5" />
-      </div>
-
-      {/* Category sections */}
-      <TooltipProvider>
-        <div className="space-y-4">
-          {categorized.map((cat) => {
-            const catDone = cat.items.filter((i) => i.status === "done").length;
-            const catTotal = cat.items.length;
-            const catPercent = catTotal > 0 ? Math.round((catDone / catTotal) * 100) : 0;
-            const isOpen = openCategories.includes(cat.category);
-
-            return (
-              <Collapsible
-                key={cat.category}
-                open={isOpen}
-                onOpenChange={(open) =>
-                  setOpenCategories((prev) => open ? [...prev, cat.category] : prev.filter((c) => c !== cat.category))
-                }
-              >
-                <div className="rounded-xl border border-border bg-card">
-                  <CollapsibleTrigger className="flex w-full items-center justify-between px-6 py-4 hover:bg-muted/30 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <span className="text-sm font-bold text-foreground">{cat.category}</span>
-                      <Badge variant="secondary" className="text-[10px]">{catDone}/{catTotal}</Badge>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <div className="w-28">
-                        <Progress value={catPercent} className="h-1.5" />
-                      </div>
-                      <span className="text-xs font-mono text-muted-foreground w-8 text-right">{catPercent}%</span>
-                      <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} />
-                    </div>
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <div className="border-t border-border divide-y divide-border">
-                      {cat.items.map((item) => (
-                        <button
-                          key={item.id}
-                          onClick={() => toggleStatus(item.id, item.status)}
-                          className="flex w-full items-center gap-3 px-6 py-3 text-left hover:bg-muted/20 transition-colors"
-                        >
-                          <StatusIcon status={item.status} />
-                          <span className={`flex-1 text-xs ${item.status === "done" ? "text-muted-foreground line-through" : "text-foreground"}`}>
-                            {item.item_label}
-                          </span>
-                          {item.auto_verified && (
-                            <Badge variant="outline" className="text-[9px] border-success/30 text-success">AI Verified</Badge>
-                          )}
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Info className="h-3.5 w-3.5 text-muted-foreground/50 hover:text-muted-foreground" />
-                            </TooltipTrigger>
-                            <TooltipContent side="left" className="max-w-[240px] text-xs">{item.description}</TooltipContent>
-                          </Tooltip>
-                        </button>
-                      ))}
-                    </div>
-                  </CollapsibleContent>
-                </div>
-              </Collapsible>
-            );
-          })}
-        </div>
-      </TooltipProvider>
-
-      {/* CTA Blocks */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between rounded-lg border-l-4 border-l-primary bg-card border border-border p-5">
-          <div>
-            <p className="text-sm font-bold text-foreground">Need Help Optimizing?</p>
-            <p className="text-xs text-muted-foreground mt-0.5">Run the AI auto-check to automatically verify items against your actual content and get smart recommendations.</p>
-          </div>
-          <Button size="sm" variant="outline" onClick={handleAutoCheck} disabled={verifying} className="shrink-0">
-            {verifying ? "Checking..." : "Run AI Check"}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <Select value={scope} onValueChange={setScope}>
+            <SelectTrigger className="flex-1">
+              <SelectValue placeholder="Select scope" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={SITE_SCOPE}>Workspace (site-wide)</SelectItem>
+              {contentItems.map((c) => (
+                <SelectItem key={c.id} value={c.id}>{c.title}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button onClick={handleAutoCheck} disabled={verifying || loading}>
+            {verifying ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : <Sparkles className="mr-1.5 h-4 w-4" />}
+            Auto-Check {scope === SITE_SCOPE ? "Workspace" : "Article"}
           </Button>
         </div>
-        <div className="flex items-center justify-between rounded-lg border-l-4 border-l-success bg-card border border-border p-5">
-          <div>
-            <p className="text-sm font-bold text-foreground">Improve Your Content Strategy</p>
-            <p className="text-xs text-muted-foreground mt-0.5">Enhance the quality, structure, and readability of your content to boost SEO performance and user engagement.</p>
-          </div>
-          <Button size="sm" variant="outline" className="shrink-0">View Suggestions</Button>
-        </div>
+        <p className="text-[11px] text-muted-foreground">
+          Currently viewing: <span className="text-foreground font-medium">{scopeLabel}</span>
+        </p>
       </div>
+
+      {loading ? (
+        <div className="flex items-center justify-center py-16">
+          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+        </div>
+      ) : (
+        <>
+          {/* Overall Score */}
+          <div className="rounded-xl border border-border bg-success/5 p-6">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <p className="text-sm font-bold text-foreground">Overall Completion</p>
+                <p className="text-xs text-muted-foreground">{doneItems} of {totalItems} items completed</p>
+              </div>
+              <div className="text-right">
+                <p className="text-2xl font-bold text-foreground">{overallPercent}</p>
+                <p className="text-[10px] text-muted-foreground">Score</p>
+              </div>
+            </div>
+            <Progress value={overallPercent} className="h-2.5" />
+          </div>
+
+          {/* Category sections */}
+          <TooltipProvider>
+            <div className="space-y-4">
+              {categorized.map((cat) => {
+                const catDone = cat.items.filter((i) => i.status === "done").length;
+                const catTotal = cat.items.length;
+                const catPercent = catTotal > 0 ? Math.round((catDone / catTotal) * 100) : 0;
+                const isOpen = openCategories.includes(cat.category);
+
+                return (
+                  <Collapsible
+                    key={cat.category}
+                    open={isOpen}
+                    onOpenChange={(open) =>
+                      setOpenCategories((prev) => open ? [...prev, cat.category] : prev.filter((c) => c !== cat.category))
+                    }
+                  >
+                    <div className="rounded-xl border border-border bg-card">
+                      <CollapsibleTrigger className="flex w-full items-center justify-between px-6 py-4 hover:bg-muted/30 transition-colors">
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm font-bold text-foreground">{cat.category}</span>
+                          <Badge variant="secondary" className="text-[10px]">{catDone}/{catTotal}</Badge>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <div className="w-28">
+                            <Progress value={catPercent} className="h-1.5" />
+                          </div>
+                          <span className="text-xs font-mono text-muted-foreground w-8 text-right">{catPercent}%</span>
+                          <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                        </div>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <div className="border-t border-border divide-y divide-border">
+                          {cat.items.map((item) => (
+                            <button
+                              key={item.id}
+                              onClick={() => toggleStatus(item.id, item.status)}
+                              className="flex w-full items-center gap-3 px-6 py-3 text-left hover:bg-muted/20 transition-colors"
+                            >
+                              <StatusIcon status={item.status} />
+                              <span className={`flex-1 text-xs ${item.status === "done" ? "text-muted-foreground line-through" : "text-foreground"}`}>
+                                {item.item_label}
+                              </span>
+                              {item.auto_verified && (
+                                <Badge variant="outline" className="text-[9px] border-success/30 text-success">AI Verified</Badge>
+                              )}
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Info className="h-3.5 w-3.5 text-muted-foreground/50 hover:text-muted-foreground" />
+                                </TooltipTrigger>
+                                <TooltipContent side="left" className="max-w-[240px] text-xs">{item.description}</TooltipContent>
+                              </Tooltip>
+                            </button>
+                          ))}
+                        </div>
+                      </CollapsibleContent>
+                    </div>
+                  </Collapsible>
+                );
+              })}
+            </div>
+          </TooltipProvider>
+        </>
+      )}
     </div>
   );
 };

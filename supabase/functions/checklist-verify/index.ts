@@ -85,14 +85,23 @@ ${items.map((i: any) => `- ID: ${i.id} | "${i.item_label}" (${i.category})`).joi
 
 Return a JSON array of IDs that should be marked as done. Only mark items that are clearly satisfied based on the content data. Return format: { "done_ids": ["id1", "id2"] }`;
 
-    const aiRes = await fetch("https://lakadtgzlvbatnqvazkn.supabase.co/functions/v1/ai-gateway", {
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+
+    const aiRes = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
-      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${Deno.env.get("SUPABASE_ANON_KEY")}` },
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${LOVABLE_API_KEY}` },
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [{ role: "user", content: prompt }],
       }),
     });
+
+    if (!aiRes.ok) {
+      const errText = await aiRes.text();
+      console.error("AI gateway error:", aiRes.status, errText);
+      throw new Error(`AI gateway returned ${aiRes.status}`);
+    }
 
     const aiData = await aiRes.json();
     const text = aiData?.choices?.[0]?.message?.content || "";

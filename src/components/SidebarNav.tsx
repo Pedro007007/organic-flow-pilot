@@ -51,7 +51,7 @@ const navItems = [
   { id: "analytics", label: "Analytics", icon: BarChart3 },
   { id: "scanner", label: "Scanner", icon: Globe },
   { id: "reports", label: "Reports", icon: FileBarChart },
-  { id: "leads", label: "Leads", icon: Users },
+  { id: "leads", label: "Report Leads", icon: Users },
   { id: "checklist", label: "Checklist", icon: ListChecks },
 ];
 

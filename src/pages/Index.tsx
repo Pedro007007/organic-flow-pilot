@@ -100,7 +100,7 @@ const Index = () => {
     "llm-search": "Keyword Research",
     scanner: "Business Scanner",
     reports: "Reports",
-    leads: "Lead Capture",
+    leads: "Report Leads",
     checklist: "SEO Checklist",
     brands: "Brand Management",
     referrals: "Referral Program",

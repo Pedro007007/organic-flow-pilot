@@ -32,34 +32,48 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
     );
 
-    // Get all pending checklist items for this user (site-wide, no content_item_id)
-    const { data: items, error } = await supabase
+    // Optional contentItemId — when provided, verify article-level checklist
+    let contentItemId: string | null = null;
+    try {
+      const body = await req.json();
+      contentItemId = body?.contentItemId || null;
+    } catch { /* no body */ }
+
+    // Get pending checklist items — either article-scoped or site-wide
+    const itemsQuery = supabase
       .from("seo_checklists")
       .select("*")
       .eq("user_id", userId)
-      .is("content_item_id", null)
       .eq("status", "pending");
+
+    const { data: items, error } = contentItemId
+      ? await itemsQuery.eq("content_item_id", contentItemId)
+      : await itemsQuery.is("content_item_id", null);
 
     if (error) throw error;
     if (!items || items.length === 0) {
       return new Response(JSON.stringify({ verified: 0 }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
     }
 
-    // Get user's content items to analyze
-    const { data: content } = await supabase
-      .from("content_items")
-      .select("*")
-      .eq("user_id", userId);
-
-    const contentSummary = (content || []).map((c: any) => ({
-      title: c.title,
-      seo_title: c.seo_title,
-      meta_description: c.meta_description,
-      slug: c.slug,
-      schema_types: c.schema_types,
-      draft_content: c.draft_content?.substring(0, 500),
-      status: c.status,
-    }));
+    // Get content to analyze — single article or all of user's content
+    let contentSummary: any[];
+    if (contentItemId) {
+      const { data: c } = await supabase
+        .from("content_items").select("*").eq("id", contentItemId).eq("user_id", userId).maybeSingle();
+      contentSummary = c ? [{
+        title: c.title, seo_title: c.seo_title, meta_description: c.meta_description,
+        slug: c.slug, schema_types: c.schema_types,
+        draft_content: c.draft_content?.substring(0, 4000), status: c.status,
+        hero_image_url: c.hero_image_url, structured_data: c.structured_data,
+      }] : [];
+    } else {
+      const { data: content } = await supabase.from("content_items").select("*").eq("user_id", userId);
+      contentSummary = (content || []).map((c: any) => ({
+        title: c.title, seo_title: c.seo_title, meta_description: c.meta_description,
+        slug: c.slug, schema_types: c.schema_types,
+        draft_content: c.draft_content?.substring(0, 500), status: c.status,
+      }));
+    }
 
     // Use AI to verify checklist items
     const prompt = `You are an SEO auditor. Given these content items from a website, determine which of the following checklist items can be marked as "done".

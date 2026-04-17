@@ -1,8 +1,10 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Loader2, TrendingUp, MousePointer, Eye, Hash } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Loader2, TrendingUp, MousePointer, Eye, Hash, RefreshCw, Link2, AlertCircle } from "lucide-react";
 import KeywordMovers from "@/components/analytics/KeywordMovers";
 import AiCitationRate from "@/components/analytics/AiCitationRate";
 import TopPagesPerformance from "@/components/analytics/TopPagesPerformance";
@@ -34,6 +36,18 @@ const COLORS = [
 
 const AnalyticsDashboard = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [syncing, setSyncing] = useState(false);
+
+  const { data: gscStatus } = useQuery({
+    queryKey: ["gsc_status", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase.functions.invoke("gsc-oauth", { body: { action: "status" } });
+      return data || { configured: false, connected: false };
+    },
+  });
 
   const { data: snapshots, isLoading: snapshotsLoading } = useQuery({
     queryKey: ["analytics_snapshots", user?.id],
@@ -47,6 +61,19 @@ const AnalyticsDashboard = () => {
       return data || [];
     },
   });
+
+  const handleSyncGsc = async () => {
+    setSyncing(true);
+    const { data, error } = await supabase.functions.invoke("gsc-oauth", { body: { action: "sync" } });
+    setSyncing(false);
+    if (error || !data?.success) {
+      toast({ title: "Sync failed", description: error?.message || data?.error, variant: "destructive" });
+    } else {
+      toast({ title: "GSC synced", description: `${data.keywords_created || 0} keywords, ${data.snapshots_created || 0} snapshots` });
+      queryClient.invalidateQueries({ queryKey: ["analytics_snapshots"] });
+      queryClient.invalidateQueries({ queryKey: ["analytics_keywords"] });
+    }
+  };
 
   const { data: keywords, isLoading: keywordsLoading } = useQuery({
     queryKey: ["analytics_keywords", user?.id],
@@ -118,19 +145,63 @@ const AnalyticsDashboard = () => {
   }
 
   const hasData = (snapshots?.length || 0) + (keywords?.length || 0) + (content?.length || 0) > 0;
+  const noSnapshots = (snapshots?.length || 0) === 0;
 
   if (!hasData) {
+    const notConfigured = !gscStatus?.configured;
+    const notConnected = gscStatus?.configured && !gscStatus?.connected;
     return (
-      <div className="rounded-xl border border-border/40 bg-card/30 backdrop-blur-xl p-8 text-center shadow-md">
-        <p className="text-sm text-muted-foreground">
-          No analytics data yet. Run agents to populate keywords, content, and performance snapshots.
-        </p>
+      <div className="rounded-xl border border-border/40 bg-card/30 backdrop-blur-xl p-8 text-center shadow-md space-y-4">
+        <AlertCircle className="h-8 w-8 text-muted-foreground mx-auto" />
+        {notConfigured ? (
+          <>
+            <p className="text-sm font-semibold text-foreground">Google Search Console not configured</p>
+            <p className="text-xs text-muted-foreground max-w-md mx-auto">
+              Set up GSC credentials in Settings to start tracking real impressions, clicks, and rankings.
+            </p>
+          </>
+        ) : notConnected ? (
+          <>
+            <p className="text-sm font-semibold text-foreground">Connect Google Search Console</p>
+            <p className="text-xs text-muted-foreground max-w-md mx-auto">
+              You're not connected yet. Open Settings → Integrations to link your GSC account.
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="text-sm font-semibold text-foreground">No analytics data yet</p>
+            <p className="text-xs text-muted-foreground max-w-md mx-auto">
+              GSC is connected but you haven't synced. Click below to import your first snapshot.
+            </p>
+            <Button size="sm" onClick={handleSyncGsc} disabled={syncing}>
+              {syncing ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="mr-1.5 h-3.5 w-3.5" />}
+              Sync Now
+            </Button>
+          </>
+        )}
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
+      {/* Sync prompt when connected but no snapshots */}
+      {gscStatus?.connected && noSnapshots && (
+        <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 flex items-center justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <Link2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+            <div>
+              <p className="text-sm font-semibold text-foreground">GSC connected — no snapshots yet</p>
+              <p className="text-xs text-muted-foreground">Sync now to pull rankings, clicks, and impressions into your analytics.</p>
+            </div>
+          </div>
+          <Button size="sm" onClick={handleSyncGsc} disabled={syncing} className="shrink-0">
+            {syncing ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="mr-1.5 h-3.5 w-3.5" />}
+            Sync Now
+          </Button>
+        </div>
+      )}
+
       {/* Summary cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <SummaryCard icon={Eye} label="Total Keywords" value={keywords?.length || 0} />

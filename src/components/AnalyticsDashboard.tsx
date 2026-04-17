@@ -36,6 +36,18 @@ const COLORS = [
 
 const AnalyticsDashboard = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [syncing, setSyncing] = useState(false);
+
+  const { data: gscStatus } = useQuery({
+    queryKey: ["gsc_status", user?.id],
+    enabled: !!user,
+    queryFn: async () => {
+      const { data } = await supabase.functions.invoke("gsc-oauth", { body: { action: "status" } });
+      return data || { configured: false, connected: false };
+    },
+  });
 
   const { data: snapshots, isLoading: snapshotsLoading } = useQuery({
     queryKey: ["analytics_snapshots", user?.id],
@@ -49,6 +61,19 @@ const AnalyticsDashboard = () => {
       return data || [];
     },
   });
+
+  const handleSyncGsc = async () => {
+    setSyncing(true);
+    const { data, error } = await supabase.functions.invoke("gsc-oauth", { body: { action: "sync" } });
+    setSyncing(false);
+    if (error || !data?.success) {
+      toast({ title: "Sync failed", description: error?.message || data?.error, variant: "destructive" });
+    } else {
+      toast({ title: "GSC synced", description: `${data.keywords_created || 0} keywords, ${data.snapshots_created || 0} snapshots` });
+      queryClient.invalidateQueries({ queryKey: ["analytics_snapshots"] });
+      queryClient.invalidateQueries({ queryKey: ["analytics_keywords"] });
+    }
+  };
 
   const { data: keywords, isLoading: keywordsLoading } = useQuery({
     queryKey: ["analytics_keywords", user?.id],

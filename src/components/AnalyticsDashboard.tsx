@@ -185,6 +185,23 @@ const AnalyticsDashboard = () => {
 
   return (
     <div className="space-y-6">
+      {/* Sync prompt when connected but no snapshots */}
+      {gscStatus?.connected && noSnapshots && (
+        <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 flex items-center justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <Link2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+            <div>
+              <p className="text-sm font-semibold text-foreground">GSC connected — no snapshots yet</p>
+              <p className="text-xs text-muted-foreground">Sync now to pull rankings, clicks, and impressions into your analytics.</p>
+            </div>
+          </div>
+          <Button size="sm" onClick={handleSyncGsc} disabled={syncing} className="shrink-0">
+            {syncing ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="mr-1.5 h-3.5 w-3.5" />}
+            Sync Now
+          </Button>
+        </div>
+      )}
+
       {/* Summary cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <SummaryCard icon={Eye} label="Total Keywords" value={keywords?.length || 0} />

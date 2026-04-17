@@ -405,6 +405,15 @@ Title: ${title || keyword}${serpBlock}${contextBlock}${extraKwBlock}${refBlock}$
       }).eq("id", contentItemId).eq("user_id", userId);
     }
 
+    // Mark agent run as completed NOW — article text is ready. Background work
+    // (images + metadata) is best-effort and must not keep the run "running" forever.
+    await supabase.from("agent_runs").update({
+      status: "completed",
+      items_processed: 1,
+      completed_at: new Date().toISOString(),
+      result: { content_length: content.length, content_item_id: contentItemId, brand: brand?.name || null, background_pending: true },
+    }).eq("id", run?.id);
+
     // Background: generate body images, generate SEO metadata, update DB
     const backgroundWork = (async () => {
       let bodyImagesGenerated = 0;
@@ -526,21 +535,18 @@ Title: ${title || keyword}${serpBlock}${contextBlock}${extraKwBlock}${refBlock}$
         }
       }
 
+      // Patch the existing completed run with final background results (best-effort)
       await supabase.from("agent_runs").update({
-        status: "completed",
-        items_processed: 1,
-        completed_at: new Date().toISOString(),
-        result: { content_length: workingContent.length, content_item_id: contentItemId, body_images: bodyImagesGenerated, brand: brand?.name || null },
+        result: { content_length: workingContent.length, content_item_id: contentItemId, body_images: bodyImagesGenerated, brand: brand?.name || null, background_pending: false },
       }).eq("id", run?.id);
-    })();
+    })().catch((bgErr) => {
+      console.error("[content-generate] background error:", bgErr);
+    });
 
     // @ts-ignore — EdgeRuntime is provided by Supabase Edge runtime
     if (typeof EdgeRuntime !== "undefined" && EdgeRuntime.waitUntil) {
       // @ts-ignore
       EdgeRuntime.waitUntil(backgroundWork);
-    } else {
-      // Fallback: don't await, fire-and-forget
-      backgroundWork.catch((e) => console.error("background error:", e));
     }
 
     return new Response(JSON.stringify({ success: true, content, background: true }), {

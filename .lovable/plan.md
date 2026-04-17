@@ -1,37 +1,40 @@
 
-## Plan: Verify & harden SEO metadata background step
+User picked Option 1 from my prior list: aggregate duplicate keyword rows in the "Top Keywords" chart.
 
-### Goal
-Confirm the SEO metadata generation also runs and persists in the background (already working for body images), and add visibility so future runs are easy to verify.
+Scope: only `src/components/AnalyticsDashboard.tsx`, the `keywordRankings` useMemo. Also fix the misleading title since the bar plots impressions, not position.
 
-### Steps
+## Plan: De-duplicate Top Keywords chart
 
-1. **Inspect `content-generate/index.ts`** to confirm:
-   - SEO metadata generation is inside the same `EdgeRuntime.waitUntil` block as body images
-   - It updates `content_items` with `seo_title`, `meta_description`, `slug`, `structured_data`
-   - It logs success/failure clearly (currently silent in logs)
+### Change
+In `src/components/AnalyticsDashboard.tsx`, rewrite the `keywordRankings` memo to group rows by normalized keyword string (lowercased, trimmed), summing `impressions` and averaging `position`. Then sort by total impressions descending and take the top 10.
 
-2. **Add explicit log lines** for the metadata branch:
-   - `"Generating SEO metadata..."`
-   - `"SEO metadata saved: { seo_title, slug }"`
-   - `"SEO metadata failed: <error>"`
-   This makes future verification a one-glance check in edge logs.
+### Pseudocode
+```ts
+const map = new Map<string, { keyword: string; impressions: number; positions: number[] }>();
+for (const k of keywords) {
+  const key = k.keyword.trim().toLowerCase();
+  const entry = map.get(key) ?? { keyword: k.keyword, impressions: 0, positions: [] };
+  entry.impressions += k.impressions ?? 0;
+  if (k.position) entry.positions.push(Number(k.position));
+  map.set(key, entry);
+}
+return [...map.values()]
+  .map(e => ({
+    keyword: e.keyword.length > 30 ? e.keyword.slice(0, 30) + "…" : e.keyword,
+    impressions: e.impressions,
+    position: e.positions.length ? e.positions.reduce((a,b)=>a+b,0) / e.positions.length : 0,
+  }))
+  .sort((a, b) => b.impressions - a.impressions)
+  .slice(0, 10);
+```
 
-3. **Query the most recently generated `content_items` row** for user `pedro.acn@consultant.com` and confirm:
-   - `draft_content` populated
-   - `hero_image_url` populated
-   - body image URLs embedded in markdown
-   - `seo_title`, `meta_description`, `slug` populated
-   - `structured_data` populated
+Also: the parent query currently does `.limit(20)` before dedup, which can drop duplicates of low-impression keywords. Bump the query to `.limit(200)` so aggregation has the full picture, then slice to 10 after grouping.
 
-4. **If any field is missing**, fix the metadata branch (most likely a JSON parse failure or a missing `await` inside `waitUntil`).
+### Bonus fix
+Rename the chart title from "Top Keywords by Position" to **"Top Keywords by Impressions"** — it actually plots impressions, so the current label is misleading.
 
-5. **Optional UI hint**: in `ContentPipeline` / `ContentDetail`, show a small "Finalising images & metadata…" badge while these background fields are still null, so users know the article is still being completed after first appearance.
+### File touched
+- `src/components/AnalyticsDashboard.tsx` (one query limit + one memo + one title string)
 
-### Files involved
-- `supabase/functions/content-generate/index.ts`
-- `src/components/ContentPipeline.tsx`
-- `src/components/ContentDetail.tsx`
-
-### Expected outcome
-End-to-end run produces, in order: article text within seconds → body images within ~30s → SEO metadata within ~30s, all visible in logs and in the `content_items` row, with a clear UI indicator while background work is still in flight.
+### Expected result
+Each keyword appears exactly once in the bar chart, with its bar showing total impressions across all its tracked instances. Chart title accurately reflects what's plotted.

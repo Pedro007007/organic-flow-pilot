@@ -894,7 +894,7 @@ IMPORTANT: Improve only ${typedDimension}. Keep every other AEO strength intact.
 
 Here is the full article to improve:
 
-${content.length > 12000 ? content.slice(0, 12000) : content}`,
+${content.length > 14000 ? content.slice(0, 14000) : content}`,
           },
         ],
       });
@@ -920,6 +920,15 @@ ${content.length > 12000 ? content.slice(0, 12000) : content}`,
           approvedContent = candidate;
           approvedAnalysis = candidateAnalysis;
         }
+      } else if (
+        typedDimension === "conciseness" &&
+        candidateAssessment.targetScore >= baselineTargetScore &&
+        candidateAssessment.regressions.length === 0
+      ) {
+        // For conciseness: accept even lateral moves if no regressions
+        // (the AI likely shortened prose even if the score didn't budge)
+        approvedContent = candidate;
+        approvedAnalysis = candidateAnalysis;
       }
     }
 

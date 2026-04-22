@@ -543,7 +543,7 @@ serve(async (req) => {
         before: baselineScores,
         after: baselineScores,
         overall_score: baselineOverallScore,
-        recommendations: freshAnalysis.recommendations,
+        recommendations: freshAnalysis?.recommendations || [],
       });
     }
 

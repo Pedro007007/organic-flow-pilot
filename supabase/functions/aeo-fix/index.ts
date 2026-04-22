@@ -490,13 +490,6 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");
 
-    const freshAnalysis = await analyzeAeoContent(
-      LOVABLE_API_KEY,
-      content,
-      item.schema_types || [],
-    );
-    const freshScores = toScores(freshAnalysis);
-
     const { data: existingScore } = await supabase
       .from("aeo_scores")
       .select("id, scores")
@@ -504,35 +497,38 @@ serve(async (req) => {
       .eq("user_id", user.id)
       .maybeSingle();
 
-    // Use the MAX of stored scores and fresh analysis per dimension to protect
-    // against AI non-determinism causing phantom regressions.
     const storedScores =
       existingScore?.scores && typeof existingScore.scores === "object"
         ? (existingScore.scores as Record<string, unknown>)
         : null;
 
-    const baselineScores: ScoreMap = {
-      faq_coverage: Math.max(
-        freshScores.faq_coverage,
-        normalizeScore(storedScores?.faq_coverage ?? 0),
-      ),
-      answer_blocks: Math.max(
-        freshScores.answer_blocks,
-        normalizeScore(storedScores?.answer_blocks ?? 0),
-      ),
-      entity_clarity: Math.max(
-        freshScores.entity_clarity,
-        normalizeScore(storedScores?.entity_clarity ?? 0),
-      ),
-      schema_richness: Math.max(
-        freshScores.schema_richness,
-        normalizeScore(storedScores?.schema_richness ?? 0),
-      ),
-      conciseness: Math.max(
-        freshScores.conciseness,
-        normalizeScore(storedScores?.conciseness ?? 0),
-      ),
-    };
+    // Skip expensive fresh analysis if we have stored scores — saves ~15-20s
+    let freshAnalysis: AeoAnalysis | null = null;
+    let baselineScores: ScoreMap;
+
+    if (storedScores && AEO_DIMENSIONS.every(d => normalizeScore(storedScores[d] ?? 0) > 0)) {
+      baselineScores = {
+        faq_coverage: normalizeScore(storedScores.faq_coverage ?? 0),
+        answer_blocks: normalizeScore(storedScores.answer_blocks ?? 0),
+        entity_clarity: normalizeScore(storedScores.entity_clarity ?? 0),
+        schema_richness: normalizeScore(storedScores.schema_richness ?? 0),
+        conciseness: normalizeScore(storedScores.conciseness ?? 0),
+      };
+    } else {
+      freshAnalysis = await analyzeAeoContent(
+        LOVABLE_API_KEY,
+        content,
+        item.schema_types || [],
+      );
+      const freshScores = toScores(freshAnalysis);
+      baselineScores = {
+        faq_coverage: Math.max(freshScores.faq_coverage, normalizeScore(storedScores?.faq_coverage ?? 0)),
+        answer_blocks: Math.max(freshScores.answer_blocks, normalizeScore(storedScores?.answer_blocks ?? 0)),
+        entity_clarity: Math.max(freshScores.entity_clarity, normalizeScore(storedScores?.entity_clarity ?? 0)),
+        schema_richness: Math.max(freshScores.schema_richness, normalizeScore(storedScores?.schema_richness ?? 0)),
+        conciseness: Math.max(freshScores.conciseness, normalizeScore(storedScores?.conciseness ?? 0)),
+      };
+    }
 
     const baselineTargetScore = baselineScores[typedDimension];
     const baselineOverallScore = getOverallScore(baselineScores);

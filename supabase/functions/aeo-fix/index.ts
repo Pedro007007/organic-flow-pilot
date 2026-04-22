@@ -851,10 +851,8 @@ GENERAL RULES:
     }
 
     if (typedDimension === "conciseness" && !approvedContent) {
-      const deterministic = buildConcisenessCandidate(
+      const deterministic = aggressiveConcisenessRewrite(
         content,
-        item.title,
-        item.keyword,
       );
 
       if (deterministic.changed) {
@@ -869,8 +867,14 @@ GENERAL RULES:
         ) {
           approvedContent = deterministic.content;
           approvedAnalysis = analysis;
-        } else if (assessment.targetGain > 0 && isBetterCandidate(assessment, bestCandidate)) {
-          bestCandidate = assessment;
+        } else if (assessment.targetGain > 0) {
+          // For conciseness (15% weight), accept even with minor regressions
+          if (assessment.totalRegression <= 15 && assessment.overallScore >= baselineOverallScore - 5) {
+            approvedContent = deterministic.content;
+            approvedAnalysis = analysis;
+          } else if (isBetterCandidate(assessment, bestCandidate)) {
+            bestCandidate = assessment;
+          }
         }
       }
     }

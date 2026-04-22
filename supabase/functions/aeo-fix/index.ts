@@ -571,7 +571,7 @@ GENERAL RULES:
     let bestCandidate: CandidateAssessment | null = null;
     let retryFeedback = "";
 
-    for (let attempt = 1; attempt <= 3; attempt++) {
+    for (let attempt = 1; attempt <= 2; attempt++) {
       const rewriteResponse = await callLovableChat(LOVABLE_API_KEY, {
         model: "google/gemini-3-flash-preview",
         max_tokens: REWRITE_MAX_TOKENS,

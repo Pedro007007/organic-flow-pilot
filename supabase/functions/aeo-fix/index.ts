@@ -305,7 +305,7 @@ async function analyzeAeoContent(
 ): Promise<AeoAnalysis> {
   const analysisWindow = getAeoAnalysisWindow(content);
   const aiResponse = await callLovableChat(apiKey, {
-    model: "google/gemini-3-flash-preview",
+    model: "google/gemini-2.5-flash-lite",
     max_tokens: 2500,
     messages: [
       {

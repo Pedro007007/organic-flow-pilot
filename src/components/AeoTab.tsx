@@ -143,13 +143,15 @@ const AeoTab = ({ contentId, hasContent, onContentUpdated }: AeoTabProps) => {
               ? "This section already meets the target score."
               : res.data?.message || "No safe improvement was found, so the content was not changed.",
         });
-        return;
+        return "skipped" as const;
       }
 
       toast({ title: `${label} improved`, description: "Protected scores updated without a second re-score." });
       onContentUpdated?.();
+      return "fixed" as const;
     } catch (err: any) {
       toast({ title: `${label} fix failed`, description: err.message, variant: "destructive" });
+      return "failed" as const;
     } finally {
       setFixingDim(null);
     }
@@ -162,10 +164,32 @@ const AeoTab = ({ contentId, hasContent, onContentUpdated }: AeoTabProps) => {
       toast({ title: "All dimensions above threshold", description: "Nothing to fix!" });
       return;
     }
+    let fixed = 0;
+    let skipped = 0;
+    let failed = 0;
+
     for (const dim of lowDims) {
-      await handleFixDimension(dim.key, dim.label);
+      const result = await handleFixDimension(dim.key, dim.label);
+      if (result === "fixed") fixed += 1;
+      else if (result === "skipped") skipped += 1;
+      else failed += 1;
     }
-    toast({ title: "All fixes applied", description: "Protected scores were kept without a second re-score." });
+
+    if (fixed > 0) {
+      toast({
+        title: "AEO fixes completed",
+        description: `${fixed} updated${skipped ? `, ${skipped} unchanged` : ""}${failed ? `, ${failed} failed` : ""}.`,
+      });
+      return;
+    }
+
+    toast({
+      title: failed > 0 ? "AEO fixes failed" : "No AEO changes applied",
+      description: failed > 0
+        ? `${failed} fix${failed > 1 ? "es" : ""} failed${skipped ? ` and ${skipped} remained unchanged` : ""}.`
+        : "The requested fixes were checked, but nothing safe was changed.",
+      variant: failed > 0 ? "destructive" : undefined,
+    });
   };
 
   const lowCount = score ? dimensions.filter((d) => (score.scores[d.key] || 0) < THRESHOLD).length : 0;

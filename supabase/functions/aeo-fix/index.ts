@@ -672,6 +672,44 @@ serve(async (req) => {
       });
     }
 
+    const baseSchemaTypes = normalizeSchemaTypes(item.schema_types || []);
+    const evaluateCandidate = async (
+      candidateContent: string,
+      candidateSchemaTypes: string[] = baseSchemaTypes,
+    ) => {
+      const candidateAnalysis = await analyzeAeoContent(
+        LOVABLE_API_KEY,
+        candidateContent,
+        candidateSchemaTypes,
+      );
+      const candidateScores = toScores(candidateAnalysis);
+      const candidateTargetScore = candidateScores[typedDimension];
+      const candidateOverallScore = getOverallScore(candidateScores);
+      const regressions = getRegressions(
+        baselineScores,
+        candidateScores,
+        typedDimension,
+      );
+
+      return {
+        analysis: candidateAnalysis,
+        assessment: {
+          content: candidateContent,
+          analysis: candidateAnalysis,
+          scores: candidateScores,
+          targetScore: candidateTargetScore,
+          targetGain: candidateTargetScore - baselineTargetScore,
+          overallScore: candidateOverallScore,
+          regressions,
+          totalRegression: getTotalRegression(
+            baselineScores,
+            candidateScores,
+            typedDimension,
+          ),
+        } satisfies CandidateAssessment,
+      };
+    };
+
     const systemPrompt =
       `You are a Senior AEO (Answer Engine Optimization) Specialist. Your job is to rewrite content to score higher on a specific AEO dimension while strictly preserving ALL other AEO optimizations already present.
 
@@ -693,11 +731,64 @@ GENERAL RULES:
 
     let approvedContent: string | null = null;
     let approvedAnalysis: AeoAnalysis | null = null;
+    let approvedSchemaTypes = baseSchemaTypes;
     let bestCandidate: CandidateAssessment | null = null;
     let retryFeedback = "";
 
+    if (typedDimension === "schema_richness") {
+      const deterministic = buildSchemaRichnessCandidate(
+        content,
+        item.title,
+        item.keyword,
+        item.schema_types || [],
+      );
+
+      if (deterministic.changed) {
+        const { analysis, assessment } = await evaluateCandidate(
+          deterministic.content,
+          deterministic.schemaTypes,
+        );
+
+        if (
+          assessment.regressions.length === 0 ||
+          isAcceptableFallback(assessment, baselineOverallScore)
+        ) {
+          approvedContent = deterministic.content;
+          approvedAnalysis = analysis;
+          approvedSchemaTypes = deterministic.schemaTypes;
+        } else if (assessment.targetGain > 0 && isBetterCandidate(assessment, bestCandidate)) {
+          bestCandidate = assessment;
+        }
+      }
+    }
+
+    if (typedDimension === "conciseness" && !approvedContent) {
+      const deterministic = buildConcisenessCandidate(
+        content,
+        item.title,
+        item.keyword,
+      );
+
+      if (deterministic.changed) {
+        const { analysis, assessment } = await evaluateCandidate(
+          deterministic.content,
+          baseSchemaTypes,
+        );
+
+        if (
+          assessment.regressions.length === 0 ||
+          isAcceptableFallback(assessment, baselineOverallScore)
+        ) {
+          approvedContent = deterministic.content;
+          approvedAnalysis = analysis;
+        } else if (assessment.targetGain > 0 && isBetterCandidate(assessment, bestCandidate)) {
+          bestCandidate = assessment;
+        }
+      }
+    }
+
     // Single attempt to stay within 150s timeout
-    {
+    if (!approvedContent || !approvedAnalysis) {
       const rewriteResponse = await callLovableChat(LOVABLE_API_KEY, {
         model: "google/gemini-2.5-flash",
         max_tokens: REWRITE_MAX_TOKENS,
@@ -724,41 +815,16 @@ ${content.length > 12000 ? content.slice(0, 12000) : content}`,
         throw new Error("No improved content returned");
       }
 
-      const candidateAnalysis = await analyzeAeoContent(
-        LOVABLE_API_KEY,
+      const { analysis: candidateAnalysis, assessment: candidateAssessment } = await evaluateCandidate(
         candidate,
-        item.schema_types || [],
+        baseSchemaTypes,
       );
-      const candidateScores = toScores(candidateAnalysis);
-      const candidateTargetScore = candidateScores[typedDimension];
-      const candidateOverallScore = getOverallScore(candidateScores);
-      const regressions = getRegressions(
-        baselineScores,
-        candidateScores,
-        typedDimension,
-      );
-      const targetGain = candidateTargetScore - baselineTargetScore;
-      const targetImproved = targetGain > 0;
+      const targetImproved = candidateAssessment.targetGain > 0;
 
       if (targetImproved) {
-        const candidateAssessment: CandidateAssessment = {
-          content: candidate,
-          analysis: candidateAnalysis,
-          scores: candidateScores,
-          targetScore: candidateTargetScore,
-          targetGain,
-          overallScore: candidateOverallScore,
-          regressions,
-          totalRegression: getTotalRegression(
-            baselineScores,
-            candidateScores,
-            typedDimension,
-          ),
-        };
-
         bestCandidate = candidateAssessment;
 
-        if (regressions.length === 0) {
+        if (candidateAssessment.regressions.length === 0) {
           approvedContent = candidate;
           approvedAnalysis = candidateAnalysis;
         }
@@ -821,6 +887,7 @@ ${content.length > 12000 ? content.slice(0, 12000) : content}`,
       .from("content_items")
       .update({
         draft_content: approvedContent,
+        schema_types: approvedSchemaTypes,
         seo_score: finalOverallScore,
         updated_at: contentUpdateTimestamp,
       })

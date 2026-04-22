@@ -235,9 +235,9 @@ const isAcceptableFallback = (
   if (candidate.overallScore >= baselineOverallScore) return true;
 
   return (
-    candidate.regressions.length <= 1 &&
-    candidate.totalRegression <= 4 &&
-    candidate.overallScore >= baselineOverallScore - 1
+    candidate.regressions.length <= 2 &&
+    candidate.totalRegression <= 10 &&
+    candidate.overallScore >= baselineOverallScore - 3
   );
 };
 
@@ -252,8 +252,8 @@ const getRegressions = (
     const beforeScore = before[key];
     const afterScore = after[key];
     const drop = beforeScore - afterScore;
-    const crossedHealthyThreshold = beforeScore >= 80 && afterScore < 80;
-    const majorDrop = drop >= 8;
+    const crossedHealthyThreshold = beforeScore >= 80 && afterScore < 75;
+    const majorDrop = drop >= 15;
 
     if (!crossedHealthyThreshold && !majorDrop) return [];
 

@@ -926,7 +926,11 @@ ${content.length > 12000 ? content.slice(0, 12000) : content}`,
     if (!approvedContent || !approvedAnalysis) {
       if (
         bestCandidate &&
-        isAcceptableFallback(bestCandidate, baselineOverallScore)
+        (isAcceptableFallback(bestCandidate, baselineOverallScore) ||
+          (typedDimension === "conciseness" &&
+            bestCandidate.targetGain > 0 &&
+            bestCandidate.totalRegression <= 15 &&
+            bestCandidate.overallScore >= baselineOverallScore - 5))
       ) {
         approvedContent = bestCandidate.content;
         approvedAnalysis = bestCandidate.analysis;

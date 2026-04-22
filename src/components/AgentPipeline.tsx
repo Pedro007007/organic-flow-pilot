@@ -152,8 +152,8 @@ const AgentPipeline = ({ agents }: AgentPipelineProps) => {
             <Target className="h-3.5 w-3.5 text-primary" />
             <p className="text-[11px] font-semibold text-foreground uppercase tracking-wide">Run target</p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 items-end">
+            <div className="space-y-1">
               <label className="text-[10px] text-muted-foreground">Keyword (for Strategy / SERP)</label>
               <Select value={targetKeywordId} onValueChange={setTargetKeywordId}>
                 <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>
@@ -165,7 +165,7 @@ const AgentPipeline = ({ agents }: AgentPipelineProps) => {
                 </SelectContent>
               </Select>
             </div>
-            <div>
+            <div className="space-y-1">
               <label className="text-[10px] text-muted-foreground">Article (for Generate / SEO / Publish)</label>
               <Select value={targetContentId} onValueChange={setTargetContentId}>
                 <SelectTrigger className="h-8 text-xs"><SelectValue /></SelectTrigger>

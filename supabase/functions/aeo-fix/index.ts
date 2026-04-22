@@ -110,6 +110,131 @@ const stripMarkdownFence = (value: string) =>
 
 const FAQ_SECTION_PATTERN =
   /(^|\n)##\s+(frequently asked questions|faq|common questions)\b[\s\S]*$/im;
+const HOW_TO_SECTION_PATTERN = /(^|\n)##\s+how to\b/im;
+
+function getTopicLabel(title?: string | null, keyword?: string | null) {
+  const source = (title || keyword || "this topic")
+    .replace(/[|:–—].*$/, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return source.split(" ").slice(0, 6).join(" ") || "this topic";
+}
+
+function normalizeSchemaTypes(
+  schemaTypes: string[] | null | undefined,
+  extraTypes: string[] = [],
+) {
+  const normalized = new Set(
+    (schemaTypes || []).map((value) => value.trim()).filter(Boolean),
+  );
+
+  for (const type of extraTypes) {
+    if (type?.trim()) normalized.add(type.trim());
+  }
+
+  return Array.from(normalized);
+}
+
+function buildSchemaRichnessCandidate(
+  content: string,
+  title?: string | null,
+  keyword?: string | null,
+  schemaTypes?: string[] | null,
+) {
+  const topic = getTopicLabel(title, keyword);
+  let updated = content.trim();
+  let changed = false;
+
+  if (!HOW_TO_SECTION_PATTERN.test(updated)) {
+    const calculatorMode = /calculator|estimate|roi|pricing|cost|savings/i.test(
+      `${title || ""} ${keyword || ""}`,
+    );
+    const howToSection = calculatorMode
+      ? `## How to Use This Calculator\n\n1. Gather your current usage, costs, and local assumptions before comparing outcomes.\n2. Enter realistic figures for system size, tariffs, incentives, or operating costs.\n3. Compare best-case, expected, and conservative scenarios before deciding.\n4. Use the FAQ below to validate edge cases, limits, and next steps.`
+      : `## How to Apply This Guidance\n\n1. Define the goal, baseline, and constraints for ${topic}.\n2. Collect the main inputs, benchmarks, or assumptions referenced above.\n3. Compare options using the decision criteria already covered in this guide.\n4. Review the FAQ section before acting on the recommendation.`;
+
+    updated = `${updated}\n\n${howToSection}`;
+    changed = true;
+  }
+
+  if (!FAQ_SECTION_PATTERN.test(updated)) {
+    const faqSection = `## Frequently Asked Questions\n\n### What does ${topic} help you evaluate?\n\nIt helps you compare the main inputs, constraints, and likely outcomes so you can make a faster, evidence-based decision.\n\n### Which inputs matter most?\n\nThe biggest drivers are your current baseline, local conditions, costs, expected performance, and timeframe.\n\n### How accurate are the results?\n\nThe result is only as strong as the assumptions you enter, so use current prices, realistic usage, and conservative estimates.\n\n### Should I compare multiple scenarios?\n\nYes. Review best-case, expected, and cautious scenarios to understand risk before making a decision.\n\n### What should I do after using this guide?\n\nValidate the assumptions, confirm any local constraints, and then choose the option with the strongest practical return.`;
+
+    updated = `${updated}\n\n${faqSection}`;
+    changed = true;
+  }
+
+  return {
+    changed,
+    content: updated,
+    schemaTypes: normalizeSchemaTypes(schemaTypes, ["Article", "FAQPage", "HowTo"]),
+  };
+}
+
+function splitLongParagraphs(content: string) {
+  let changed = 0;
+  const updated = content
+    .split(/\n\n/)
+    .map((block) => {
+      const trimmed = block.trim();
+      if (
+        changed >= 8 ||
+        !trimmed ||
+        trimmed.startsWith("#") ||
+        trimmed.startsWith("!") ||
+        trimmed.startsWith("-") ||
+        trimmed.startsWith(">") ||
+        /^\d+\.\s/m.test(trimmed) ||
+        trimmed.length < 320
+      ) {
+        return block;
+      }
+
+      const sentences =
+        trimmed.match(/[^.!?]+[.!?]+(?:\s+|$)|[^.!?]+$/g)?.map((part) => part.trim()).filter(Boolean) || [];
+
+      if (sentences.length < 3) return block;
+
+      let splitIndex = Math.ceil(sentences.length / 2);
+      while (splitIndex > 1 && sentences.slice(0, splitIndex).join(" ").length > 260) {
+        splitIndex -= 1;
+      }
+
+      if (splitIndex <= 0 || splitIndex >= sentences.length) return block;
+
+      changed += 1;
+      return `${sentences.slice(0, splitIndex).join(" ")}\n\n${sentences.slice(splitIndex).join(" ")}`;
+    })
+    .join("\n\n");
+
+  return { changed, content: updated };
+}
+
+function buildConcisenessCandidate(
+  content: string,
+  title?: string | null,
+  keyword?: string | null,
+) {
+  const topic = getTopicLabel(title, keyword);
+  let updated = content.trim();
+  let changed = false;
+
+  const openingMatch = updated.match(/^(#\s+.+\n\n)([^\n#][\s\S]*?)(\n\n)/);
+  if (openingMatch && openingMatch[2].trim().length > 220) {
+    const directLead = `${topic} is best evaluated with clear inputs, short answers, and side-by-side assumptions.`;
+    updated = `${openingMatch[1]}${directLead}\n\n${openingMatch[2].trim()}${openingMatch[3]}${updated.slice(openingMatch[0].length)}`;
+    changed = true;
+  }
+
+  const splitResult = splitLongParagraphs(updated);
+  if (splitResult.changed > 0) {
+    updated = splitResult.content;
+    changed = true;
+  }
+
+  return { changed, content: updated };
+}
 
 function getAeoAnalysisWindow(content: string) {
   const normalized = content.trim();
@@ -547,6 +672,44 @@ serve(async (req) => {
       });
     }
 
+    const baseSchemaTypes = normalizeSchemaTypes(item.schema_types || []);
+    const evaluateCandidate = async (
+      candidateContent: string,
+      candidateSchemaTypes: string[] = baseSchemaTypes,
+    ) => {
+      const candidateAnalysis = await analyzeAeoContent(
+        LOVABLE_API_KEY,
+        candidateContent,
+        candidateSchemaTypes,
+      );
+      const candidateScores = toScores(candidateAnalysis);
+      const candidateTargetScore = candidateScores[typedDimension];
+      const candidateOverallScore = getOverallScore(candidateScores);
+      const regressions = getRegressions(
+        baselineScores,
+        candidateScores,
+        typedDimension,
+      );
+
+      return {
+        analysis: candidateAnalysis,
+        assessment: {
+          content: candidateContent,
+          analysis: candidateAnalysis,
+          scores: candidateScores,
+          targetScore: candidateTargetScore,
+          targetGain: candidateTargetScore - baselineTargetScore,
+          overallScore: candidateOverallScore,
+          regressions,
+          totalRegression: getTotalRegression(
+            baselineScores,
+            candidateScores,
+            typedDimension,
+          ),
+        } satisfies CandidateAssessment,
+      };
+    };
+
     const systemPrompt =
       `You are a Senior AEO (Answer Engine Optimization) Specialist. Your job is to rewrite content to score higher on a specific AEO dimension while strictly preserving ALL other AEO optimizations already present.
 
@@ -568,11 +731,64 @@ GENERAL RULES:
 
     let approvedContent: string | null = null;
     let approvedAnalysis: AeoAnalysis | null = null;
+    let approvedSchemaTypes = baseSchemaTypes;
     let bestCandidate: CandidateAssessment | null = null;
     let retryFeedback = "";
 
+    if (typedDimension === "schema_richness") {
+      const deterministic = buildSchemaRichnessCandidate(
+        content,
+        item.title,
+        item.keyword,
+        item.schema_types || [],
+      );
+
+      if (deterministic.changed) {
+        const { analysis, assessment } = await evaluateCandidate(
+          deterministic.content,
+          deterministic.schemaTypes,
+        );
+
+        if (
+          assessment.regressions.length === 0 ||
+          isAcceptableFallback(assessment, baselineOverallScore)
+        ) {
+          approvedContent = deterministic.content;
+          approvedAnalysis = analysis;
+          approvedSchemaTypes = deterministic.schemaTypes;
+        } else if (assessment.targetGain > 0 && isBetterCandidate(assessment, bestCandidate)) {
+          bestCandidate = assessment;
+        }
+      }
+    }
+
+    if (typedDimension === "conciseness" && !approvedContent) {
+      const deterministic = buildConcisenessCandidate(
+        content,
+        item.title,
+        item.keyword,
+      );
+
+      if (deterministic.changed) {
+        const { analysis, assessment } = await evaluateCandidate(
+          deterministic.content,
+          baseSchemaTypes,
+        );
+
+        if (
+          assessment.regressions.length === 0 ||
+          isAcceptableFallback(assessment, baselineOverallScore)
+        ) {
+          approvedContent = deterministic.content;
+          approvedAnalysis = analysis;
+        } else if (assessment.targetGain > 0 && isBetterCandidate(assessment, bestCandidate)) {
+          bestCandidate = assessment;
+        }
+      }
+    }
+
     // Single attempt to stay within 150s timeout
-    {
+    if (!approvedContent || !approvedAnalysis) {
       const rewriteResponse = await callLovableChat(LOVABLE_API_KEY, {
         model: "google/gemini-2.5-flash",
         max_tokens: REWRITE_MAX_TOKENS,
@@ -599,41 +815,16 @@ ${content.length > 12000 ? content.slice(0, 12000) : content}`,
         throw new Error("No improved content returned");
       }
 
-      const candidateAnalysis = await analyzeAeoContent(
-        LOVABLE_API_KEY,
+      const { analysis: candidateAnalysis, assessment: candidateAssessment } = await evaluateCandidate(
         candidate,
-        item.schema_types || [],
+        baseSchemaTypes,
       );
-      const candidateScores = toScores(candidateAnalysis);
-      const candidateTargetScore = candidateScores[typedDimension];
-      const candidateOverallScore = getOverallScore(candidateScores);
-      const regressions = getRegressions(
-        baselineScores,
-        candidateScores,
-        typedDimension,
-      );
-      const targetGain = candidateTargetScore - baselineTargetScore;
-      const targetImproved = targetGain > 0;
+      const targetImproved = candidateAssessment.targetGain > 0;
 
       if (targetImproved) {
-        const candidateAssessment: CandidateAssessment = {
-          content: candidate,
-          analysis: candidateAnalysis,
-          scores: candidateScores,
-          targetScore: candidateTargetScore,
-          targetGain,
-          overallScore: candidateOverallScore,
-          regressions,
-          totalRegression: getTotalRegression(
-            baselineScores,
-            candidateScores,
-            typedDimension,
-          ),
-        };
-
         bestCandidate = candidateAssessment;
 
-        if (regressions.length === 0) {
+        if (candidateAssessment.regressions.length === 0) {
           approvedContent = candidate;
           approvedAnalysis = candidateAnalysis;
         }
@@ -696,6 +887,7 @@ ${content.length > 12000 ? content.slice(0, 12000) : content}`,
       .from("content_items")
       .update({
         draft_content: approvedContent,
+        schema_types: approvedSchemaTypes,
         seo_score: finalOverallScore,
         updated_at: contentUpdateTimestamp,
       })

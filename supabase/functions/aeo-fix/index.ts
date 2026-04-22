@@ -571,7 +571,8 @@ GENERAL RULES:
     let bestCandidate: CandidateAssessment | null = null;
     let retryFeedback = "";
 
-    for (let attempt = 1; attempt <= 2; attempt++) {
+    // Single attempt to stay within 150s timeout
+    {
       const rewriteResponse = await callLovableChat(LOVABLE_API_KEY, {
         model: "google/gemini-2.5-flash",
         max_tokens: REWRITE_MAX_TOKENS,
@@ -581,20 +582,11 @@ GENERAL RULES:
             role: "user",
             content: `${dimPrompt}
 
-IMPORTANT: Improve only ${typedDimension}. Keep every other AEO strength intact.${
-              retryFeedback
-                ? `
-
-Your previous attempt failed validation for these reasons:
-${retryFeedback}
-
-Fix those issues this time.`
-                : ""
-            }
+IMPORTANT: Improve only ${typedDimension}. Keep every other AEO strength intact.
 
 Here is the full article to improve:
 
-${content}`,
+${content.length > 12000 ? content.slice(0, 12000) : content}`,
           },
         ],
       });
@@ -639,28 +631,13 @@ ${content}`,
           ),
         };
 
-        if (isBetterCandidate(candidateAssessment, bestCandidate)) {
-          bestCandidate = candidateAssessment;
+        bestCandidate = candidateAssessment;
+
+        if (regressions.length === 0) {
+          approvedContent = candidate;
+          approvedAnalysis = candidateAnalysis;
         }
       }
-
-      if (targetImproved && regressions.length === 0) {
-        approvedContent = candidate;
-        approvedAnalysis = candidateAnalysis;
-        break;
-      }
-
-      const feedbackLines = [
-        !targetImproved
-          ? `- ${typedDimension} did not improve enough (${baselineTargetScore} → ${candidateTargetScore}).`
-          : null,
-        ...regressions.map(
-          ({ dimension: regressedDimension, before, after }) =>
-            `- ${regressedDimension} regressed (${before} → ${after}). Preserve that structure/content while improving only ${typedDimension}.`,
-        ),
-      ].filter(Boolean);
-
-      retryFeedback = feedbackLines.join("\n");
     }
 
     if (!approvedContent || !approvedAnalysis) {

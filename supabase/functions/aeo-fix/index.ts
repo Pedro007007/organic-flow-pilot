@@ -280,7 +280,7 @@ async function callLovableChat(apiKey: string, body: Record<string, unknown>) {
     if (aiResponse.ok) return aiResponse;
 
     if (aiResponse.status === 429 || aiResponse.status >= 500) {
-      await wait(3000 * Math.pow(2, attempt));
+      await wait(2000 * Math.pow(2, attempt));
       continue;
     }
 

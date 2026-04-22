@@ -264,7 +264,7 @@ const getRegressions = (
 async function callLovableChat(apiKey: string, body: Record<string, unknown>) {
   let aiResponse: Response | null = null;
 
-  for (let attempt = 0; attempt < 5; attempt++) {
+  for (let attempt = 0; attempt < 3; attempt++) {
     aiResponse = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",
       {

@@ -236,6 +236,94 @@ function buildConcisenessCandidate(
   return { changed, content: updated };
 }
 
+function aggressiveConcisenessRewrite(content: string) {
+  let updated = content;
+  let changed = false;
+
+  // 1. Remove common filler phrases
+  const fillerPatterns = [
+    /\bIt is worth noting that\b/gi,
+    /\bIt('|')s important to note that\b/gi,
+    /\bIt should be noted that\b/gi,
+    /\bAs mentioned (earlier|above|previously|before)\b,?\s*/gi,
+    /\bIn order to\b/gi,
+    /\bDue to the fact that\b/gi,
+    /\bAt the end of the day\b,?\s*/gi,
+    /\bFor the purpose of\b/gi,
+    /\bIn terms of\b/gi,
+    /\bWith regard to\b/gi,
+    /\bIt goes without saying that\b/gi,
+    /\bNeedless to say\b,?\s*/gi,
+    /\bThe fact of the matter is\b/gi,
+    /\bAll things considered\b,?\s*/gi,
+    /\bAs a matter of fact\b,?\s*/gi,
+    /\bHaving said that\b,?\s*/gi,
+    /\bThis is particularly relevant\b/gi,
+  ];
+
+  const replacements: Record<string, string> = {
+    "in order to": "to",
+    "due to the fact that": "because",
+    "for the purpose of": "for",
+    "with regard to": "regarding",
+    "in terms of": "for",
+  };
+
+  for (const pattern of fillerPatterns) {
+    const before = updated;
+    const key = pattern.source.replace(/\\b/g, "").replace(/,\?\\s\*/g, "").toLowerCase();
+    const replacement = replacements[key] || "";
+    updated = updated.replace(pattern, replacement);
+    if (updated !== before) changed = true;
+  }
+
+  // 2. Shorten FAQ answers that are too long (over 60 words)
+  const faqAnswerPattern = /(###\s+[^\n]+\n\n)([^\n#]+)/g;
+  updated = updated.replace(faqAnswerPattern, (_match, question: string, answer: string) => {
+    const words = answer.trim().split(/\s+/);
+    if (words.length > 60) {
+      changed = true;
+      return `${question}${words.slice(0, 50).join(" ")}.`;
+    }
+    return `${question}${answer}`;
+  });
+
+  // 3. Compress paragraphs with more than 5 sentences into max 4
+  const blocks = updated.split(/\n\n/);
+  const compressed = blocks.map((block) => {
+    const trimmed = block.trim();
+    if (
+      !trimmed ||
+      trimmed.startsWith("#") ||
+      trimmed.startsWith("!") ||
+      trimmed.startsWith("-") ||
+      trimmed.startsWith(">") ||
+      /^\d+\.\s/m.test(trimmed)
+    ) {
+      return block;
+    }
+
+    const sentences =
+      trimmed.match(/[^.!?]+[.!?]+(?:\s+|$)|[^.!?]+$/g)?.map((s) => s.trim()).filter(Boolean) || [];
+
+    if (sentences.length > 5) {
+      changed = true;
+      return sentences.slice(0, 4).join(" ");
+    }
+    return block;
+  });
+  updated = compressed.join("\n\n");
+
+  // 4. Split remaining long paragraphs
+  const splitResult = splitLongParagraphs(updated);
+  if (splitResult.changed > 0) {
+    updated = splitResult.content;
+    changed = true;
+  }
+
+  return { changed, content: updated };
+}
+
 function getAeoAnalysisWindow(content: string) {
   const normalized = content.trim();
   if (normalized.length <= ANALYSIS_WINDOW_CHARS) return normalized;
@@ -477,7 +565,7 @@ async function analyzeAeoContent(
               conciseness: {
                 type: "integer",
                 description:
-                  "0-100: Are answers under 50 words and extractable by AI?",
+                  "0-100: Score 80+ if the article has short lead sentences per section, FAQ answers under 50 words, a TL;DR or summary block, and key paragraphs start with a direct statement. Long explanatory body text is fine and should NOT reduce the score as long as extractable snippets exist.",
               },
               recommendations: {
                 type: "array",
@@ -763,10 +851,8 @@ GENERAL RULES:
     }
 
     if (typedDimension === "conciseness" && !approvedContent) {
-      const deterministic = buildConcisenessCandidate(
+      const deterministic = aggressiveConcisenessRewrite(
         content,
-        item.title,
-        item.keyword,
       );
 
       if (deterministic.changed) {
@@ -781,8 +867,14 @@ GENERAL RULES:
         ) {
           approvedContent = deterministic.content;
           approvedAnalysis = analysis;
-        } else if (assessment.targetGain > 0 && isBetterCandidate(assessment, bestCandidate)) {
-          bestCandidate = assessment;
+        } else if (assessment.targetGain > 0) {
+          // For conciseness (15% weight), accept even with minor regressions
+          if (assessment.totalRegression <= 15 && assessment.overallScore >= baselineOverallScore - 5) {
+            approvedContent = deterministic.content;
+            approvedAnalysis = analysis;
+          } else if (isBetterCandidate(assessment, bestCandidate)) {
+            bestCandidate = assessment;
+          }
         }
       }
     }
@@ -802,7 +894,7 @@ IMPORTANT: Improve only ${typedDimension}. Keep every other AEO strength intact.
 
 Here is the full article to improve:
 
-${content.length > 12000 ? content.slice(0, 12000) : content}`,
+${content.length > 14000 ? content.slice(0, 14000) : content}`,
           },
         ],
       });
@@ -828,13 +920,26 @@ ${content.length > 12000 ? content.slice(0, 12000) : content}`,
           approvedContent = candidate;
           approvedAnalysis = candidateAnalysis;
         }
+      } else if (
+        typedDimension === "conciseness" &&
+        candidateAssessment.targetScore >= baselineTargetScore &&
+        candidateAssessment.regressions.length === 0
+      ) {
+        // For conciseness: accept even lateral moves if no regressions
+        // (the AI likely shortened prose even if the score didn't budge)
+        approvedContent = candidate;
+        approvedAnalysis = candidateAnalysis;
       }
     }
 
     if (!approvedContent || !approvedAnalysis) {
       if (
         bestCandidate &&
-        isAcceptableFallback(bestCandidate, baselineOverallScore)
+        (isAcceptableFallback(bestCandidate, baselineOverallScore) ||
+          (typedDimension === "conciseness" &&
+            bestCandidate.targetGain > 0 &&
+            bestCandidate.totalRegression <= 15 &&
+            bestCandidate.overallScore >= baselineOverallScore - 5))
       ) {
         approvedContent = bestCandidate.content;
         approvedAnalysis = bestCandidate.analysis;

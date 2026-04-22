@@ -565,7 +565,7 @@ async function analyzeAeoContent(
               conciseness: {
                 type: "integer",
                 description:
-                  "0-100: Are answers under 50 words and extractable by AI?",
+                  "0-100: Score 80+ if the article has short lead sentences per section, FAQ answers under 50 words, a TL;DR or summary block, and key paragraphs start with a direct statement. Long explanatory body text is fine and should NOT reduce the score as long as extractable snippets exist.",
               },
               recommendations: {
                 type: "array",

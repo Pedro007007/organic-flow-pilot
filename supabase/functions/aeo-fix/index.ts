@@ -573,7 +573,7 @@ GENERAL RULES:
 
     for (let attempt = 1; attempt <= 2; attempt++) {
       const rewriteResponse = await callLovableChat(LOVABLE_API_KEY, {
-        model: "google/gemini-3-flash-preview",
+        model: "google/gemini-2.5-flash",
         max_tokens: REWRITE_MAX_TOKENS,
         messages: [
           { role: "system", content: systemPrompt },

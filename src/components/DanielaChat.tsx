@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { X, Send, User, Mail, Phone } from "lucide-react";
+import { X, Send, User, Mail, Phone, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ReactMarkdown from "react-markdown";
 import danielaAvatar from "@/assets/daniela-avatar.png";

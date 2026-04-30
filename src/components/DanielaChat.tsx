@@ -267,18 +267,23 @@ const DanielaChat = ({ externalOpen, onExternalOpenHandled }: DanielaChatProps) 
         <button
           onClick={() => setOpen(true)}
           aria-label="Chat with Daniela"
-          className="fixed bottom-6 right-6 z-50 flex items-center gap-4 rounded-full bg-gradient-to-r from-red-600 via-red-500 to-orange-400 pl-2 pr-6 py-2 text-white shadow-2xl shadow-red-500/40 hover:shadow-red-500/60 transition-all duration-300 hover:scale-105 group ring-1 ring-white/20"
+          className="fixed bottom-6 right-6 z-50 flex items-center gap-4 rounded-full bg-gradient-to-r from-red-600 via-red-500 to-orange-400 pl-24 pr-6 py-3 text-white shadow-2xl shadow-red-500/40 hover:shadow-red-500/60 transition-all duration-300 hover:scale-105 group ring-1 ring-white/20"
         >
-          <div className="relative shrink-0">
-            <div className="absolute -inset-1 rounded-full bg-gradient-to-r from-red-500 to-orange-400 opacity-60 blur-md group-hover:opacity-90 transition-opacity" />
-            <img src={danielaAvatar} alt="Daniela" className="relative h-14 w-14 rounded-full object-cover border-2 border-white/50" />
-            <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-400 border-2 border-white animate-pulse" />
+          {/* Avatar — overflows the pill on top-left */}
+          <div className="absolute -left-2 -top-10 pointer-events-none">
+            <div className="absolute inset-2 rounded-full bg-gradient-to-r from-red-500 to-orange-400 opacity-50 blur-xl group-hover:opacity-80 transition-opacity" />
+            <img
+              src={danielaAvatar}
+              alt="Daniela"
+              className="relative h-24 w-24 object-contain object-bottom drop-shadow-[0_8px_16px_rgba(0,0,0,0.35)]"
+            />
+            <span className="absolute bottom-1 right-3 h-3 w-3 rounded-full bg-green-400 border-2 border-white animate-pulse" />
           </div>
-          <div className="flex flex-col items-start leading-tight pr-1">
+          <div className="flex flex-col items-start leading-tight">
             <span className="text-[11px] font-semibold text-white/80 uppercase tracking-wide">Meet Daniela</span>
-            <span className="text-sm font-black text-white">Your Personal SEO Strategist</span>
+            <span className="text-sm font-black text-white whitespace-nowrap">Your Personal SEO Strategist</span>
           </div>
-          <span className="flex items-center gap-1 text-sm font-bold text-white border-l border-white/30 pl-4">
+          <span className="flex items-center gap-1 text-sm font-bold text-white border-l border-white/30 pl-4 whitespace-nowrap">
             Chat <ArrowRight className="h-4 w-4" />
           </span>
         </button>

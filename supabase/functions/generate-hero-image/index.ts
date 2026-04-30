@@ -410,22 +410,32 @@ Ultra high resolution, ${dimensionHint}.${customPrompt ? `\n\nCLIENT CREATIVE DI
       throw new Error("Invalid image data format");
     }
 
-    const imageFormat = base64Match[1];
+    const rawFormat = (base64Match[1] || "png").toLowerCase();
+    // Normalize format: storage MIME validation rejects non-standard subtypes
+    const formatMap: Record<string, { ext: string; mime: string }> = {
+      png: { ext: "png", mime: "image/png" },
+      jpg: { ext: "jpg", mime: "image/jpeg" },
+      jpeg: { ext: "jpg", mime: "image/jpeg" },
+      webp: { ext: "webp", mime: "image/webp" },
+      gif: { ext: "gif", mime: "image/gif" },
+    };
+    const { ext: fileExt, mime: contentType } = formatMap[rawFormat] || formatMap.png;
     const base64Data = base64Match[2];
     const binaryData = Uint8Array.from(atob(base64Data), (c) => c.charCodeAt(0));
 
     const imageSuffix = isBodyImage ? `body-${Date.now()}` : "hero";
-    const fileName = `${userId}/${contentItemId || crypto.randomUUID()}-${imageSuffix}.${imageFormat}`;
+    const fileName = `${userId}/${contentItemId || crypto.randomUUID()}-${imageSuffix}.${fileExt}`;
 
     const { error: uploadError } = await supabaseAdmin.storage
       .from("content-images")
       .upload(fileName, binaryData, {
-        contentType: `image/${imageFormat}`,
+        contentType,
         upsert: true,
+        cacheControl: "3600",
       });
 
     if (uploadError) {
-      console.error("Storage upload error:", uploadError);
+      console.error("Storage upload error:", uploadError, "format:", rawFormat, "size:", binaryData.length);
       throw new Error(`Upload failed: ${uploadError.message}`);
     }
 

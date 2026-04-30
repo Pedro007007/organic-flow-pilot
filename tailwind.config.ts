@@ -108,6 +108,10 @@ export default {
           from: { opacity: "0", transform: "scale(0.92)" },
           to: { opacity: "1", transform: "scale(1)" },
         },
+        "bounce-slow": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-8px)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -117,6 +121,7 @@ export default {
         gradient: "gradient 3s ease infinite",
         "underline-slide": "underline-slide 3s ease-in-out infinite",
         "scale-in": "scale-in 0.3s ease-out",
+        "bounce-slow": "bounce-slow 2.8s ease-in-out infinite",
       },
     },
   },

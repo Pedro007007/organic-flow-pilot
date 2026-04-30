@@ -267,17 +267,17 @@ const DanielaChat = ({ externalOpen, onExternalOpenHandled }: DanielaChatProps) 
         <button
           onClick={() => setOpen(true)}
           aria-label="Chat with Daniela"
-          className="fixed bottom-6 right-6 z-50 flex items-center gap-4 rounded-full bg-gradient-to-r from-red-600 via-red-500 to-orange-400 pl-24 pr-6 py-3 text-white shadow-2xl shadow-red-500/40 hover:shadow-red-500/60 transition-all duration-300 hover:scale-105 group ring-1 ring-white/20"
+          className="fixed bottom-6 right-6 z-50 flex items-center gap-4 rounded-full bg-gradient-to-r from-red-600 via-red-500 to-orange-400 pl-32 pr-6 py-3 text-white shadow-2xl shadow-red-500/40 hover:shadow-red-500/60 transition-all duration-300 hover:scale-105 group ring-1 ring-white/20"
         >
-          {/* Avatar — overflows the pill on top-left */}
-          <div className="absolute -left-2 -top-10 pointer-events-none">
+          {/* Avatar — overflows the pill on top-left, zoomed +30% with slow bounce */}
+          <div className="absolute -left-4 -top-14 pointer-events-none animate-bounce-slow">
             <div className="absolute inset-2 rounded-full bg-gradient-to-r from-red-500 to-orange-400 opacity-50 blur-xl group-hover:opacity-80 transition-opacity" />
             <img
               src={danielaAvatar}
               alt="Daniela"
-              className="relative h-24 w-24 object-contain object-bottom drop-shadow-[0_8px_16px_rgba(0,0,0,0.35)]"
+              className="relative h-32 w-32 object-contain object-bottom drop-shadow-[0_8px_16px_rgba(0,0,0,0.35)]"
             />
-            <span className="absolute bottom-1 right-3 h-3 w-3 rounded-full bg-green-400 border-2 border-white animate-pulse" />
+            <span className="absolute bottom-1 right-5 h-3 w-3 rounded-full bg-green-400 border-2 border-white animate-pulse" />
           </div>
           <div className="flex flex-col items-start leading-tight">
             <span className="text-[11px] font-semibold text-white/80 uppercase tracking-wide">Meet Daniela</span>
